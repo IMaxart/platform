@@ -1,60 +1,61 @@
 const parseIntOr = ({
-  value,
   fallback,
+  value,
 }: {
-  value: string | undefined;
-  fallback: number;
+  fallback: number
+  value: string | undefined
 }) => {
-  if (value === undefined) return fallback;
-  const parsed = Number.parseInt(value, 10);
-  return Number.isFinite(parsed) ? parsed : fallback;
-};
+  if (value === undefined) return fallback
+  const parsed = Number.parseInt(value, 10)
+  return Number.isFinite(parsed) ? parsed : fallback
+}
 
 export type Env = {
-  port: number;
-  hostname: string;
-  adminHost: string;
-  adminWriteToken: string | null;
-  dbPath: string;
-  internalTraefikBaseUrl: string;
-  internetCheckUrl: string;
-  internetIntervalSec: number;
-  maintenanceIntervalSec: number;
-  checksRetentionHours: number;
-  dokployBaseUrl: string | null;
-  dokployApiKey: string | null;
-  dokploySyncIntervalSec: number;
-};
+  adminHost: string
+  adminWriteToken: null | string
+  checksRetentionHours: number
+  dbPath: string
+  dokployApiKey: null | string
+  dokployBaseUrl: null | string
+  dokploySyncIntervalSec: number
+  hostname: string
+  internalTraefikBaseUrl: string
+  internetCheckUrl: string
+  internetIntervalSec: number
+  maintenanceIntervalSec: number
+  port: number
+}
 
 export const getEnv = (): Env => {
-  const port = parseIntOr({ value: process.env.PORT, fallback: 3000 });
+  const env = process.env
+  const port = parseIntOr({ fallback: 3000, value: env['PORT'] })
 
   return {
-    port,
-    hostname: process.env.HOSTNAME ?? "0.0.0.0",
-    adminHost: process.env.ADMIN_HOST ?? "status.imaxart.com",
-    adminWriteToken: process.env.ADMIN_WRITE_TOKEN ?? null,
-    dbPath: process.env.STATUS_DB_PATH ?? "./.local/status.sqlite",
+    adminHost: env['ADMIN_HOST'] ?? 'status.imaxart.com',
+    adminWriteToken: env['ADMIN_WRITE_TOKEN'] ?? null,
+    checksRetentionHours: parseIntOr({
+      fallback: 48,
+      value: env['CHECKS_RETENTION_HOURS'],
+    }),
+    dbPath: env['STATUS_DB_PATH'] ?? './.local/status.sqlite',
+    dokployApiKey: env['DOKPLOY_API_KEY'] ?? null,
+    dokployBaseUrl: env['DOKPLOY_BASE_URL'] ?? null,
+    dokploySyncIntervalSec: parseIntOr({
+      fallback: 300,
+      value: env['DOKPLOY_SYNC_INTERVAL_SEC'],
+    }),
+    hostname: env['HOSTNAME'] ?? '0.0.0.0',
     internalTraefikBaseUrl:
-      process.env.INTERNAL_TRAEFIK_BASE_URL ?? "http://traefik",
-    internetCheckUrl: process.env.INTERNET_CHECK_URL ?? "https://1.1.1.1",
+      env['INTERNAL_TRAEFIK_BASE_URL'] ?? 'http://traefik',
+    internetCheckUrl: env['INTERNET_CHECK_URL'] ?? 'https://1.1.1.1',
     internetIntervalSec: parseIntOr({
-      value: process.env.INTERNET_INTERVAL_SEC,
       fallback: 30,
+      value: env['INTERNET_INTERVAL_SEC'],
     }),
     maintenanceIntervalSec: parseIntOr({
-      value: process.env.MAINTENANCE_INTERVAL_SEC,
       fallback: 300,
+      value: env['MAINTENANCE_INTERVAL_SEC'],
     }),
-    checksRetentionHours: parseIntOr({
-      value: process.env.CHECKS_RETENTION_HOURS,
-      fallback: 48,
-    }),
-    dokployBaseUrl: process.env.DOKPLOY_BASE_URL ?? null,
-    dokployApiKey: process.env.DOKPLOY_API_KEY ?? null,
-    dokploySyncIntervalSec: parseIntOr({
-      value: process.env.DOKPLOY_SYNC_INTERVAL_SEC,
-      fallback: 300,
-    }),
-  };
-};
+    port,
+  }
+}

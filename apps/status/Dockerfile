@@ -1,28 +1,32 @@
-FROM oven/bun:1.3.8 AS build
-
+FROM node:22-slim AS deps
 WORKDIR /app
+RUN corepack enable && corepack prepare pnpm@latest --activate
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc ./
+COPY apps/status/package.json ./apps/status/
+COPY packages/ui/package.json ./packages/ui/
+COPY packages/tsconfig/package.json ./packages/tsconfig/
+RUN pnpm install --frozen-lockfile
 
-COPY package.json bun.lock ./
-RUN bun install --frozen-lockfile
-
+FROM node:22-slim AS build
+WORKDIR /app
+RUN corepack enable && corepack prepare pnpm@latest --activate
+COPY --from=deps /app ./
 COPY . .
-RUN bun run build
-
-
-FROM oven/bun:1.3.8 AS runtime
-
-WORKDIR /app
 ENV NODE_ENV=production
+RUN pnpm turbo build --filter=@platform/status
 
-COPY --from=build /app/node_modules /app/node_modules
-COPY --from=build /app/server.ts /app/server.ts
-COPY --from=build /app/src /app/src
-COPY --from=build /app/dist /app/dist
-COPY --from=build /app/public /app/public
+FROM oven/bun:1 AS runtime
+WORKDIR /app/apps/status
+COPY --from=deps /app/node_modules /app/node_modules
+COPY --from=deps /app/apps/status/node_modules /app/apps/status/node_modules
+COPY --from=build /app/apps/status/dist ./dist
+COPY --from=build /app/apps/status/public ./public
+COPY --from=build /app/apps/status/server.ts ./server.ts
+COPY --from=build /app/apps/status/src ./src
+COPY --from=build /app/apps/status/package.json ./package.json
 
+ENV NODE_ENV=production
 ENV STATUS_DB_PATH=/data/status.sqlite
-
-EXPOSE 3000
+EXPOSE 3001
 
 CMD ["bun", "run", "server.ts"]
-

@@ -1,6 +1,11 @@
 import type { ReactNode } from 'react'
 
-import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@platform/ui/components/card'
 
 type StatCardProps = {
   description?: string

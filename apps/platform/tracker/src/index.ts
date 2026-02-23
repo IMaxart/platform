@@ -11,7 +11,7 @@ import { getSession } from './session'
 const isDNTEnabled = (): boolean => {
   const dnt =
     navigator.doNotTrack ??
-    (window as unknown as Record<string, string>).doNotTrack
+    (window as unknown as Record<string, string>)['doNotTrack']
   return dnt === '1' || dnt === 'yes'
 }
 
@@ -80,11 +80,16 @@ const init = () => {
   const api: AnalyticsAPI = {
     getFlag: (key) => getFlag({ endpoint, key, sessionId: session.id }),
     track: (name, properties) => {
-      trackEvent({ config, name, properties, sessionId: session.id })
+      trackEvent({
+        config,
+        name,
+        ...(properties !== undefined && { properties }),
+        sessionId: session.id,
+      })
     },
   }
 
-  ;(window as unknown as Record<string, AnalyticsAPI>).analytics = api
+  ;(window as unknown as Record<string, AnalyticsAPI>)['analytics'] = api
 }
 
 const scheduleInit = () => {

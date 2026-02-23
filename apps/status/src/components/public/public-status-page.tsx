@@ -1,57 +1,64 @@
-import { StatusBadge } from "~/components/status/status-badge";
-import { bucketChecks } from "~/components/status/timeline";
-import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
-import type { PublicPageResponse } from "~/shared/api-types";
+import type { PublicPageResponse } from '~/shared/api-types'
 
-type PublicMode = Extract<PublicPageResponse, { mode: "public" }>;
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@platform/ui/components/card'
 
-const formatPercent = ({ value }: { value: number | null }) => {
-  if (value === null) return "—";
-  return `${value.toFixed(3)}%`;
-};
+import { StatusBadge } from '~/components/status/status-badge'
+import { bucketChecks } from '~/components/status/timeline'
+
+type PublicMode = Extract<PublicPageResponse, { mode: 'public' }>
+
+const formatPercent = ({ value }: { value: null | number }) => {
+  if (value === null) return '—'
+  return `${value.toFixed(3)}%`
+}
 
 const colorClass = ({
   state,
 }: {
-  state: "UP" | "DEGRADED" | "DOWN" | "UNKNOWN";
+  state: 'DEGRADED' | 'DOWN' | 'UNKNOWN' | 'UP'
 }) => {
-  if (state === "UP") return "bg-emerald-500";
-  if (state === "DEGRADED") return "bg-amber-500";
-  if (state === "DOWN") return "bg-red-600";
-  return "bg-muted";
-};
+  if (state === 'UP') return 'bg-emerald-500'
+  if (state === 'DEGRADED') return 'bg-amber-500'
+  if (state === 'DOWN') return 'bg-red-600'
+  return 'bg-muted'
+}
 
 const Timeline = ({
-  points,
   endMs,
+  points,
 }: {
-  points: { atMs: number; ok: 0 | 1; degraded: 0 | 1 }[];
-  endMs: number;
+  endMs: number
+  points: { atMs: number; degraded: 0 | 1; ok: 0 | 1; }[]
 }) => {
-  const startMs = endMs - 24 * 60 * 60 * 1000;
-  const bucketMs = 5 * 60 * 1000;
-  const buckets = bucketChecks({ points, startMs, endMs, bucketMs });
+  const startMs = endMs - 24 * 60 * 60 * 1000
+  const bucketMs = 5 * 60 * 1000
+  const buckets = bucketChecks({ bucketMs, endMs, points, startMs })
 
   return (
     <div className="grid grid-cols-[repeat(24,minmax(0,1fr))] gap-1">
       {Array.from({ length: 24 }, (_, hourIdx) => {
-        const startIdx = hourIdx * 12;
-        const hourBuckets = buckets.slice(startIdx, startIdx + 12);
+        const startIdx = hourIdx * 12
+        const hourBuckets = buckets.slice(startIdx, startIdx + 12)
         return (
-          <div key={hourIdx} className="grid grid-cols-12 gap-1">
+          <div className="grid grid-cols-12 gap-1" key={hourIdx}>
             {hourBuckets.map((state, idx) => (
               <div
-                key={`${hourIdx}-${idx}`}
                 className={`h-2 w-full rounded-sm ${colorClass({ state })}`}
-                title={`${state}`}
+                key={`${hourIdx}-${idx}`}
+                title={state}
               />
             ))}
           </div>
-        );
+        )
       })}
     </div>
-  );
-};
+  )
+}
 
 export const PublicStatusPage = ({ data }: { data: PublicMode }) => {
   return (
@@ -63,10 +70,10 @@ export const PublicStatusPage = ({ data }: { data: PublicMode }) => {
           </h1>
           <div className="text-muted-foreground text-sm">{data.host}</div>
           <div className="text-muted-foreground mt-1 text-xs">
-            Last deploy:{" "}
+            Last deploy:{' '}
             {data.deploy?.lastDeployedAtMs
               ? new Date(data.deploy.lastDeployedAtMs).toLocaleString()
-              : "—"}
+              : '—'}
           </div>
         </div>
         <StatusBadge state={data.serviceState} />
@@ -103,12 +110,12 @@ export const PublicStatusPage = ({ data }: { data: PublicMode }) => {
         <h2 className="text-xl font-semibold">Endpoints</h2>
         <div className="grid gap-4">
           {data.endpoints.map((endpoint) => {
-            const points = data.checks24hByEndpointId[endpoint.id] ?? [];
-            const state = endpoint.latest?.state ?? "UNKNOWN";
+            const points = data.checks24hByEndpointId[endpoint.id] ?? []
+            const state = endpoint.latest?.state ?? 'UNKNOWN'
             const lastCheckedAt =
               endpoint.latest?.atMs === undefined
-                ? "—"
-                : new Date(endpoint.latest.atMs).toLocaleString();
+                ? '—'
+                : new Date(endpoint.latest.atMs).toLocaleString()
 
             return (
               <Card key={endpoint.id}>
@@ -119,7 +126,7 @@ export const PublicStatusPage = ({ data }: { data: PublicMode }) => {
                       Last check: {lastCheckedAt}
                       {endpoint.latest?.latencyMs === null ||
                       endpoint.latest?.latencyMs === undefined
-                        ? ""
+                        ? ''
                         : ` • ${endpoint.latest.latencyMs}ms`}
                     </div>
                   </div>
@@ -146,13 +153,13 @@ export const PublicStatusPage = ({ data }: { data: PublicMode }) => {
                       </div>
                     </div>
                   </div>
-                  <Timeline points={points} endMs={data.nowMs} />
+                  <Timeline endMs={data.nowMs} points={points} />
                 </CardContent>
               </Card>
-            );
+            )
           })}
         </div>
       </section>
     </main>
-  );
-};
+  )
+}

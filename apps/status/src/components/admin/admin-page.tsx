@@ -1,139 +1,143 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useMemo, useState } from "react";
+import type { AdminServicesResponse, DokployRefType } from '~/shared/api-types'
 
-import { StatusBadge } from "~/components/status/status-badge";
-import { Button } from "~/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
-import { Input } from "~/components/ui/input";
-import { fetchJson } from "~/lib/api-client";
-import type { AdminServicesResponse, DokployRefType } from "~/shared/api-types";
+import { Button } from '@platform/ui/components/button'
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@platform/ui/components/card'
+import { Input } from '@platform/ui/components/input'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useEffect, useMemo, useState } from 'react'
 
-const ADMIN_TOKEN_STORAGE_KEY = "status.adminToken";
+import { StatusBadge } from '~/components/status/status-badge'
+import { fetchJson } from '~/lib/api-client'
+
+const ADMIN_TOKEN_STORAGE_KEY = 'status.adminToken'
 
 const getTokenFromStorage = () => {
-  if (typeof window === "undefined") return null;
-  return window.localStorage.getItem(ADMIN_TOKEN_STORAGE_KEY);
-};
+  if (typeof window === 'undefined') return null
+  return window.localStorage.getItem(ADMIN_TOKEN_STORAGE_KEY)
+}
 
 const setTokenInStorage = ({ token }: { token: string }) => {
-  window.localStorage.setItem(ADMIN_TOKEN_STORAGE_KEY, token);
-};
+  window.localStorage.setItem(ADMIN_TOKEN_STORAGE_KEY, token)
+}
 
 const clearTokenInStorage = () => {
-  window.localStorage.removeItem(ADMIN_TOKEN_STORAGE_KEY);
-};
+  window.localStorage.removeItem(ADMIN_TOKEN_STORAGE_KEY)
+}
 
 const useAdminToken = () => {
-  const [token, setToken] = useState<string | null>(null);
+  const [token, setToken] = useState<null | string>(() => getTokenFromStorage())
 
-  useEffect(() => {
-    setToken(getTokenFromStorage());
-  }, []);
-
-  const tokenValue = token ?? "";
+  const tokenValue = token ?? ''
 
   return {
     token: {
-      value: tokenValue,
+      clear: () => {
+        setToken(null)
+        clearTokenInStorage()
+      },
       isSet: tokenValue.length > 0,
       set: (next: string) => {
-        setToken(next.length === 0 ? null : next);
+        setToken(next.length === 0 ? null : next)
         if (next.length === 0) {
-          clearTokenInStorage();
-          return;
+          clearTokenInStorage()
+          return
         }
-        setTokenInStorage({ token: next });
+        setTokenInStorage({ token: next })
       },
-      clear: () => {
-        setToken(null);
-        clearTokenInStorage();
-      },
+      value: tokenValue,
     },
-  };
-};
+  }
+}
 
 const adminHeaders = ({ token }: { token: string }) => {
   return {
-    "x-admin-token": token,
-  };
-};
-
-type NewServiceForm = {
-  slug: string;
-  name: string;
-  primaryDomain: string;
-  publicStatusHost: string;
-};
+    'x-admin-token': token,
+  }
+}
 
 type NewEndpointForm = {
-  key: string;
-  displayName: string;
-  internalMode: "directUrl" | "traefikHost";
-  internalUrl: string;
-  internalHost: string;
-  internalPath: string;
-  publicUrl: string;
-  intervalSec: string;
-  timeoutMs: string;
-  degradedMs: string;
-};
+  degradedMs: string
+  displayName: string
+  internalHost: string
+  internalMode: 'directUrl' | 'traefikHost'
+  internalPath: string
+  internalUrl: string
+  intervalSec: string
+  key: string
+  publicUrl: string
+  timeoutMs: string
+}
+
+type NewServiceForm = {
+  name: string
+  primaryDomain: string
+  publicStatusHost: string
+  slug: string
+}
 
 const DokployConfigForm = ({
+  initial,
   serviceId,
   token,
-  initial,
 }: {
-  serviceId: string;
-  token: string;
-  initial: {
-    type: DokployRefType;
-    refId: string;
-    lastDeployedAtMs: number | null;
-    lastSyncAtMs: number;
-  } | null;
+  initial: null | {
+    lastDeployedAtMs: null | number
+    lastSyncAtMs: number
+    refId: string
+    type: DokployRefType
+  }
+  serviceId: string
+  token: string
 }) => {
-  const queryClient = useQueryClient();
+  const queryClient = useQueryClient()
   const [type, setType] = useState<DokployRefType>(
-    initial?.type ?? "application"
-  );
-  const [refId, setRefId] = useState<string>(initial?.refId ?? "");
+    initial?.type ?? 'application',
+  )
+  const [refId, setRefId] = useState<string>(initial?.refId ?? '')
 
+  /* eslint-disable react-hooks/set-state-in-effect -- syncing state with prop changes */
   useEffect(() => {
-    if (!initial) return;
-    setType(initial.type);
-    setRefId(initial.refId);
-  }, [initial]);
+    if (!initial) return
+    setType(initial.type)
+    setRefId(initial.refId)
+  }, [initial])
+  /* eslint-enable react-hooks/set-state-in-effect */
 
-  const canSave = refId.trim().length > 0;
+  const canSave = refId.trim().length > 0
 
   const save = useMutation({
     mutationFn: async () => {
       return await fetchJson({
-        url: `/api/admin/services/${serviceId}/dokploy`,
         init: {
-          method: "PATCH",
+          body: JSON.stringify({
+            refId: refId.trim(),
+            type,
+          }),
           headers: {
             ...adminHeaders({ token }),
-            "content-type": "application/json",
+            'content-type': 'application/json',
           },
-          body: JSON.stringify({
-            type,
-            refId: refId.trim(),
-          }),
+          method: 'PATCH',
         },
-      });
+        url: `/api/admin/services/${serviceId}/dokploy`,
+      })
     },
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["adminServices"] });
+      await queryClient.invalidateQueries({ queryKey: ['adminServices'] })
     },
-  });
+  })
 
   const lastDeployed = initial?.lastDeployedAtMs
     ? new Date(initial.lastDeployedAtMs).toLocaleString()
-    : "—";
+    : '—'
   const lastSync = initial?.lastSyncAtMs
     ? new Date(initial.lastSyncAtMs).toLocaleString()
-    : "—";
+    : '—'
 
   return (
     <Card>
@@ -143,19 +147,19 @@ const DokployConfigForm = ({
       <CardContent className="grid gap-3 sm:grid-cols-2">
         <select
           className="border-input bg-background h-9 w-full rounded-md border px-3 text-sm"
-          value={type}
           onChange={(e) =>
-            setType(e.target.value === "compose" ? "compose" : "application")
+            { setType(e.target.value === 'compose' ? 'compose' : 'application'); }
           }
+          value={type}
         >
           <option value="application">application</option>
           <option value="compose">compose</option>
         </select>
 
         <Input
+          onChange={(e) => { setRefId(e.target.value); }}
           placeholder="applicationId / composeId"
           value={refId}
-          onChange={(e) => setRefId(e.target.value)}
         />
 
         <div className="text-muted-foreground text-xs sm:col-span-2">
@@ -165,87 +169,87 @@ const DokployConfigForm = ({
         <div className="flex justify-end sm:col-span-2">
           <Button
             disabled={!canSave || save.isPending}
-            onClick={() => save.mutate()}
+            onClick={() => { save.mutate(); }}
           >
             Save Dokploy mapping
           </Button>
         </div>
       </CardContent>
     </Card>
-  );
-};
+  )
+}
 
 const AddEndpointForm = ({
   serviceId,
   token,
 }: {
-  serviceId: string;
-  token: string;
+  serviceId: string
+  token: string
 }) => {
-  const queryClient = useQueryClient();
+  const queryClient = useQueryClient()
   const [form, setForm] = useState<NewEndpointForm>({
-    key: "frontend",
-    displayName: "Frontend",
-    internalMode: "traefikHost",
-    internalUrl: "",
-    internalHost: "",
-    internalPath: "/",
-    publicUrl: "",
-    intervalSec: "60",
-    timeoutMs: "5000",
-    degradedMs: "2000",
-  });
+    degradedMs: '2000',
+    displayName: 'Frontend',
+    internalHost: '',
+    internalMode: 'traefikHost',
+    internalPath: '/',
+    internalUrl: '',
+    intervalSec: '60',
+    key: 'frontend',
+    publicUrl: '',
+    timeoutMs: '5000',
+  })
 
   const canSubmit = useMemo(() => {
-    if (form.key.trim().length === 0) return false;
-    if (form.displayName.trim().length === 0) return false;
-    if (form.internalPath.trim().length === 0) return false;
-    if (form.internalMode === "directUrl")
-      return form.internalUrl.trim().length > 0;
-    return form.internalHost.trim().length > 0;
-  }, [form]);
+    if (form.key.trim().length === 0) return false
+    if (form.displayName.trim().length === 0) return false
+    if (form.internalPath.trim().length === 0) return false
+    if (form.internalMode === 'directUrl')
+      return form.internalUrl.trim().length > 0
+    return form.internalHost.trim().length > 0
+  }, [form])
 
   const mutation = useMutation({
     mutationFn: async () => {
-      const intervalSec = Number.parseInt(form.intervalSec, 10);
-      const timeoutMs = Number.parseInt(form.timeoutMs, 10);
-      const degradedMs = Number.parseInt(form.degradedMs, 10);
+      const intervalSec = Number.parseInt(form.intervalSec, 10)
+      const timeoutMs = Number.parseInt(form.timeoutMs, 10)
+      const degradedMs = Number.parseInt(form.degradedMs, 10)
 
       return await fetchJson({
-        url: "/api/admin/endpoints",
         init: {
-          method: "POST",
-          headers: {
-            ...adminHeaders({ token }),
-            "content-type": "application/json",
-          },
           body: JSON.stringify({
-            serviceId,
-            key: form.key.trim(),
+            degradedMs: Number.isFinite(degradedMs) ? degradedMs : 2000,
             displayName: form.displayName.trim(),
-            internalMode: form.internalMode,
-            internalUrl:
-              form.internalUrl.trim().length > 0
-                ? form.internalUrl.trim()
-                : null,
             internalHost:
               form.internalHost.trim().length > 0
                 ? form.internalHost.trim()
                 : null,
+            internalMode: form.internalMode,
             internalPath: form.internalPath.trim(),
+            internalUrl:
+              form.internalUrl.trim().length > 0
+                ? form.internalUrl.trim()
+                : null,
+            intervalSec: Number.isFinite(intervalSec) ? intervalSec : 60,
+            key: form.key.trim(),
             publicUrl:
               form.publicUrl.trim().length > 0 ? form.publicUrl.trim() : null,
-            intervalSec: Number.isFinite(intervalSec) ? intervalSec : 60,
+            serviceId,
             timeoutMs: Number.isFinite(timeoutMs) ? timeoutMs : 5000,
-            degradedMs: Number.isFinite(degradedMs) ? degradedMs : 2000,
           }),
+          headers: {
+            ...adminHeaders({ token }),
+            'content-type': 'application/json',
+          },
+          method: 'POST',
         },
-      });
+        url: '/api/admin/endpoints',
+      })
     },
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ["adminServices"] });
+      await queryClient.invalidateQueries({ queryKey: ['adminServices'] })
     },
-  });
+  })
 
   return (
     <Card>
@@ -254,154 +258,154 @@ const AddEndpointForm = ({
       </CardHeader>
       <CardContent className="grid gap-3 sm:grid-cols-2">
         <Input
+          onChange={(e) => { setForm({ ...form, key: e.target.value }); }}
           placeholder="key (frontend/api)"
           value={form.key}
-          onChange={(e) => setForm({ ...form, key: e.target.value })}
         />
         <Input
+          onChange={(e) => { setForm({ ...form, displayName: e.target.value }); }}
           placeholder="display name"
           value={form.displayName}
-          onChange={(e) => setForm({ ...form, displayName: e.target.value })}
         />
 
         <select
           className="border-input bg-background h-9 w-full rounded-md border px-3 text-sm"
-          value={form.internalMode}
           onChange={(e) =>
-            setForm({
+            { setForm({
               ...form,
               internalMode:
-                e.target.value === "directUrl" ? "directUrl" : "traefikHost",
-            })
+                e.target.value === 'directUrl' ? 'directUrl' : 'traefikHost',
+            }); }
           }
+          value={form.internalMode}
         >
           <option value="traefikHost">traefikHost</option>
           <option value="directUrl">directUrl</option>
         </select>
         <Input
+          onChange={(e) => { setForm({ ...form, internalPath: e.target.value }); }}
           placeholder="internal path (e.g. /health or /)"
           value={form.internalPath}
-          onChange={(e) => setForm({ ...form, internalPath: e.target.value })}
         />
 
-        {form.internalMode === "directUrl" ? (
+        {form.internalMode === 'directUrl' ? (
           <Input
             className="sm:col-span-2"
+            onChange={(e) => { setForm({ ...form, internalUrl: e.target.value }); }}
             placeholder="internal URL (e.g. http://service:3000/health)"
             value={form.internalUrl}
-            onChange={(e) => setForm({ ...form, internalUrl: e.target.value })}
           />
         ) : (
           <Input
             className="sm:col-span-2"
+            onChange={(e) => { setForm({ ...form, internalHost: e.target.value }); }}
             placeholder="internal host (e.g. ingramkalina.pl)"
             value={form.internalHost}
-            onChange={(e) => setForm({ ...form, internalHost: e.target.value })}
           />
         )}
 
         <Input
           className="sm:col-span-2"
+          onChange={(e) => { setForm({ ...form, publicUrl: e.target.value }); }}
           placeholder="public URL (optional)"
           value={form.publicUrl}
-          onChange={(e) => setForm({ ...form, publicUrl: e.target.value })}
         />
 
         <Input
+          onChange={(e) => { setForm({ ...form, intervalSec: e.target.value }); }}
           placeholder="intervalSec"
           value={form.intervalSec}
-          onChange={(e) => setForm({ ...form, intervalSec: e.target.value })}
         />
         <Input
+          onChange={(e) => { setForm({ ...form, timeoutMs: e.target.value }); }}
           placeholder="timeoutMs"
           value={form.timeoutMs}
-          onChange={(e) => setForm({ ...form, timeoutMs: e.target.value })}
         />
 
         <Input
+          onChange={(e) => { setForm({ ...form, degradedMs: e.target.value }); }}
           placeholder="degradedMs"
           value={form.degradedMs}
-          onChange={(e) => setForm({ ...form, degradedMs: e.target.value })}
         />
         <div className="flex items-center justify-end">
           <Button
             disabled={!canSubmit || mutation.isPending}
-            onClick={() => mutation.mutate()}
+            onClick={() => { mutation.mutate(); }}
           >
             Create
           </Button>
         </div>
       </CardContent>
     </Card>
-  );
-};
+  )
+}
 
 export const AdminPage = () => {
-  const queryClient = useQueryClient();
-  const admin = useAdminToken();
-  const token = admin.token.value;
+  const queryClient = useQueryClient()
+  const admin = useAdminToken()
+  const token = admin.token.value
 
   const servicesQuery = useQuery({
-    queryKey: ["adminServices"],
     enabled: admin.token.isSet,
     queryFn: async () => {
       return await fetchJson<AdminServicesResponse>({
-        url: "/api/admin/services",
         init: {
           headers: adminHeaders({ token }),
         },
-      });
+        url: '/api/admin/services',
+      })
     },
+    queryKey: ['adminServices'],
     refetchInterval: 10_000,
-  });
+  })
 
   const [newService, setNewService] = useState<NewServiceForm>({
-    slug: "",
-    name: "",
-    primaryDomain: "",
-    publicStatusHost: "",
-  });
+    name: '',
+    primaryDomain: '',
+    publicStatusHost: '',
+    slug: '',
+  })
 
   const canCreateService = useMemo(() => {
-    if (!admin.token.isSet) return false;
-    if (newService.slug.trim().length === 0) return false;
-    if (newService.name.trim().length === 0) return false;
-    if (newService.publicStatusHost.trim().length === 0) return false;
-    return true;
-  }, [admin.token.isSet, newService]);
+    if (!admin.token.isSet) return false
+    if (newService.slug.trim().length === 0) return false
+    if (newService.name.trim().length === 0) return false
+    if (newService.publicStatusHost.trim().length === 0) return false
+    return true
+  }, [admin.token.isSet, newService])
 
   const createService = useMutation({
     mutationFn: async () => {
       return await fetchJson({
-        url: "/api/admin/services",
         init: {
-          method: "POST",
-          headers: {
-            ...adminHeaders({ token }),
-            "content-type": "application/json",
-          },
           body: JSON.stringify({
-            slug: newService.slug.trim(),
             name: newService.name.trim(),
             primaryDomain:
               newService.primaryDomain.trim().length > 0
                 ? newService.primaryDomain.trim()
                 : null,
             publicStatusHost: newService.publicStatusHost.trim(),
+            slug: newService.slug.trim(),
           }),
+          headers: {
+            ...adminHeaders({ token }),
+            'content-type': 'application/json',
+          },
+          method: 'POST',
         },
-      });
+        url: '/api/admin/services',
+      })
     },
     onSuccess: async () => {
       setNewService({
-        slug: "",
-        name: "",
-        primaryDomain: "",
-        publicStatusHost: "",
-      });
-      await queryClient.invalidateQueries({ queryKey: ["adminServices"] });
+        name: '',
+        primaryDomain: '',
+        publicStatusHost: '',
+        slug: '',
+      })
+      await queryClient.invalidateQueries({ queryKey: ['adminServices'] })
     },
-  });
+  })
 
   const servicesContent = (() => {
     if (!admin.token.isSet) {
@@ -411,7 +415,7 @@ export const AdminPage = () => {
             Set your token to load services.
           </CardContent>
         </Card>
-      );
+      )
     }
 
     if (servicesQuery.isPending) {
@@ -421,7 +425,7 @@ export const AdminPage = () => {
             Loading…
           </CardContent>
         </Card>
-      );
+      )
     }
 
     if (servicesQuery.isError || !servicesQuery.data) {
@@ -431,7 +435,7 @@ export const AdminPage = () => {
             Failed to load admin services.
           </CardContent>
         </Card>
-      );
+      )
     }
 
     return (
@@ -453,17 +457,17 @@ export const AdminPage = () => {
                     </div>
                   ) : (
                     service.endpoints.map((endpoint) => {
-                      const state = endpoint.latest?.state ?? "UNKNOWN";
+                      const state = endpoint.latest?.state ?? 'UNKNOWN'
                       const latency =
                         endpoint.latest?.latencyMs === null ||
                         endpoint.latest?.latencyMs === undefined
-                          ? "—"
-                          : `${endpoint.latest.latencyMs}ms`;
+                          ? '—'
+                          : `${endpoint.latest.latencyMs}ms`
 
                       return (
                         <div
-                          key={endpoint.id}
                           className="flex items-center justify-between rounded-md border px-3 py-2"
+                          key={endpoint.id}
                         >
                           <div>
                             <div className="font-medium">
@@ -475,24 +479,24 @@ export const AdminPage = () => {
                           </div>
                           <StatusBadge state={state} />
                         </div>
-                      );
+                      )
                     })
                   )}
                 </div>
 
                 <AddEndpointForm serviceId={service.id} token={token} />
                 <DokployConfigForm
+                  initial={service.deploy}
                   serviceId={service.id}
                   token={token}
-                  initial={service.deploy}
                 />
               </CardContent>
             </Card>
-          );
+          )
         })}
       </div>
-    );
-  })();
+    )
+  })()
 
   return (
     <main className="mx-auto w-full max-w-6xl space-y-6 px-4 py-8">
@@ -510,14 +514,14 @@ export const AdminPage = () => {
         </CardHeader>
         <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <Input
+            onChange={(e) => { admin.token.set(e.target.value); }}
             placeholder="x-admin-token"
             value={admin.token.value}
-            onChange={(e) => admin.token.set(e.target.value)}
           />
-          <Button variant="secondary" onClick={() => servicesQuery.refetch()}>
+          <Button onClick={() => servicesQuery.refetch()} variant="secondary">
             Refresh
           </Button>
-          <Button variant="ghost" onClick={() => admin.token.clear()}>
+          <Button onClick={() => { admin.token.clear(); }} variant="ghost">
             Clear
           </Button>
         </CardContent>
@@ -529,38 +533,38 @@ export const AdminPage = () => {
         </CardHeader>
         <CardContent className="grid gap-3 sm:grid-cols-2">
           <Input
+            onChange={(e) =>
+              { setNewService({ ...newService, slug: e.target.value }); }
+            }
             placeholder="slug (e.g. ingramkalina)"
             value={newService.slug}
-            onChange={(e) =>
-              setNewService({ ...newService, slug: e.target.value })
-            }
           />
           <Input
+            onChange={(e) =>
+              { setNewService({ ...newService, name: e.target.value }); }
+            }
             placeholder="name (e.g. ingramkalina.pl)"
             value={newService.name}
-            onChange={(e) =>
-              setNewService({ ...newService, name: e.target.value })
-            }
           />
           <Input
+            onChange={(e) =>
+              { setNewService({ ...newService, primaryDomain: e.target.value }); }
+            }
             placeholder="primaryDomain (optional)"
             value={newService.primaryDomain}
-            onChange={(e) =>
-              setNewService({ ...newService, primaryDomain: e.target.value })
-            }
           />
           <Input
+            onChange={(e) =>
+              { setNewService({ ...newService, publicStatusHost: e.target.value }); }
+            }
             placeholder="publicStatusHost (e.g. status.ingramkalina.pl)"
             value={newService.publicStatusHost}
-            onChange={(e) =>
-              setNewService({ ...newService, publicStatusHost: e.target.value })
-            }
           />
 
           <div className="flex justify-end sm:col-span-2">
             <Button
               disabled={!canCreateService || createService.isPending}
-              onClick={() => createService.mutate()}
+              onClick={() => { createService.mutate(); }}
             >
               Create service
             </Button>
@@ -573,5 +577,5 @@ export const AdminPage = () => {
         {servicesContent}
       </section>
     </main>
-  );
-};
+  )
+}

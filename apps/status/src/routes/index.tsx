@@ -1,14 +1,15 @@
-import { useQuery } from "@tanstack/react-query";
-import { createFileRoute, Navigate } from "@tanstack/react-router";
+import type { PublicPageResponse } from '~/shared/api-types'
 
-import { PublicStatusPage } from "~/components/public/public-status-page";
-import { Card, CardContent } from "~/components/ui/card";
-import { fetchJson } from "~/lib/api-client";
-import type { PublicPageResponse } from "~/shared/api-types";
+import { Card, CardContent } from '@platform/ui/components/card'
+import { useQuery } from '@tanstack/react-query'
+import { createFileRoute, Navigate } from '@tanstack/react-router'
 
-export const Route = createFileRoute("/")({
+import { PublicStatusPage } from '~/components/public/public-status-page'
+import { fetchJson } from '~/lib/api-client'
+
+export const Route = createFileRoute('/')({
   component: IndexRoute,
-});
+})
 
 const LoadingCard = ({ message }: { message: string }) => {
   return (
@@ -19,29 +20,29 @@ const LoadingCard = ({ message }: { message: string }) => {
         </CardContent>
       </Card>
     </main>
-  );
-};
+  )
+}
 
 function IndexRoute() {
   const pageQuery = useQuery({
-    queryKey: ["publicPage"],
     // Avoid server-side fetch for a relative URL during SSR. This route is CSR-only.
-    enabled: typeof window !== "undefined",
+    enabled: typeof window !== 'undefined',
     queryFn: async () => {
-      return await fetchJson<PublicPageResponse>({ url: "/api/public/page" });
+      return await fetchJson<PublicPageResponse>({ url: '/api/public/page' })
     },
+    queryKey: ['publicPage'],
     refetchInterval: 30_000,
-  });
+  })
 
-  if (pageQuery.isPending) return <LoadingCard message="Loading…" />;
+  if (pageQuery.isPending) return <LoadingCard message="Loading…" />
   if (pageQuery.isError || !pageQuery.data) {
-    return <LoadingCard message="Failed to load status page." />;
+    return <LoadingCard message="Failed to load status page." />
   }
 
-  const data = pageQuery.data;
-  if (data.mode === "public") return <PublicStatusPage data={data} />;
-  if (data.mode === "admin") return <Navigate to="/admin" />;
+  const data = pageQuery.data
+  if (data.mode === 'public') return <PublicStatusPage data={data} />
+  if (data.mode === 'admin') return <Navigate to="/admin" />
   return (
     <LoadingCard message={`No service configured for host: ${data.host}`} />
-  );
+  )
 }

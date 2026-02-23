@@ -1,6 +1,6 @@
 import crypto from 'node:crypto'
 
-import { db } from './index'
+import { db } from '@platform/db'
 import {
   consoleErrors,
   events,
@@ -8,7 +8,7 @@ import {
   pageViews,
   projects,
   sessions,
-} from './schema'
+} from '@platform/db/schema'
 
 const DEMO_PROJECT = {
   allowedOrigins: ['http://localhost:3000'],

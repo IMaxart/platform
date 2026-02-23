@@ -1,3 +1,19 @@
+import { Badge } from '@platform/ui/components/badge'
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@platform/ui/components/card'
+import { Skeleton } from '@platform/ui/components/skeleton'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@platform/ui/components/table'
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { Activity, Eye, MousePointerClick, Timer, Users } from 'lucide-react'
@@ -9,17 +25,6 @@ import { StatCard } from '~/components/dashboard/stat-card'
 import { TimeRangeSelect } from '~/components/dashboard/time-range-select'
 import { VisitorsChart } from '~/components/dashboard/visitors-chart'
 import { Header } from '~/components/layout/header'
-import { Badge } from '~/components/ui/badge'
-import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
-import { Skeleton } from '~/components/ui/skeleton'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '~/components/ui/table'
 import {
   getBotStats,
   getTopCountries,

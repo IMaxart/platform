@@ -1,3 +1,13 @@
+import { db } from '@platform/db'
+import {
+  consoleErrors,
+  events,
+  excludedDevices,
+  featureFlags,
+  pageViews,
+  projects,
+  sessions,
+} from '@platform/db/schema'
 import { createServerFn } from '@tanstack/react-start'
 import {
   and,
@@ -13,17 +23,6 @@ import {
   not,
   sql,
 } from 'drizzle-orm'
-
-import { db } from '~/lib/db'
-import {
-  consoleErrors,
-  events,
-  excludedDevices,
-  featureFlags,
-  pageViews,
-  projects,
-  sessions,
-} from '~/lib/db/schema'
 
 const getExcludedHashes = async (projectId: string): Promise<string[]> => {
   const excluded = await db

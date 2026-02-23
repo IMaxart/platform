@@ -1,37 +1,40 @@
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { createRootRoute, HeadContent, Scripts } from "@tanstack/react-router";
-import type { ReactNode } from "react";
-import { useState } from "react";
+import type { ReactNode } from 'react'
 
-import Header from "~/components/Header";
-import appCss from "~/styles/globals.css?url";
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { createRootRoute, HeadContent, Scripts } from '@tanstack/react-router'
+import { useState } from 'react'
+
+import Header from '~/components/Header'
+
+import appCss from '~/styles/globals.css?url'
 
 export const Route = createRootRoute({
   head: () => ({
-    meta: [
-      {
-        charSet: "utf-8",
-      },
-      {
-        name: "viewport",
-        content: "width=device-width, initial-scale=1",
-      },
-      {
-        title: "Status",
-      },
-    ],
     links: [
       {
-        rel: "stylesheet",
         href: appCss,
+        rel: 'stylesheet',
+      },
+    ],
+    meta: [
+      {
+        charSet: 'utf-8',
+      },
+      {
+        content: 'width=device-width, initial-scale=1',
+        name: 'viewport',
+      },
+      {
+        title: 'Status',
       },
     ],
   }),
   shellComponent: RootDocument,
-});
+})
 
 function RootDocument({ children }: { children: ReactNode }) {
-  const [queryClient] = useState(() => new QueryClient());
+  // eslint-disable-next-line react/hook-use-state -- stable QueryClient instance, setter intentionally unused
+  const [queryClient] = useState(() => new QueryClient())
 
   return (
     <html lang="pl">
@@ -46,5 +49,5 @@ function RootDocument({ children }: { children: ReactNode }) {
         <Scripts />
       </body>
     </html>
-  );
+  )
 }

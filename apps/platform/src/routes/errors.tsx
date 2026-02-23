@@ -1,3 +1,27 @@
+import { Badge } from '@platform/ui/components/badge'
+import { Button } from '@platform/ui/components/button'
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@platform/ui/components/card'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@platform/ui/components/dialog'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@platform/ui/components/table'
+import { Tabs, TabsList, TabsTrigger } from '@platform/ui/components/tabs'
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { AlertCircle, AlertTriangle } from 'lucide-react'
@@ -6,25 +30,6 @@ import { useTranslation } from 'react-i18next'
 
 import { TimeRangeSelect } from '~/components/dashboard/time-range-select'
 import { Header } from '~/components/layout/header'
-import { Badge } from '~/components/ui/badge'
-import { Button } from '~/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '~/components/ui/dialog'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '~/components/ui/table'
-import { Tabs, TabsList, TabsTrigger } from '~/components/ui/tabs'
 import { getConsoleErrors } from '~/lib/server/queries'
 
 export const Route = createFileRoute('/errors')({
@@ -45,7 +50,7 @@ function ErrorsPage() {
       getConsoleErrors({
         data: {
           days: daysNum,
-          level: level === 'all' ? undefined : level,
+          ...(level !== 'all' && { level }),
           projectId: DEMO_PROJECT_ID,
         },
       }),

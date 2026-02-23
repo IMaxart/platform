@@ -1,12 +1,11 @@
-import { useTranslation } from 'react-i18next'
-
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '~/components/ui/select'
+} from '@platform/ui/components/select'
+import { useTranslation } from 'react-i18next'
 
 const TIME_RANGES = [
   { key: 'today', value: '1' },

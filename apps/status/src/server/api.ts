@@ -1,72 +1,72 @@
+import type { Db } from './db'
+import type { Env } from './env'
+import type { CheckState, EndpointRow, ProbeKind, ServiceRow } from './types'
 import type {
   AdminServicesResponse,
   DokployRefType,
   PublicPageResponse,
-} from "~/shared/api-types";
+} from '~/shared/api-types'
 
-import type { Db } from "./db";
-import type { Env } from "./env";
-import { named } from "./sql";
-import type { CheckState, EndpointRow, ProbeKind, ServiceRow } from "./types";
+import { named } from './sql'
 
 const json = (body: unknown, init?: ResponseInit) => {
-  return Response.json(body, init);
-};
+  return Response.json(body, init)
+}
 
 const getRequestHost = ({ req }: { req: Request }) => {
-  const forwarded = req.headers.get("x-forwarded-host");
-  const host = forwarded ?? req.headers.get("host");
-  return host?.split(",")[0]?.trim() ?? null;
-};
+  const forwarded = req.headers.get('x-forwarded-host')
+  const host = forwarded ?? req.headers.get('host')
+  return host?.split(',')[0]?.trim() ?? null
+}
 
 const isLocalhostHost = ({ host }: { host: string }) => {
   return (
-    host.startsWith("localhost") ||
-    host.startsWith("127.0.0.1") ||
-    host.startsWith("0.0.0.0")
-  );
-};
+    host.startsWith('localhost') ||
+    host.startsWith('127.0.0.1') ||
+    host.startsWith('0.0.0.0')
+  )
+}
 
-const requireAdminToken = ({ req, env }: { req: Request; env: Env }) => {
-  const expected = env.adminWriteToken;
+const requireAdminToken = ({ env, req }: { env: Env; req: Request; }) => {
+  const expected = env.adminWriteToken
   if (!expected)
-    return { ok: false, error: "ADMIN_WRITE_TOKEN not configured" as const };
+    return { error: 'ADMIN_WRITE_TOKEN not configured' as const, ok: false }
 
-  const provided = req.headers.get("x-admin-token");
+  const provided = req.headers.get('x-admin-token')
   if (provided !== expected)
-    return { ok: false, error: "Invalid admin token" as const };
+    return { error: 'Invalid admin token' as const, ok: false }
 
-  return { ok: true as const };
-};
+  return { ok: true as const }
+}
 
 const endpointStateFromLatest = ({
   latest,
 }: {
-  latest: { ok: 0 | 1; degraded: 0 | 1 } | null;
+  latest: null | { degraded: 0 | 1; ok: 0 | 1; }
 }): CheckState => {
-  if (!latest) return "UNKNOWN";
-  if (latest.ok === 0) return "DOWN";
-  if (latest.degraded === 1) return "DEGRADED";
-  return "UP";
-};
+  if (!latest) return 'UNKNOWN'
+  if (latest.ok === 0) return 'DOWN'
+  if (latest.degraded === 1) return 'DEGRADED'
+  return 'UP'
+}
 
 const serviceStateFromEndpoints = ({
   endpointStates,
 }: {
-  endpointStates: CheckState[];
+  endpointStates: CheckState[]
 }): CheckState => {
-  if (endpointStates.includes("DOWN")) return "DOWN";
-  if (endpointStates.includes("DEGRADED")) return "DEGRADED";
-  if (endpointStates.includes("UP")) return "UP";
-  return "UNKNOWN";
-};
+  if (endpointStates.includes('DOWN')) return 'DOWN'
+  if (endpointStates.includes('DEGRADED')) return 'DEGRADED'
+  if (endpointStates.includes('UP')) return 'UP'
+  return 'UNKNOWN'
+}
 
-type PublicModeResponse = Extract<PublicPageResponse, { mode: "public" }>;
+type PublicModeResponse = Extract<PublicPageResponse, { mode: 'public' }>
 
-const getUptimePercent = ({ up, total }: { up: number; total: number }) => {
-  if (total === 0) return null;
-  return Number(((up / total) * 100).toFixed(3));
-};
+const getUptimePercent = ({ total, up }: { total: number; up: number; }) => {
+  if (total === 0) return null
+  return Number(((up / total) * 100).toFixed(3))
+}
 
 const computeUptimeFromChecks = ({
   db,
@@ -74,10 +74,10 @@ const computeUptimeFromChecks = ({
   probe,
   sinceMs,
 }: {
-  db: Db;
-  endpointId: string;
-  probe: ProbeKind;
-  sinceMs: number;
+  db: Db
+  endpointId: string
+  probe: ProbeKind
+  sinceMs: number
 }) => {
   const stmt = db.sqlite.prepare(`
     SELECT
@@ -85,14 +85,14 @@ const computeUptimeFromChecks = ({
       SUM(CASE WHEN ok = 1 THEN 1 ELSE 0 END) as up
     FROM checks
     WHERE endpointId = $endpointId AND probe = $probe AND atMs >= $sinceMs
-  `);
-  const row = stmt.get(named({ endpointId, probe, sinceMs })) as {
-    total: number;
-    up: number;
-  } | null;
-  if (!row) return null;
-  return getUptimePercent({ up: row.up ?? 0, total: row.total ?? 0 });
-};
+  `)
+  const row = stmt.get(named({ endpointId, probe, sinceMs })) as null | {
+    total: number
+    up: number
+  }
+  if (!row) return null
+  return getUptimePercent({ total: row.total ?? 0, up: row.up ?? 0 })
+}
 
 const computeUptimeFromDailyRollups = ({
   db,
@@ -100,27 +100,27 @@ const computeUptimeFromDailyRollups = ({
   probe,
   sinceMs,
 }: {
-  db: Db;
-  endpointId: string;
-  probe: ProbeKind;
-  sinceMs: number;
+  db: Db
+  endpointId: string
+  probe: ProbeKind
+  sinceMs: number
 }) => {
-  const rollups = db.getDailyRollups({ endpointId, probe, sinceMs });
-  const total = rollups.reduce((acc, r) => acc + r.total, 0);
-  const up = rollups.reduce((acc, r) => acc + r.up, 0);
-  return getUptimePercent({ up, total });
-};
+  const rollups = db.getDailyRollups({ endpointId, probe, sinceMs })
+  const total = rollups.reduce((acc, r) => acc + r.total, 0)
+  const up = rollups.reduce((acc, r) => acc + r.up, 0)
+  return getUptimePercent({ total, up })
+}
 
 const computeServiceUptimeFromChecks = ({
   db,
-  serviceId,
   probe,
+  serviceId,
   sinceMs,
 }: {
-  db: Db;
-  serviceId: string;
-  probe: ProbeKind;
-  sinceMs: number;
+  db: Db
+  probe: ProbeKind
+  serviceId: string
+  sinceMs: number
 }) => {
   const stmt = db.sqlite.prepare(`
     SELECT
@@ -129,26 +129,26 @@ const computeServiceUptimeFromChecks = ({
     FROM checks c
     JOIN endpoints e ON e.id = c.endpointId
     WHERE e.serviceId = $serviceId AND c.probe = $probe AND c.atMs >= $sinceMs
-  `);
+  `)
 
-  const row = stmt.get(named({ serviceId, probe, sinceMs })) as {
-    total: number;
-    up: number;
-  } | null;
-  if (!row) return null;
-  return getUptimePercent({ up: row.up ?? 0, total: row.total ?? 0 });
-};
+  const row = stmt.get(named({ probe, serviceId, sinceMs })) as null | {
+    total: number
+    up: number
+  }
+  if (!row) return null
+  return getUptimePercent({ total: row.total ?? 0, up: row.up ?? 0 })
+}
 
 const computeServiceUptimeFromDailyRollups = ({
   db,
-  serviceId,
   probe,
+  serviceId,
   sinceMs,
 }: {
-  db: Db;
-  serviceId: string;
-  probe: ProbeKind;
-  sinceMs: number;
+  db: Db
+  probe: ProbeKind
+  serviceId: string
+  sinceMs: number
 }) => {
   const stmt = db.sqlite.prepare(`
     SELECT
@@ -157,113 +157,113 @@ const computeServiceUptimeFromDailyRollups = ({
     FROM rollups_daily r
     JOIN endpoints e ON e.id = r.endpointId
     WHERE e.serviceId = $serviceId AND r.probe = $probe AND r.dayStartMs >= $sinceMs
-  `);
-  const row = stmt.get(named({ serviceId, probe, sinceMs })) as {
-    total: number;
-    up: number;
-  } | null;
-  if (!row) return null;
-  return getUptimePercent({ up: row.up ?? 0, total: row.total ?? 0 });
-};
+  `)
+  const row = stmt.get(named({ probe, serviceId, sinceMs })) as null | {
+    total: number
+    up: number
+  }
+  if (!row) return null
+  return getUptimePercent({ total: row.total ?? 0, up: row.up ?? 0 })
+}
 
 export const handleApiRequest = async ({
-  req,
   db,
   env,
+  req,
 }: {
-  req: Request;
-  db: Db;
-  env: Env;
+  db: Db
+  env: Env
+  req: Request
 }): Promise<Response> => {
   try {
-    const url = new URL(req.url);
-    const host = getRequestHost({ req });
-    if (!host) return json({ error: "Missing Host header" }, { status: 400 });
+    const url = new URL(req.url)
+    const host = getRequestHost({ req })
+    if (!host) return json({ error: 'Missing Host header' }, { status: 400 })
 
-    if (url.pathname === "/api/public/page" && req.method === "GET") {
-      const isAdminHost = host === env.adminHost || isLocalhostHost({ host });
+    if (url.pathname === '/api/public/page' && req.method === 'GET') {
+      const isAdminHost = host === env.adminHost || isLocalhostHost({ host })
       if (isAdminHost) {
         const resp: PublicPageResponse = {
-          mode: "admin",
-          host,
           adminHost: env.adminHost,
-        };
-        return json(resp);
+          host,
+          mode: 'admin',
+        }
+        return json(resp)
       }
 
-      const service = db.getServiceByPublicHost({ host });
+      const service = db.getServiceByPublicHost({ host })
       if (!service) {
         const resp: PublicPageResponse = {
-          mode: "notFound",
-          host,
           adminHost: env.adminHost,
-        };
-        return json(resp, { status: 404 });
+          host,
+          mode: 'notFound',
+        }
+        return json(resp, { status: 404 })
       }
 
       const endpoints = db
         .listEndpointsByServiceId({ serviceId: service.id })
-        .filter((e) => e.enabled === 1);
+        .filter((e) => e.enabled === 1)
 
-      const nowMs = Date.now();
-      const since24hMs = nowMs - 24 * 60 * 60 * 1000;
-      const since90dMs = nowMs - 90 * 24 * 60 * 60 * 1000;
-      const since365dMs = nowMs - 365 * 24 * 60 * 60 * 1000;
+      const nowMs = Date.now()
+      const since24hMs = nowMs - 24 * 60 * 60 * 1000
+      const since90dMs = nowMs - 90 * 24 * 60 * 60 * 1000
+      const since365dMs = nowMs - 365 * 24 * 60 * 60 * 1000
 
-      const checks24hByEndpointId: PublicModeResponse["checks24hByEndpointId"] =
+      const checks24hByEndpointId: PublicModeResponse['checks24hByEndpointId'] =
         Object.fromEntries(
           endpoints.map((e) => [
             e.id,
             db
               .listChecksSince({
                 endpointId: e.id,
-                probe: "internal",
+                probe: 'internal',
                 sinceMs: since24hMs,
               })
               .map((c) => ({
                 atMs: c.atMs,
-                ok: c.ok,
                 degraded: c.degraded,
                 latencyMs: c.latencyMs,
+                ok: c.ok,
               })),
-          ])
-        );
+          ]),
+        )
 
       const endpointsWithStatus = endpoints.map((e) => {
         const latest = db.getLatestCheck({
           endpointId: e.id,
-          probe: "internal",
-        });
-        const state = endpointStateFromLatest({ latest });
+          probe: 'internal',
+        })
+        const state = endpointStateFromLatest({ latest })
 
         const uptimeLast24h = computeUptimeFromChecks({
           db,
           endpointId: e.id,
-          probe: "internal",
+          probe: 'internal',
           sinceMs: since24hMs,
-        });
+        })
         const uptimeLast90d = computeUptimeFromDailyRollups({
           db,
           endpointId: e.id,
-          probe: "internal",
+          probe: 'internal',
           sinceMs: since90dMs,
-        });
+        })
         const uptimeLast365d = computeUptimeFromDailyRollups({
           db,
           endpointId: e.id,
-          probe: "internal",
+          probe: 'internal',
           sinceMs: since365dMs,
-        });
+        })
 
         return {
           ...e,
           latest: latest
             ? {
                 atMs: latest.atMs,
+                errorKind: latest.errorKind,
+                latencyMs: latest.latencyMs,
                 state,
                 statusCode: latest.statusCode,
-                latencyMs: latest.latencyMs,
-                errorKind: latest.errorKind,
               }
             : null,
           uptime: {
@@ -271,59 +271,59 @@ export const handleApiRequest = async ({
             last90d: uptimeLast90d,
             last365d: uptimeLast365d,
           },
-        };
-      });
+        }
+      })
 
       const endpointStates = endpointsWithStatus.map(
-        (e) => e.latest?.state ?? "UNKNOWN"
-      );
-      const serviceState = serviceStateFromEndpoints({ endpointStates });
+        (e) => e.latest?.state ?? 'UNKNOWN',
+      )
+      const serviceState = serviceStateFromEndpoints({ endpointStates })
 
       const serviceUptime24h = computeServiceUptimeFromChecks({
         db,
+        probe: 'internal',
         serviceId: service.id,
-        probe: "internal",
         sinceMs: since24hMs,
-      });
+      })
       const serviceUptime90d = computeServiceUptimeFromDailyRollups({
         db,
+        probe: 'internal',
         serviceId: service.id,
-        probe: "internal",
         sinceMs: since90dMs,
-      });
+      })
       const serviceUptime365d = computeServiceUptimeFromDailyRollups({
         db,
+        probe: 'internal',
         serviceId: service.id,
-        probe: "internal",
         sinceMs: since365dMs,
-      });
+      })
 
       const resp: PublicPageResponse = {
-        mode: "public",
-        host,
-        nowMs,
+        checks24hByEndpointId,
         deploy: (() => {
-          const row = db.getServiceDokploy({ serviceId: service.id });
-          if (!row) return null;
-          return { lastDeployedAtMs: row.lastDeployedAtMs };
+          const row = db.getServiceDokploy({ serviceId: service.id })
+          if (!row) return null
+          return { lastDeployedAtMs: row.lastDeployedAtMs }
         })(),
-        service,
         endpoints: endpointsWithStatus,
+        host,
+        mode: 'public',
+        nowMs,
+        service,
         serviceState,
         serviceUptime: {
           last24h: serviceUptime24h,
           last90d: serviceUptime90d,
           last365d: serviceUptime365d,
         },
-        checks24hByEndpointId,
-      };
+      }
 
-      return json(resp);
+      return json(resp)
     }
 
-    if (url.pathname === "/api/admin/services" && req.method === "GET") {
-      const auth = requireAdminToken({ req, env });
-      if (!auth.ok) return json({ error: auth.error }, { status: 401 });
+    if (url.pathname === '/api/admin/services' && req.method === 'GET') {
+      const auth = requireAdminToken({ env, req })
+      if (!auth.ok) return json({ error: auth.error }, { status: 401 })
 
       const resp: AdminServicesResponse = {
         services: db.listServices().map((s) => ({
@@ -334,96 +334,96 @@ export const handleApiRequest = async ({
             .map((e) => {
               const latest = db.getLatestCheck({
                 endpointId: e.id,
-                probe: "internal",
-              });
-              const state = endpointStateFromLatest({ latest });
+                probe: 'internal',
+              })
+              const state = endpointStateFromLatest({ latest })
               return {
                 ...e,
                 latest: latest
                   ? {
                       atMs: latest.atMs,
+                      errorKind: latest.errorKind,
+                      latencyMs: latest.latencyMs,
                       state,
                       statusCode: latest.statusCode,
-                      latencyMs: latest.latencyMs,
-                      errorKind: latest.errorKind,
                     }
                   : null,
-              };
+              }
             }),
         })),
-      };
-      return json(resp);
+      }
+      return json(resp)
     }
 
-    if (url.pathname === "/api/admin/services" && req.method === "POST") {
-      const auth = requireAdminToken({ req, env });
-      if (!auth.ok) return json({ error: auth.error }, { status: 401 });
+    if (url.pathname === '/api/admin/services' && req.method === 'POST') {
+      const auth = requireAdminToken({ env, req })
+      if (!auth.ok) return json({ error: auth.error }, { status: 401 })
 
-      const body: unknown = await req.json().catch(() => null);
-      if (!body || typeof body !== "object")
-        return json({ error: "Invalid JSON body" }, { status: 400 });
+      const body: unknown = await req.json().catch(() => null)
+      if (!body || typeof body !== 'object')
+        return json({ error: 'Invalid JSON body' }, { status: 400 })
 
       const parsed = body as Partial<{
-        slug: string;
-        name: string;
-        primaryDomain: string | null;
-        publicStatusHost: string;
-      }>;
+        name: string
+        primaryDomain: null | string
+        publicStatusHost: string
+        slug: string
+      }>
 
       if (!parsed.slug || !parsed.name || !parsed.publicStatusHost) {
         return json(
-          { error: "slug, name, publicStatusHost are required" },
-          { status: 400 }
-        );
+          { error: 'slug, name, publicStatusHost are required' },
+          { status: 400 },
+        )
       }
 
       const service: ServiceRow = {
+        createdAtMs: Date.now(),
+        enabled: 1,
         id: crypto.randomUUID(),
-        slug: parsed.slug,
         name: parsed.name,
         primaryDomain: parsed.primaryDomain ?? null,
         publicStatusHost: parsed.publicStatusHost,
-        enabled: 1,
-        createdAtMs: Date.now(),
-      };
-      db.upsertService({ service });
-      return json({ service }, { status: 201 });
+        slug: parsed.slug,
+      }
+      db.upsertService({ service })
+      return json({ service }, { status: 201 })
     }
 
     if (
-      url.pathname.startsWith("/api/admin/services/") &&
-      req.method === "PATCH"
+      url.pathname.startsWith('/api/admin/services/') &&
+      req.method === 'PATCH'
     ) {
-      const auth = requireAdminToken({ req, env });
-      if (!auth.ok) return json({ error: auth.error }, { status: 401 });
+      const auth = requireAdminToken({ env, req })
+      if (!auth.ok) return json({ error: auth.error }, { status: 401 })
 
-      const id = url.pathname.replace("/api/admin/services/", "");
-      if (!id) return json({ error: "Missing id" }, { status: 400 });
+      const id = url.pathname.replace('/api/admin/services/', '')
+      if (!id) return json({ error: 'Missing id' }, { status: 400 })
 
-      const body: unknown = await req.json().catch(() => null);
-      if (!body || typeof body !== "object")
-        return json({ error: "Invalid JSON body" }, { status: 400 });
+      const body: unknown = await req.json().catch(() => null)
+      if (!body || typeof body !== 'object')
+        return json({ error: 'Invalid JSON body' }, { status: 400 })
       const parsed = body as Partial<
         Pick<
           ServiceRow,
-          "slug" | "name" | "primaryDomain" | "publicStatusHost" | "enabled"
+          'enabled' | 'name' | 'primaryDomain' | 'publicStatusHost' | 'slug'
         >
-      >;
+      >
 
-      db.updateService({ id, patch: parsed });
-      const service = db.getServiceById({ id });
-      return json({ service });
+      db.updateService({ id, patch: parsed })
+      const service = db.getServiceById({ id })
+      return json({ service })
     }
 
-    if (url.pathname === "/api/admin/endpoints" && req.method === "POST") {
-      const auth = requireAdminToken({ req, env });
-      if (!auth.ok) return json({ error: auth.error }, { status: 401 });
+    if (url.pathname === '/api/admin/endpoints' && req.method === 'POST') {
+      const auth = requireAdminToken({ env, req })
+      if (!auth.ok) return json({ error: auth.error }, { status: 401 })
 
-      const body: unknown = await req.json().catch(() => null);
-      if (!body || typeof body !== "object")
-        return json({ error: "Invalid JSON body" }, { status: 400 });
+      const body: unknown = await req.json().catch(() => null)
+      if (!body || typeof body !== 'object')
+        return json({ error: 'Invalid JSON body' }, { status: 400 })
 
-      const parsed = body as Partial<EndpointRow>;
+      const parsed = body as Partial<EndpointRow>
       if (
         !parsed.serviceId ||
         !parsed.key ||
@@ -431,104 +431,104 @@ export const handleApiRequest = async ({
         !parsed.internalMode
       ) {
         return json(
-          { error: "serviceId, key, displayName, internalMode are required" },
-          { status: 400 }
-        );
+          { error: 'serviceId, key, displayName, internalMode are required' },
+          { status: 400 },
+        )
       }
       if (!parsed.internalPath) {
-        return json({ error: "internalPath is required" }, { status: 400 });
+        return json({ error: 'internalPath is required' }, { status: 400 })
       }
 
       const endpoint: EndpointRow = {
-        id: crypto.randomUUID(),
-        serviceId: parsed.serviceId,
-        key: parsed.key,
+        createdAtMs: Date.now(),
+        degradedMs: parsed.degradedMs ?? 2000,
         displayName: parsed.displayName,
-        internalMode: parsed.internalMode,
-        internalUrl: parsed.internalUrl ?? null,
+        enabled: parsed.enabled ?? 1,
+        expectedStatusMax: parsed.expectedStatusMax ?? 399,
+        expectedStatusMin: parsed.expectedStatusMin ?? 200,
+        id: crypto.randomUUID(),
         internalHost: parsed.internalHost ?? null,
+        internalMode: parsed.internalMode,
         internalPath: parsed.internalPath,
-        publicUrl: parsed.publicUrl ?? null,
-        method: parsed.method ?? "GET",
+        internalUrl: parsed.internalUrl ?? null,
         intervalSec: parsed.intervalSec ?? 60,
+        key: parsed.key,
+        method: parsed.method ?? 'GET',
+        publicUrl: parsed.publicUrl ?? null,
+        serviceId: parsed.serviceId,
         timeoutMs: parsed.timeoutMs ?? 5000,
         warnMs: parsed.warnMs ?? 500,
-        degradedMs: parsed.degradedMs ?? 2000,
-        expectedStatusMin: parsed.expectedStatusMin ?? 200,
-        expectedStatusMax: parsed.expectedStatusMax ?? 399,
-        enabled: parsed.enabled ?? 1,
-        createdAtMs: Date.now(),
-      };
+      }
 
-      db.upsertEndpoint({ endpoint });
-      return json({ endpoint }, { status: 201 });
+      db.upsertEndpoint({ endpoint })
+      return json({ endpoint }, { status: 201 })
     }
 
     if (
-      url.pathname.startsWith("/api/admin/services/") &&
-      url.pathname.endsWith("/dokploy") &&
-      req.method === "PATCH"
+      url.pathname.startsWith('/api/admin/services/') &&
+      url.pathname.endsWith('/dokploy') &&
+      req.method === 'PATCH'
     ) {
-      const auth = requireAdminToken({ req, env });
-      if (!auth.ok) return json({ error: auth.error }, { status: 401 });
+      const auth = requireAdminToken({ env, req })
+      if (!auth.ok) return json({ error: auth.error }, { status: 401 })
 
       const serviceId = url.pathname
-        .replace("/api/admin/services/", "")
-        .replace("/dokploy", "");
+        .replace('/api/admin/services/', '')
+        .replace('/dokploy', '')
       if (!serviceId)
-        return json({ error: "Missing serviceId" }, { status: 400 });
+        return json({ error: 'Missing serviceId' }, { status: 400 })
 
-      const body: unknown = await req.json().catch(() => null);
-      if (!body || typeof body !== "object") {
-        return json({ error: "Invalid JSON body" }, { status: 400 });
+      const body: unknown = await req.json().catch(() => null)
+      if (!body || typeof body !== 'object') {
+        return json({ error: 'Invalid JSON body' }, { status: 400 })
       }
 
-      const parsed = body as Partial<{ type: DokployRefType; refId: string }>;
+      const parsed = body as Partial<{ refId: string; type: DokployRefType; }>
       if (!parsed.type || !parsed.refId) {
-        return json({ error: "type and refId are required" }, { status: 400 });
+        return json({ error: 'type and refId are required' }, { status: 400 })
       }
 
       db.upsertServiceDokploy({
+        refId: parsed.refId,
         serviceId,
         type: parsed.type,
-        refId: parsed.refId,
-      });
+      })
 
-      return json({ ok: true });
+      return json({ ok: true })
     }
 
     if (
-      url.pathname.startsWith("/api/admin/endpoints/") &&
-      req.method === "PATCH"
+      url.pathname.startsWith('/api/admin/endpoints/') &&
+      req.method === 'PATCH'
     ) {
-      const auth = requireAdminToken({ req, env });
-      if (!auth.ok) return json({ error: auth.error }, { status: 401 });
+      const auth = requireAdminToken({ env, req })
+      if (!auth.ok) return json({ error: auth.error }, { status: 401 })
 
-      const id = url.pathname.replace("/api/admin/endpoints/", "");
-      if (!id) return json({ error: "Missing id" }, { status: 400 });
+      const id = url.pathname.replace('/api/admin/endpoints/', '')
+      if (!id) return json({ error: 'Missing id' }, { status: 400 })
 
-      const body: unknown = await req.json().catch(() => null);
-      if (!body || typeof body !== "object")
-        return json({ error: "Invalid JSON body" }, { status: 400 });
+      const body: unknown = await req.json().catch(() => null)
+      if (!body || typeof body !== 'object')
+        return json({ error: 'Invalid JSON body' }, { status: 400 })
 
-      const parsed = body as Partial<EndpointRow>;
-      db.updateEndpoint({ id, patch: parsed });
+      const parsed = body as Partial<EndpointRow>
+      db.updateEndpoint({ id, patch: parsed })
 
-      return json({ ok: true });
+      return json({ ok: true })
     }
 
-    return json({ error: "Not found" }, { status: 404 });
+    return json({ error: 'Not found' }, { status: 404 })
   } catch (error) {
-    console.error("API handler error", error);
+    console.error('API handler error', error)
 
-    const message = error instanceof Error ? error.message : "Unknown error";
+    const message = error instanceof Error ? error.message : 'Unknown error'
 
     return json(
       {
-        error: "Internal server error",
         detail: message,
+        error: 'Internal server error',
       },
-      { status: 500 }
-    );
+      { status: 500 },
+    )
   }
-};
+}

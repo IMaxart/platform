@@ -12,11 +12,11 @@ Repo: `imaxart/platform`
 
 Wszystkie moduły żyją pod jednym subdomain `platform.<domena>`, z wyjątkiem statusu, który ma publiczną stronę pod `status.<domena>`.
 
-| Moduł | Opis | Status |
-|-------|------|--------|
-| **Analytics** | Statystyki odwiedzających, sesje, eventy, referrery, user journeys, feature flagi | ✅ MVP gotowe |
-| **Status** | Monitoring uptime + publiczne status pages | ✅ MVP gotowe |
-| **Error Tracking** | Stack traces, source maps, grupowanie błędów | 🔜 Następny |
+| Moduł              | Opis                                                                              | Status        |
+| ------------------ | --------------------------------------------------------------------------------- | ------------- |
+| **Analytics**      | Statystyki odwiedzających, sesje, eventy, referrery, user journeys, feature flagi | ✅ MVP gotowe |
+| **Status**         | Monitoring uptime + publiczne status pages                                        | ✅ MVP gotowe |
+| **Error Tracking** | Stack traces, source maps, grupowanie błędów                                      | 🔜 Następny   |
 
 ---
 
@@ -24,20 +24,20 @@ Wszystkie moduły żyją pod jednym subdomain `platform.<domena>`, z wyjątkiem 
 
 ### Domena główna (imaxart.com)
 
-| URL | Co widać |
-|-----|----------|
-| `platform.imaxart.com` | Landing page projektu |
-| `platform.imaxart.com/docs` | Dokumentacja |
-| `platform.imaxart.com/app` | Dashboard multi-tenant (logowanie, wszystkie projekty) |
+| URL                         | Co widać                                               |
+| --------------------------- | ------------------------------------------------------ |
+| `platform.imaxart.com`      | Landing page projektu                                  |
+| `platform.imaxart.com/docs` | Dokumentacja                                           |
+| `platform.imaxart.com/app`  | Dashboard multi-tenant (logowanie, wszystkie projekty) |
 
 ### Per-projekt
 
-| URL | Co widać |
-|-----|----------|
-| `platform.ingramkalina.pl` | Analytics, feature flagi, error tracking, konfiguracja statusu |
-| `status.ingramkalina.pl` | Publiczna status page |
+| URL                             | Co widać                                                       |
+| ------------------------------- | -------------------------------------------------------------- |
+| `platform.ingramkalina.pl`      | Analytics, feature flagi, error tracking, konfiguracja statusu |
+| `status.ingramkalina.pl`        | Publiczna status page                                          |
 | `platform.swieckaceremonia.com` | Analytics, feature flagi, error tracking, konfiguracja statusu |
-| `status.swieckaceremonia.com` | Publiczna status page |
+| `status.swieckaceremonia.com`   | Publiczna status page                                          |
 
 ---
 
@@ -162,13 +162,13 @@ graph TB
 
 ### Role
 
-| Rola | Zakres | Uprawnienia |
-|------|--------|-------------|
+| Rola            | Zakres         | Uprawnienia                                         |
+| --------------- | -------------- | --------------------------------------------------- |
 | **Super Admin** | Cała instancja | Pełna kontrola, zarządzanie userami, tworzony z env |
-| **Owner** | Team | Zarządzanie teamem, usuwanie projektów, zapraszanie |
-| **Admin** | Team / Project | Konfiguracja projektów, zarządzanie członkami |
-| **Member** | Team / Project | Dostęp do dashboardów, konfiguracja feature flag |
-| **Viewer** | Team / Project | Tylko podgląd danych |
+| **Owner**       | Team           | Zarządzanie teamem, usuwanie projektów, zapraszanie |
+| **Admin**       | Team / Project | Konfiguracja projektów, zarządzanie członkami       |
+| **Member**      | Team / Project | Dostęp do dashboardów, konfiguracja feature flag    |
+| **Viewer**      | Team / Project | Tylko podgląd danych                                |
 
 ### Super Admin — pierwsze uruchomienie
 
@@ -258,6 +258,7 @@ erDiagram
 ### Logika dostępu
 
 User ma dostęp do projektu jeśli:
+
 1. Jest super adminem, **lub**
 2. Jest ownerem/adminem teamu do którego należy projekt, **lub**
 3. Jest bezpośrednio w `project_members`, **lub**
@@ -385,14 +386,14 @@ services:
     environment:
       - DATABASE_URL=postgresql://postgres:pass@postgres:5432/imaxart
     labels:
-      - "traefik.http.routers.platform.rule=HostRegexp(`platform.{domain:.+}`)"
+      - 'traefik.http.routers.platform.rule=HostRegexp(`platform.{domain:.+}`)'
 
   status:
     build: ./apps/status
     environment:
       - DATABASE_URL=postgresql://postgres:pass@postgres:5432/imaxart
     labels:
-      - "traefik.http.routers.status.rule=HostRegexp(`status.{domain:.+}`)"
+      - 'traefik.http.routers.status.rule=HostRegexp(`status.{domain:.+}`)'
 
   postgres:
     image: postgres:17
@@ -468,35 +469,35 @@ gantt
 
 ## Tech stack
 
-| Warstwa | Technologia |
-|---------|-------------|
-| Runtime | Bun |
-| Package manager | pnpm |
-| Framework | TanStack Start (React 19 SSR) |
-| Baza danych | PostgreSQL 17 |
-| ORM | Drizzle |
-| UI | shadcn/ui + Tailwind CSS v4 |
-| Walidacja | Zod |
-| Testy | Vitest |
-| Monorepo | Turborepo + pnpm workspaces |
-| Deploy | Docker Compose + Dokploy |
-| Reverse proxy | Traefik (wildcard routing) |
-| DNS | Cloudflare |
-| Licencja | AGPL-3.0 (platforma), MIT (SDK) |
+| Warstwa         | Technologia                     |
+| --------------- | ------------------------------- |
+| Runtime         | Bun                             |
+| Package manager | pnpm                            |
+| Framework       | TanStack Start (React 19 SSR)   |
+| Baza danych     | PostgreSQL 17                   |
+| ORM             | Drizzle                         |
+| UI              | shadcn/ui + Tailwind CSS v4     |
+| Walidacja       | Zod                             |
+| Testy           | Vitest                          |
+| Monorepo        | Turborepo + pnpm workspaces     |
+| Deploy          | Docker Compose + Dokploy        |
+| Reverse proxy   | Traefik (wildcard routing)      |
+| DNS             | Cloudflare                      |
+| Licencja        | AGPL-3.0 (platforma), MIT (SDK) |
 
 ---
 
 ## Podsumowanie decyzji
 
-| Pytanie | Decyzja |
-|---------|---------|
-| Repo | `imaxart/platform` — monorepo (Turborepo) |
-| Apps | `apps/platform` (analytics + flagi + errors + config) i `apps/status` (publiczne strony) |
-| Subdomains | `platform.<domena>` — wszystko, `status.<domena>` — publiczna strona |
-| Deploy | 2 kontenery + PostgreSQL, jeden docker-compose |
-| Baza danych | Jeden PostgreSQL, schema separation |
-| Auth | Wbudowany via `packages/auth` |
-| Organizacja | Team → Project → Domain, role: owner / admin / member / viewer |
-| Multi-tenancy | `project_id` filtering, single/multi automatycznie |
-| Open source | AGPL-3.0, `docker compose up` must just work |
-| Priorytet | Monorepo → auth + role → stabilizacja → error tracking → OSS release |
+| Pytanie       | Decyzja                                                                                  |
+| ------------- | ---------------------------------------------------------------------------------------- |
+| Repo          | `imaxart/platform` — monorepo (Turborepo)                                                |
+| Apps          | `apps/platform` (analytics + flagi + errors + config) i `apps/status` (publiczne strony) |
+| Subdomains    | `platform.<domena>` — wszystko, `status.<domena>` — publiczna strona                     |
+| Deploy        | 2 kontenery + PostgreSQL, jeden docker-compose                                           |
+| Baza danych   | Jeden PostgreSQL, schema separation                                                      |
+| Auth          | Wbudowany via `packages/auth`                                                            |
+| Organizacja   | Team → Project → Domain, role: owner / admin / member / viewer                           |
+| Multi-tenancy | `project_id` filtering, single/multi automatycznie                                       |
+| Open source   | AGPL-3.0, `docker compose up` must just work                                             |
+| Priorytet     | Monorepo → auth + role → stabilizacja → error tracking → OSS release                     |

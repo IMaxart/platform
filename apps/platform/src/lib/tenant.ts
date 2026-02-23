@@ -1,9 +1,8 @@
+import { db } from '@platform/db'
+import { projects } from '@platform/db/schema'
 import { eq } from 'drizzle-orm'
 
-import { db } from '~/lib/db'
-import { projects } from '~/lib/db/schema'
-
-const ADMIN_DOMAIN = process.env.ADMIN_DOMAIN ?? 'localhost'
+const ADMIN_DOMAIN = process.env['ADMIN_DOMAIN'] ?? 'localhost'
 
 export type TenantInfo = {
   isAdmin: boolean

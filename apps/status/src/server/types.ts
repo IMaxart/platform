@@ -1,72 +1,72 @@
-export type ProbeKind = "internal" | "public";
-
-export type EndpointInternalMode = "directUrl" | "traefikHost";
-
-export type EndpointHttpMethod = "GET" | "HEAD";
-
-export type CheckState = "UP" | "DEGRADED" | "DOWN" | "UNKNOWN";
-
-export type ServiceRow = {
-  id: string;
-  slug: string;
-  name: string;
-  primaryDomain: string | null;
-  publicStatusHost: string;
-  enabled: 0 | 1;
-  createdAtMs: number;
-};
-
-export type EndpointRow = {
-  id: string;
-  serviceId: string;
-  key: string;
-  displayName: string;
-  internalMode: EndpointInternalMode;
-  internalUrl: string | null;
-  internalHost: string | null;
-  internalPath: string;
-  publicUrl: string | null;
-  method: EndpointHttpMethod;
-  intervalSec: number;
-  timeoutMs: number;
-  warnMs: number;
-  degradedMs: number;
-  expectedStatusMin: number;
-  expectedStatusMax: number;
-  enabled: 0 | 1;
-  createdAtMs: number;
-};
-
 export type CheckRow = {
-  id: string;
-  endpointId: string;
-  probe: ProbeKind;
-  atMs: number;
-  ok: 0 | 1;
-  degraded: 0 | 1;
-  statusCode: number | null;
-  latencyMs: number | null;
-  errorKind: string | null;
-  errorMessage: string | null;
-};
+  atMs: number
+  degraded: 0 | 1
+  endpointId: string
+  errorKind: null | string
+  errorMessage: null | string
+  id: string
+  latencyMs: null | number
+  ok: 0 | 1
+  probe: ProbeKind
+  statusCode: null | number
+}
 
-export type InternetCheckRow = {
-  id: string;
-  atMs: number;
-  ok: 0 | 1;
-  latencyMs: number | null;
-  errorKind: string | null;
-  errorMessage: string | null;
-};
+export type CheckState = 'DEGRADED' | 'DOWN' | 'UNKNOWN' | 'UP'
 
 export type DailyRollupRow = {
-  endpointId: string;
-  probe: ProbeKind;
-  dayStartMs: number;
-  total: number;
-  up: number;
-  degraded: number;
-  down: number;
-  avgLatencyMs: number | null;
-  p95LatencyMs: number | null;
-};
+  avgLatencyMs: null | number
+  dayStartMs: number
+  degraded: number
+  down: number
+  endpointId: string
+  p95LatencyMs: null | number
+  probe: ProbeKind
+  total: number
+  up: number
+}
+
+export type EndpointHttpMethod = 'GET' | 'HEAD'
+
+export type EndpointInternalMode = 'directUrl' | 'traefikHost'
+
+export type EndpointRow = {
+  createdAtMs: number
+  degradedMs: number
+  displayName: string
+  enabled: 0 | 1
+  expectedStatusMax: number
+  expectedStatusMin: number
+  id: string
+  internalHost: null | string
+  internalMode: EndpointInternalMode
+  internalPath: string
+  internalUrl: null | string
+  intervalSec: number
+  key: string
+  method: EndpointHttpMethod
+  publicUrl: null | string
+  serviceId: string
+  timeoutMs: number
+  warnMs: number
+}
+
+export type InternetCheckRow = {
+  atMs: number
+  errorKind: null | string
+  errorMessage: null | string
+  id: string
+  latencyMs: null | number
+  ok: 0 | 1
+}
+
+export type ProbeKind = 'internal' | 'public'
+
+export type ServiceRow = {
+  createdAtMs: number
+  enabled: 0 | 1
+  id: string
+  name: string
+  primaryDomain: null | string
+  publicStatusHost: string
+  slug: string
+}

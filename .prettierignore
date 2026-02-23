@@ -1,0 +1,8 @@
+pnpm-lock.yaml
+dist/
+.output/
+node_modules/
+.turbo/
+.tanstack/
+*.gen.ts
+public/t.js

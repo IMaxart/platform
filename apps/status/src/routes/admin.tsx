@@ -1,14 +1,15 @@
-import { useQuery } from "@tanstack/react-query";
-import { createFileRoute, Navigate } from "@tanstack/react-router";
+import type { PublicPageResponse } from '~/shared/api-types'
 
-import { AdminPage } from "~/components/admin/admin-page";
-import { Card, CardContent } from "~/components/ui/card";
-import { fetchJson } from "~/lib/api-client";
-import type { PublicPageResponse } from "~/shared/api-types";
+import { Card, CardContent } from '@platform/ui/components/card'
+import { useQuery } from '@tanstack/react-query'
+import { createFileRoute, Navigate } from '@tanstack/react-router'
 
-export const Route = createFileRoute("/admin")({
+import { AdminPage } from '~/components/admin/admin-page'
+import { fetchJson } from '~/lib/api-client'
+
+export const Route = createFileRoute('/admin')({
   component: AdminRoute,
-});
+})
 
 const LoadingCard = ({ message }: { message: string }) => {
   return (
@@ -19,27 +20,27 @@ const LoadingCard = ({ message }: { message: string }) => {
         </CardContent>
       </Card>
     </main>
-  );
-};
+  )
+}
 
 function AdminRoute() {
   const pageQuery = useQuery({
-    queryKey: ["publicPage"],
     // Avoid server-side fetch for a relative URL during SSR. This route is CSR-only.
-    enabled: typeof window !== "undefined",
+    enabled: typeof window !== 'undefined',
     queryFn: async () => {
-      return await fetchJson<PublicPageResponse>({ url: "/api/public/page" });
+      return await fetchJson<PublicPageResponse>({ url: '/api/public/page' })
     },
+    queryKey: ['publicPage'],
     refetchInterval: 30_000,
-  });
+  })
 
-  if (pageQuery.isPending) return <LoadingCard message="Loading…" />;
+  if (pageQuery.isPending) return <LoadingCard message="Loading…" />
   if (pageQuery.isError || !pageQuery.data) {
-    return <LoadingCard message="Failed to load admin context." />;
+    return <LoadingCard message="Failed to load admin context." />
   }
 
-  const data = pageQuery.data;
-  if (data.mode === "admin") return <AdminPage />;
-  if (data.mode === "public") return <Navigate to="/" />;
-  return <LoadingCard message={`Not configured: ${data.host}`} />;
+  const data = pageQuery.data
+  if (data.mode === 'admin') return <AdminPage />
+  if (data.mode === 'public') return <Navigate to="/" />
+  return <LoadingCard message={`Not configured: ${data.host}`} />
 }

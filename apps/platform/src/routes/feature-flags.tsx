@@ -1,31 +1,24 @@
-import type { FeatureFlagConditions } from '~/lib/db/schema'
+import type { FeatureFlagConditions } from '@platform/db/schema'
 
-import { useQuery } from '@tanstack/react-query'
-import { createFileRoute } from '@tanstack/react-router'
-import { Flag, Plus } from 'lucide-react'
-import { useState } from 'react'
-import { useTranslation } from 'react-i18next'
-
-import { Header } from '~/components/layout/header'
-import { Badge } from '~/components/ui/badge'
-import { Button } from '~/components/ui/button'
+import { Badge } from '@platform/ui/components/badge'
+import { Button } from '@platform/ui/components/button'
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '~/components/ui/card'
+} from '@platform/ui/components/card'
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '~/components/ui/dialog'
-import { Input } from '~/components/ui/input'
-import { Label } from '~/components/ui/label'
-import { Switch } from '~/components/ui/switch'
+} from '@platform/ui/components/dialog'
+import { Input } from '@platform/ui/components/input'
+import { Label } from '@platform/ui/components/label'
+import { Switch } from '@platform/ui/components/switch'
 import {
   Table,
   TableBody,
@@ -33,7 +26,14 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '~/components/ui/table'
+} from '@platform/ui/components/table'
+import { useQuery } from '@tanstack/react-query'
+import { createFileRoute } from '@tanstack/react-router'
+import { Flag, Plus } from 'lucide-react'
+import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
+
+import { Header } from '~/components/layout/header'
 import { getFeatureFlags } from '~/lib/server/queries'
 
 export const Route = createFileRoute('/feature-flags')({

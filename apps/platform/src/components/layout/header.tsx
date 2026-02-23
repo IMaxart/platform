@@ -1,17 +1,17 @@
-import { Globe, Languages, Moon, Sun } from 'lucide-react'
-import { useTranslation } from 'react-i18next'
-
-import { useTheme } from '~/components/theme-provider'
-import { Badge } from '~/components/ui/badge'
-import { Button } from '~/components/ui/button'
+import { Badge } from '@platform/ui/components/badge'
+import { Button } from '@platform/ui/components/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '~/components/ui/dropdown-menu'
-import { Separator } from '~/components/ui/separator'
-import { SidebarTrigger } from '~/components/ui/sidebar'
+} from '@platform/ui/components/dropdown-menu'
+import { Separator } from '@platform/ui/components/separator'
+import { SidebarTrigger } from '@platform/ui/components/sidebar'
+import { Globe, Languages, Moon, Sun } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+
+import { useTheme } from '~/components/theme-provider'
 import { setLanguage, SUPPORTED_LANGUAGES } from '~/i18n/config'
 
 type HeaderProps = {

@@ -1,3 +1,17 @@
+import { Button } from '@platform/ui/components/button'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@platform/ui/components/card'
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@platform/ui/components/tabs'
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import {
@@ -13,15 +27,6 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Header } from '~/components/layout/header'
-import { Button } from '~/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '~/components/ui/card'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
 import {
   getAiSetupGuide,
   getEnvTemplate,

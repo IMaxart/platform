@@ -1,10 +1,10 @@
-import type { FeatureFlagConditions } from '~/lib/db/schema'
+import type { FeatureFlagConditions } from '@platform/db/schema'
 
+import { db } from '@platform/db'
+import { featureFlags, sessions } from '@platform/db/schema'
 import { createFileRoute } from '@tanstack/react-router'
 import { and, eq } from 'drizzle-orm'
 
-import { db } from '~/lib/db'
-import { featureFlags, sessions } from '~/lib/db/schema'
 import { resolveTenant } from '~/lib/tenant'
 
 const corsHeaders = {

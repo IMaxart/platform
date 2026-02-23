@@ -1,7 +1,7 @@
 import crypto from 'node:crypto'
 
 const HASH_SECRET =
-  process.env.HASH_SECRET ?? 'local-development-secret-change-in-production'
+  process.env['HASH_SECRET'] ?? 'local-development-secret-change-in-production'
 
 /** Deterministic visitor hash per day using HMAC-SHA256. Salted by date so hashes rotate daily for privacy. @param ip - Client IP address. @param salt - Per-request or per-session salt. @param userAgent - User-Agent string. @returns Hex-encoded SHA256 hash. */
 export const hashIP = ({

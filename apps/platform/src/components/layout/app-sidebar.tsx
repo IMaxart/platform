@@ -1,5 +1,17 @@
 import type { LucideIcon } from 'lucide-react'
 
+import { cn } from '@platform/ui'
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+} from '@platform/ui/components/sidebar'
 import { Link, useLocation } from '@tanstack/react-router'
 import {
   AlertTriangle,
@@ -12,19 +24,6 @@ import {
   Users,
 } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-} from '~/components/ui/sidebar'
-import { cn } from '~/lib/utils'
 
 type NavItem = {
   feature?: keyof ProjectConfig

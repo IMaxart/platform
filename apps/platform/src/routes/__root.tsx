@@ -2,6 +2,8 @@
 
 import type { ReactNode } from 'react'
 
+import { SidebarInset, SidebarProvider } from '@platform/ui/components/sidebar'
+import { TooltipProvider } from '@platform/ui/components/tooltip'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import {
   createRootRoute,
@@ -12,8 +14,6 @@ import {
 
 import { AppSidebar } from '~/components/layout/app-sidebar'
 import { ThemeProvider } from '~/components/theme-provider'
-import { SidebarInset, SidebarProvider } from '~/components/ui/sidebar'
-import { TooltipProvider } from '~/components/ui/tooltip'
 import { initI18n } from '~/i18n/config'
 
 import appCss from '~/styles/app.css?url'

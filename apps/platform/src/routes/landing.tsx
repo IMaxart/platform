@@ -1,3 +1,5 @@
+import { Button } from '@platform/ui/components/button'
+import { Card, CardContent } from '@platform/ui/components/card'
 import { createFileRoute, Link } from '@tanstack/react-router'
 import {
   BarChart3,
@@ -8,9 +10,6 @@ import {
   Shield,
   Zap,
 } from 'lucide-react'
-
-import { Button } from '~/components/ui/button'
-import { Card, CardContent } from '~/components/ui/card'
 
 export const Route = createFileRoute('/landing')({
   component: LandingPage,

@@ -1,0 +1,98 @@
+{
+  "name": "@imaxart/platform",
+  "version": "0.1.0",
+  "description": "Privacy-first, self-hosted platform SDK — analytics, error tracking, and more",
+  "type": "module",
+  "license": "MIT",
+  "sideEffects": false,
+  "engines": {
+    "node": ">=20"
+  },
+  "exports": {
+    "./analytics": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    },
+    "./analytics/react": {
+      "types": "./dist/react.d.ts",
+      "import": "./dist/react.mjs",
+      "require": "./dist/react.cjs"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "analytics": [
+        "./dist/index.d.ts"
+      ],
+      "analytics/react": [
+        "./dist/react.d.ts"
+      ]
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "peerDependencies": {
+    "react": ">=18"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsup",
+    "type-check": "tsc --noEmit",
+    "test": "vitest run",
+    "bench": "vitest bench",
+    "size": "size-limit"
+  },
+  "size-limit": [
+    {
+      "path": "dist/index.mjs",
+      "limit": "5 kB"
+    },
+    {
+      "path": "dist/react.mjs",
+      "limit": "2 kB"
+    }
+  ],
+  "devDependencies": {
+    "@platform/tsconfig": "workspace:*",
+    "@size-limit/file": "^12.0.0",
+    "@types/react": "^19.2.14",
+    "react": "^19.2.4",
+    "size-limit": "^12.0.0",
+    "tsup": "^8.5.0",
+    "happy-dom": "^20.7.0",
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
+  },
+  "keywords": [
+    "analytics",
+    "privacy",
+    "tracking",
+    "error-tracking",
+    "web-analytics",
+    "gdpr",
+    "typescript",
+    "sdk",
+    "self-hosted"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/IMaxart/platform",
+    "directory": "packages/sdk"
+  },
+  "homepage": "https://github.com/IMaxart/platform#readme",
+  "bugs": {
+    "url": "https://github.com/IMaxart/platform/issues"
+  },
+  "author": "IMaxart"
+}

@@ -1,21 +1,21 @@
-import type { CollectPayload } from '~/lib/validation'
+import type { CollectPayload } from '@platform/shared/validation'
 
-import { createFileRoute } from '@tanstack/react-router'
-import { eq } from 'drizzle-orm'
-
-import { detectBot } from '~/lib/bot-detection'
-import { db } from '~/lib/db'
+import { db } from '@platform/db'
 import {
   consoleErrors,
   events,
   pageViews,
   projects,
   sessions,
-} from '~/lib/db/schema'
+} from '@platform/db/schema'
+import { collectBatchSchema } from '@platform/shared/validation'
+import { createFileRoute } from '@tanstack/react-router'
+import { eq } from 'drizzle-orm'
+
+import { detectBot } from '~/lib/bot-detection'
 import { lookupGeo } from '~/lib/geo'
 import { hashIP } from '~/lib/ip-hash'
 import { resolveTenant } from '~/lib/tenant'
-import { collectBatchSchema } from '~/lib/validation'
 
 const getClientIP = (request: Request): string => {
   const forwarded = request.headers.get('x-forwarded-for')

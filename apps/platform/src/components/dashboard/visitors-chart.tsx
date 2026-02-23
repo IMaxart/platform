@@ -1,3 +1,9 @@
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@platform/ui/components/card'
 import { useTranslation } from 'react-i18next'
 import {
   Area,
@@ -8,8 +14,6 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-
-import { Card, CardContent, CardHeader, CardTitle } from '~/components/ui/card'
 
 type ChartData = {
   date: string
