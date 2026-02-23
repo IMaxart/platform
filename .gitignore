@@ -1,0 +1,46 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+.output/
+.tanstack/
+
+# Turborepo
+.turbo/
+.cache/
+
+# Local data
+.local/
+
+# Environment (never commit secrets)
+.env
+.env.local
+.env.*.local
+# Only .env.example is committed
+
+# SQLite
+*.sqlite
+*.sqlite-journal
+
+# Lock files (pnpm manages deps)
+bun.lock
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Generated
+*.gen.ts
+
+# Test coverage
+coverage/
+
+# Misc
+*.tsbuildinfo
