@@ -1,0 +1,90 @@
+{
+  "name": "@imaxart/analytics",
+  "version": "0.1.0",
+  "description": "Privacy-first, lightweight analytics SDK for web applications",
+  "type": "module",
+  "license": "MIT",
+  "sideEffects": false,
+  "engines": {
+    "node": ">=20"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.cjs"
+    },
+    "./react": {
+      "types": "./dist/react.d.ts",
+      "import": "./dist/react.mjs",
+      "require": "./dist/react.cjs"
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "react": [
+        "./dist/react.d.ts"
+      ]
+    }
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "peerDependencies": {
+    "react": ">=18"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsup",
+    "type-check": "tsc --noEmit",
+    "size": "size-limit"
+  },
+  "size-limit": [
+    {
+      "path": "dist/index.mjs",
+      "limit": "5 kB"
+    },
+    {
+      "path": "dist/react.mjs",
+      "limit": "2 kB"
+    }
+  ],
+  "devDependencies": {
+    "@size-limit/file": "^12.0.0",
+    "@types/react": "^19.2.14",
+    "react": "^19.2.4",
+    "size-limit": "^12.0.0",
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.3"
+  },
+  "keywords": [
+    "analytics",
+    "privacy",
+    "tracking",
+    "web-analytics",
+    "gdpr",
+    "typescript",
+    "sdk"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/IMaxart/analytics",
+    "directory": "packages/analytics"
+  },
+  "homepage": "https://github.com/IMaxart/analytics/tree/main/packages/analytics#readme",
+  "bugs": {
+    "url": "https://github.com/IMaxart/analytics/issues"
+  },
+  "author": "IMaxart"
+}

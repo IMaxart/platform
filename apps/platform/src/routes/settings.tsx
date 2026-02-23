@@ -1,0 +1,285 @@
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { createFileRoute } from '@tanstack/react-router'
+import { Check, Copy, Trash2 } from 'lucide-react'
+import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
+
+import { Header } from '~/components/layout/header'
+import { Badge } from '~/components/ui/badge'
+import { Button } from '~/components/ui/button'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '~/components/ui/card'
+import { Input } from '~/components/ui/input'
+import { Label } from '~/components/ui/label'
+import { Separator } from '~/components/ui/separator'
+import { Switch } from '~/components/ui/switch'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '~/components/ui/table'
+import {
+  getExcludedDevicesList,
+  getProject,
+  updateProjectConfig,
+} from '~/lib/server/queries'
+
+export const Route = createFileRoute('/settings')({
+  component: SettingsPage,
+})
+
+const DEMO_PROJECT_ID = '00000000-0000-0000-0000-000000000000'
+
+function SettingsPage() {
+  const { t } = useTranslation()
+  const [copied, setCopied] = useState(false)
+  const queryClient = useQueryClient()
+
+  const project = useQuery({
+    enabled: false,
+    queryFn: () => getProject({ data: DEMO_PROJECT_ID }),
+    queryKey: ['project', DEMO_PROJECT_ID],
+  })
+
+  const configMutation = useMutation({
+    mutationFn: (config: {
+      trackErrors: boolean
+      trackEvents: boolean
+      trackFeatureFlags: boolean
+    }) =>
+      updateProjectConfig({
+        data: { projectId: DEMO_PROJECT_ID, ...config },
+      }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: ['project', DEMO_PROJECT_ID],
+      })
+    },
+  })
+
+  const toggleFeature = (
+    feature: 'trackErrors' | 'trackEvents' | 'trackFeatureFlags',
+    enabled: boolean,
+  ) => {
+    configMutation.mutate({
+      [feature]: enabled,
+      trackErrors: project.data?.trackErrors ?? true,
+      trackEvents: project.data?.trackEvents ?? true,
+      trackFeatureFlags: project.data?.trackFeatureFlags ?? false,
+    })
+  }
+
+  const excludedDevices = useQuery({
+    enabled: false,
+    queryFn: () => getExcludedDevicesList({ data: DEMO_PROJECT_ID }),
+    queryKey: ['excluded-devices', DEMO_PROJECT_ID],
+  })
+
+  const snippetDomain =
+    project.data?.analyticsSubdomain ?? 'analytics.yourdomain.com'
+  const snippet = `<script defer src="https://${snippetDomain}/t.js"></script>`
+
+  const copySnippet = async () => {
+    await navigator.clipboard.writeText(snippet)
+    setCopied(true)
+    setTimeout(() => {
+      setCopied(false)
+    }, 2000)
+  }
+
+  return (
+    <>
+      <Header title={t('settings.title')} />
+      <div className="flex-1 space-y-6 p-4 md:p-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('settings.title')}</CardTitle>
+            <CardDescription>
+              Project configuration and tracking setup
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label>{t('settings.projectName')}</Label>
+                <Input readOnly value={project.data?.name ?? ''} />
+              </div>
+              <div className="space-y-2">
+                <Label>{t('settings.domain')}</Label>
+                <Input readOnly value={project.data?.domain ?? ''} />
+              </div>
+              <div className="space-y-2">
+                <Label>{t('settings.analyticsSubdomain')}</Label>
+                <Input
+                  readOnly
+                  value={project.data?.analyticsSubdomain ?? ''}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>{t('settings.dataRetentionDays')}</Label>
+                <Input
+                  readOnly
+                  type="number"
+                  value={project.data?.dataRetentionDays ?? 365}
+                />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('settings.features')}</CardTitle>
+            <CardDescription>
+              {t('settings.featuresDescription')}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label>{t('settings.trackEvents')}</Label>
+                <p className="text-muted-foreground text-sm">
+                  {t('settings.trackEventsDescription')}
+                </p>
+              </div>
+              <Switch
+                checked={project.data?.trackEvents ?? true}
+                onCheckedChange={(checked) => {
+                  toggleFeature('trackEvents', checked)
+                }}
+              />
+            </div>
+            <Separator />
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label>{t('settings.trackErrors')}</Label>
+                <p className="text-muted-foreground text-sm">
+                  {t('settings.trackErrorsDescription')}
+                </p>
+              </div>
+              <Switch
+                checked={project.data?.trackErrors ?? true}
+                onCheckedChange={(checked) => {
+                  toggleFeature('trackErrors', checked)
+                }}
+              />
+            </div>
+            <Separator />
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label>{t('settings.trackFeatureFlags')}</Label>
+                <p className="text-muted-foreground text-sm">
+                  {t('settings.trackFeatureFlagsDescription')}
+                </p>
+              </div>
+              <Switch
+                checked={project.data?.trackFeatureFlags ?? false}
+                onCheckedChange={(checked) => {
+                  toggleFeature('trackFeatureFlags', checked)
+                }}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('settings.trackingSnippet')}</CardTitle>
+            <CardDescription>
+              Add this snippet to your website to start tracking
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-2">
+              <code className="bg-muted flex-1 rounded-md p-3 font-mono text-sm">
+                {snippet}
+              </code>
+              <Button
+                onClick={() => {
+                  void copySnippet()
+                }}
+                size="icon"
+                variant="outline"
+              >
+                {copied ? (
+                  <Check className="h-4 w-4 text-green-500" />
+                ) : (
+                  <Copy className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('settings.excludedDevices')}</CardTitle>
+            <CardDescription>
+              These devices are tracked but hidden from statistics by default
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="mb-4">
+              <Button variant="outline">
+                {t('settings.addExcludedDevice')}
+              </Button>
+            </div>
+
+            <Separator className="mb-4" />
+
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t('settings.deviceName')}</TableHead>
+                    <TableHead>{t('sessions.visitor')}</TableHead>
+                    <TableHead>{t('settings.reason')}</TableHead>
+                    <TableHead className="w-20" />
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {excludedDevices.data && excludedDevices.data.length > 0 ? (
+                    excludedDevices.data.map((device) => (
+                      <TableRow key={device.id}>
+                        <TableCell>{device.name}</TableCell>
+                        <TableCell className="font-mono text-xs">
+                          {device.visitorHash.slice(0, 12)}...
+                        </TableCell>
+                        <TableCell>
+                          {device.reason ? (
+                            <Badge variant="outline">{device.reason}</Badge>
+                          ) : (
+                            '—'
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <Button size="icon" variant="ghost">
+                            <Trash2 className="text-destructive h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : (
+                    <TableRow>
+                      <TableCell className="text-center" colSpan={4}>
+                        {t('common.noData')}
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </>
+  )
+}

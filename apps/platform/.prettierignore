@@ -1,0 +1,6 @@
+node_modules
+.output
+dist
+public/t.js
+src/routeTree.gen.ts
+bun.lock

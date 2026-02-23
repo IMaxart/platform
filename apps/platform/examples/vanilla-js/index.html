@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>IMaxart Analytics - Vanilla JS Example</title>
+    <script type="module">
+      import { analytics } from 'https://esm.sh/@imaxart/analytics'
+
+      analytics.init({
+        domain: 'analytics.yourdomain.com',
+        environment: 'production',
+      })
+
+      document.getElementById('cta').addEventListener('click', () => {
+        analytics.track('button_click', { buttonId: 'cta', page: 'home' })
+      })
+    </script>
+  </head>
+  <body>
+    <h1>Vanilla JS Example</h1>
+    <p>Open DevTools Network tab to see analytics requests.</p>
+    <button id="cta">Track Click</button>
+  </body>
+</html>
