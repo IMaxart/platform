@@ -1,0 +1,11 @@
+node_modules
+dist
+.output
+.tanstack
+.vscode
+src/routeTree.gen.ts
+**/*.log
+
+package-lock.json
+pnpm-lock.yaml
+yarn.lock

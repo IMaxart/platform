@@ -1,0 +1,10 @@
+node_modules
+dist
+.output
+.tanstack
+.local
+.vscode
+.DS_Store
+
+*.log
+
