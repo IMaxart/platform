@@ -60,7 +60,8 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-imaxart}:${POSTGRES_PASSWORD:-imaxart}@postgres:5432/${POSTGRES_DB:-imaxart}
     labels:
       - traefik.enable=true
-      - traefik.http.routers.status.rule=Host(`status.${ADMIN_DOMAIN:-localhost}`)
+      - traefik.http.routers.status.rule=HostRegexp(`.+`)
+      - traefik.http.routers.status.priority=1
       - traefik.http.services.status.loadbalancer.server.port=3000
 
 volumes:
