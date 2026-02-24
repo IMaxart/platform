@@ -7,6 +7,7 @@ COPY packages/ui/package.json ./packages/ui/
 COPY packages/db/package.json ./packages/db/
 COPY packages/shared/package.json ./packages/shared/
 COPY packages/auth/package.json ./packages/auth/
+COPY packages/email/package.json ./packages/email/
 COPY packages/tsconfig/package.json ./packages/tsconfig/
 RUN pnpm install --frozen-lockfile
 

@@ -10,12 +10,12 @@ import type { DokployRefType } from '~/shared/api-types'
 
 import { db as drizzleDb } from '@platform/db/connection'
 import {
+  services,
   statusChecks,
   statusEndpoints,
   statusInternetChecks,
   statusRollupsDaily,
   statusServiceDokploy,
-  statusServices,
 } from '@platform/db/schema'
 import { and, asc, desc, eq, gte, lt } from 'drizzle-orm'
 
@@ -28,7 +28,7 @@ const dateMaybeToMs = (value: Date | null): null | number =>
 
 const msToDate = (ms: number): Date => new Date(ms)
 
-const toServiceRow = (row: typeof statusServices.$inferSelect): ServiceRow => ({
+const toServiceRow = (row: typeof services.$inferSelect): ServiceRow => ({
   createdAtMs: dateToMs(row.createdAt),
   enabled: boolToInt(row.enabled),
   id: row.id,
@@ -176,8 +176,8 @@ export const createDb = (): Db => {
   const listServices: Db['listServices'] = async () => {
     const rows = await drizzleDb
       .select()
-      .from(statusServices)
-      .orderBy(asc(statusServices.name))
+      .from(services)
+      .orderBy(asc(services.name))
 
     return rows.map(toServiceRow)
   }
@@ -185,8 +185,8 @@ export const createDb = (): Db => {
   const getServiceById: Db['getServiceById'] = async ({ id }) => {
     const rows = await drizzleDb
       .select()
-      .from(statusServices)
-      .where(eq(statusServices.id, id))
+      .from(services)
+      .where(eq(services.id, id))
       .limit(1)
 
     return rows[0] ? toServiceRow(rows[0]) : null
@@ -197,12 +197,9 @@ export const createDb = (): Db => {
   }) => {
     const rows = await drizzleDb
       .select()
-      .from(statusServices)
+      .from(services)
       .where(
-        and(
-          eq(statusServices.publicStatusHost, host),
-          eq(statusServices.enabled, true),
-        ),
+        and(eq(services.publicStatusHost, host), eq(services.enabled, true)),
       )
       .limit(1)
 
@@ -211,13 +208,14 @@ export const createDb = (): Db => {
 
   const upsertService: Db['upsertService'] = async ({ service }) => {
     await drizzleDb
-      .insert(statusServices)
+      .insert(services)
       .values({
         createdAt: msToDate(service.createdAtMs),
         enabled: service.enabled === 1,
         id: service.id,
         name: service.name,
         primaryDomain: service.primaryDomain,
+        projectId: '00000000-0000-0000-0000-000000000000',
         publicStatusHost: service.publicStatusHost,
         slug: service.slug,
       })
@@ -229,7 +227,7 @@ export const createDb = (): Db => {
           publicStatusHost: service.publicStatusHost,
           slug: service.slug,
         },
-        target: statusServices.id,
+        target: services.id,
       })
   }
 
@@ -245,10 +243,7 @@ export const createDb = (): Db => {
 
     if (Object.keys(set).length === 0) return
 
-    await drizzleDb
-      .update(statusServices)
-      .set(set)
-      .where(eq(statusServices.id, id))
+    await drizzleDb.update(services).set(set).where(eq(services.id, id))
   }
 
   const listEndpointsByServiceId: Db['listEndpointsByServiceId'] = async ({

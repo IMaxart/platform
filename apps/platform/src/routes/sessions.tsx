@@ -60,7 +60,7 @@ export const Route = createFileRoute('/sessions')({
   component: SessionsPage,
 })
 
-const DEMO_PROJECT_ID = '00000000-0000-0000-0000-000000000000'
+const DEMO_SERVICE_ID = '00000000-0000-0000-0000-000000000000'
 
 const DeviceIcon = ({ type }: { type: string }) => {
   switch (type) {
@@ -82,9 +82,9 @@ function SessionsPage() {
     enabled: false,
     queryFn: () =>
       getSessions({
-        data: { days: daysNum, limit: 50, projectId: DEMO_PROJECT_ID },
+        data: { days: daysNum, limit: 50, serviceId: DEMO_SERVICE_ID },
       }) as unknown as Promise<SessionData[]>,
-    queryKey: ['sessions', DEMO_PROJECT_ID, daysNum],
+    queryKey: ['sessions', DEMO_SERVICE_ID, daysNum],
   })
 
   const formatDuration = (start: Date, end: Date | null) => {

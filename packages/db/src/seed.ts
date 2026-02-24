@@ -7,7 +7,7 @@ import {
   featureFlags,
   pageViews,
   projects,
-  sessions,
+  visitorSessions,
 } from './schema'
 
 const DEMO_PROJECT = {
@@ -118,7 +118,7 @@ async function seed() {
 
   for (let i = 0; i < sessionRecords.length; i += BATCH_SIZE) {
     const batch = sessionRecords.slice(i, i + BATCH_SIZE)
-    const result = await db.insert(sessions).values(batch).returning()
+    const result = await db.insert(visitorSessions).values(batch).returning()
     insertedSessions.push(...result)
   }
 

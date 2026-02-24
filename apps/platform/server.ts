@@ -43,6 +43,9 @@ const compressResponse = async (
 }
 
 async function start() {
+  const { seedAdmin } = await import('@platform/auth/seed-admin')
+  await seedAdmin()
+
   const serverModule = (await import(SERVER_ENTRY)) as {
     default: { fetch: (request: Request) => Promise<Response> | Response }
   }

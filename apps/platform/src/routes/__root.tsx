@@ -10,10 +10,13 @@ import {
   createRootRoute,
   HeadContent,
   Outlet,
+  redirect,
   Scripts,
+  useLocation,
 } from '@tanstack/react-router'
 
 import { AppSidebar } from '~/components/layout/app-sidebar'
+import { getSession } from '~/lib/server/auth'
 
 import appCss from '~/styles/app.css?url'
 
@@ -26,7 +29,33 @@ const queryClient = new QueryClient({
   },
 })
 
+const PUBLIC_ROUTES = new Set([
+  '/2fa/verify',
+  '/forgot-password',
+  '/landing',
+  '/login',
+  '/reset-password',
+  '/setup',
+])
+
+const isPublicRoute = (pathname: string) =>
+  PUBLIC_ROUTES.has(pathname) ||
+  pathname.startsWith('/api/') ||
+  pathname.startsWith('/invite/')
+
 export const Route = createRootRoute({
+  beforeLoad: async ({ location }) => {
+    if (isPublicRoute(location.pathname)) return { session: null }
+
+    const session = await getSession()
+
+    if (!session) {
+      // eslint-disable-next-line @typescript-eslint/only-throw-error -- TanStack Router redirect API
+      throw redirect({ to: '/login' })
+    }
+
+    return { session }
+  },
   component: RootComponent,
   head: () => ({
     links: [
@@ -42,8 +71,11 @@ export const Route = createRootRoute({
     meta: [
       { charSet: 'utf-8' },
       { content: 'width=device-width, initial-scale=1', name: 'viewport' },
-      { title: 'Analytics' },
-      { content: 'Self-hosted, privacy-first analytics', name: 'description' },
+      { title: 'IMaxart Platform' },
+      {
+        content: 'Self-hosted analytics & status monitoring platform',
+        name: 'description',
+      },
     ],
     scripts: [
       {
@@ -59,12 +91,7 @@ function RootComponent() {
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
           <TooltipProvider>
-            <SidebarProvider>
-              <AppSidebar />
-              <SidebarInset>
-                <Outlet />
-              </SidebarInset>
-            </SidebarProvider>
+            <RootLayout />
           </TooltipProvider>
         </ThemeProvider>
       </QueryClientProvider>
@@ -83,5 +110,23 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
         <Scripts />
       </body>
     </html>
+  )
+}
+
+function RootLayout() {
+  const location = useLocation()
+  const isPublic = isPublicRoute(location.pathname)
+
+  if (isPublic) {
+    return <Outlet />
+  }
+
+  return (
+    <SidebarProvider>
+      <AppSidebar />
+      <SidebarInset>
+        <Outlet />
+      </SidebarInset>
+    </SidebarProvider>
   )
 }

@@ -27,6 +27,17 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-imaxart}:${POSTGRES_PASSWORD:-imaxart}@postgres:5432/${POSTGRES_DB:-imaxart}
     restart: 'no'
 
+  mailpit:
+    image: axllent/mailpit
+    restart: unless-stopped
+    ports:
+      - '${PORT_MAILPIT:-8025}:8025'
+    environment:
+      MP_SMTP_AUTH_ACCEPT_ANY: 1
+      MP_SMTP_AUTH_ALLOW_INSECURE: 1
+    labels:
+      - traefik.enable=false
+
   platform:
     build:
       context: .
@@ -35,12 +46,23 @@ services:
     depends_on:
       migrate:
         condition: service_completed_successfully
+    ports:
+      - '${PORT_PLATFORM:-3000}:3000'
     environment:
       NODE_ENV: ${NODE_ENV:-production}
       PORT: 3000
       ADMIN_DOMAIN: ${ADMIN_DOMAIN:-localhost}
       HASH_SECRET: ${HASH_SECRET:-change-me-to-a-random-secret-at-least-32-chars}
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:3000}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-${HASH_SECRET:-change-me-to-a-random-secret-at-least-32-chars}}
+      PASSKEY_RP_ID: ${PASSKEY_RP_ID:-localhost}
       DATABASE_URL: postgresql://${POSTGRES_USER:-imaxart}:${POSTGRES_PASSWORD:-imaxart}@postgres:5432/${POSTGRES_DB:-imaxart}
+      SMTP_HOST: ${SMTP_HOST:-mailpit}
+      SMTP_PORT: ${SMTP_PORT:-1025}
+      SMTP_FROM: ${SMTP_FROM:-IMaxart Platform <noreply@localhost>}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@imaxart.com}
+      ADMIN_NAME: ${ADMIN_NAME:-Admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-AdminPassword123!}
     labels:
       - traefik.enable=true
       - traefik.http.routers.platform.rule=Host(`platform.${ADMIN_DOMAIN:-localhost}`)
@@ -54,6 +76,8 @@ services:
     depends_on:
       migrate:
         condition: service_completed_successfully
+    ports:
+      - '${PORT_STATUS:-3001}:3000'
     environment:
       NODE_ENV: ${NODE_ENV:-production}
       PORT: 3000

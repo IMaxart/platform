@@ -1,9 +1,9 @@
 import { db } from '@platform/db'
 import {
+  services,
   statusChecks,
   statusEndpoints,
   statusServiceDokploy,
-  statusServices,
 } from '@platform/db/schema'
 import { createServerFn } from '@tanstack/react-start'
 import { and, asc, desc, eq, inArray } from 'drizzle-orm'
@@ -22,12 +22,12 @@ const getEndpointStatus = (
 
 export const getStatusServices = createServerFn({ method: 'GET' }).handler(
   async () => {
-    const services = await db
+    const allServices = await db
       .select()
-      .from(statusServices)
-      .orderBy(asc(statusServices.name))
+      .from(services)
+      .orderBy(asc(services.name))
 
-    const serviceIds = services.map((s) => s.id)
+    const serviceIds = allServices.map((s) => s.id)
     if (serviceIds.length === 0) return []
 
     const [endpoints, dokployRows] = await Promise.all([
@@ -71,7 +71,7 @@ export const getStatusServices = createServerFn({ method: 'GET' }).handler(
 
     const dokployByService = new Map(dokployRows.map((d) => [d.serviceId, d]))
 
-    return services.map((service) => {
+    return allServices.map((service) => {
       const serviceEndpoints = endpoints.filter(
         (e) => e.serviceId === service.id,
       )
@@ -106,15 +106,17 @@ export const createStatusService = createServerFn({ method: 'POST' })
     const id = crypto.randomUUID()
     const createdAt = new Date()
     const created = await db
-      .insert(statusServices)
+      .insert(services)
       .values({
         createdAt,
         enabled: true,
         id,
         name: data.name,
         primaryDomain: data.primaryDomain ?? null,
+        projectId: '00000000-0000-0000-0000-000000000000',
         publicStatusHost: data.publicStatusHost,
         slug: data.slug,
+        statusEnabled: true,
       })
       .returning()
     const first = created.at(0)
@@ -145,7 +147,7 @@ export const updateStatusService = createServerFn({ method: 'POST' })
       set['publicStatusHost'] = patch.publicStatusHost
     if (patch.enabled !== undefined) set['enabled'] = patch.enabled
     if (Object.keys(set).length === 0) return
-    await db.update(statusServices).set(set).where(eq(statusServices.id, id))
+    await db.update(services).set(set).where(eq(services.id, id))
   })
 
 const createStatusEndpointSchema = z.object({

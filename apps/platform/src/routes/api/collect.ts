@@ -5,8 +5,8 @@ import {
   consoleErrors,
   events,
   pageViews,
-  projects,
-  sessions,
+  services,
+  visitorSessions,
 } from '@platform/db/schema'
 import { collectBatchSchema } from '@platform/shared/validation'
 import { createFileRoute } from '@tanstack/react-router'
@@ -48,49 +48,49 @@ export const Route = createFileRoute('/api/collect')({
           const host = request.headers.get('host') ?? 'localhost'
           const tenant = await resolveTenant(host)
 
-          let projectId = tenant.projectId
+          let serviceId = tenant.serviceId
 
           if (tenant.isAdmin) {
             const origin = request.headers.get('origin') ?? ''
             const originHost = origin ? new URL(origin).hostname : ''
 
             if (originHost) {
-              const project = await db.query.projects.findFirst({
+              const service = await db.query.services.findFirst({
                 columns: { id: true },
-                where: eq(projects.domain, originHost),
+                where: eq(services.domain, originHost),
               })
-              projectId = project?.id ?? null
+              serviceId = service?.id ?? null
             }
           }
 
-          if (!projectId) {
-            const allProjects = await db.query.projects.findFirst({
+          if (!serviceId) {
+            const fallback = await db.query.services.findFirst({
               columns: { id: true },
             })
-            projectId = allProjects?.id ?? null
+            serviceId = fallback?.id ?? null
           }
 
-          if (!projectId) {
+          if (!serviceId) {
             return Response.json(
-              { error: 'Project not found' },
+              { error: 'Service not found' },
               { headers: corsHeaders, status: 404 },
             )
           }
 
-          const project = await db.query.projects.findFirst({
+          const service = await db.query.services.findFirst({
             columns: {
+              analyticsEnabled: true,
               id: true,
               salt: true,
               trackErrors: true,
               trackEvents: true,
-              trackFeatureFlags: true,
             },
-            where: eq(projects.id, projectId),
+            where: eq(services.id, serviceId),
           })
 
-          if (!project) {
+          if (!service?.analyticsEnabled) {
             return Response.json(
-              { error: 'Project not found' },
+              { error: 'Service not found or analytics disabled' },
               { headers: corsHeaders, status: 404 },
             )
           }
@@ -114,7 +114,7 @@ export const Route = createFileRoute('/api/collect')({
           const userAgent = request.headers.get('user-agent') ?? ''
           const visitorHash = hashIP({
             ip,
-            salt: project.salt,
+            salt: service.salt ?? '',
             userAgent,
           })
           const isBot = detectBot(userAgent)
@@ -124,11 +124,11 @@ export const Route = createFileRoute('/api/collect')({
             geo,
             isBot,
             payloads: parsed.data,
-            projectConfig: {
-              trackErrors: project.trackErrors,
-              trackEvents: project.trackEvents,
+            serviceConfig: {
+              trackErrors: service.trackErrors,
+              trackEvents: service.trackEvents,
             },
-            projectId: project.id,
+            serviceId: service.id,
             visitorHash,
           })
 
@@ -152,8 +152,8 @@ const processPayloads = async ({
   geo,
   isBot,
   payloads,
-  projectConfig,
-  projectId,
+  serviceConfig,
+  serviceId,
   visitorHash,
 }: {
   geo: {
@@ -163,24 +163,24 @@ const processPayloads = async ({
   }
   isBot: boolean
   payloads: CollectPayload[]
-  projectConfig: {
+  serviceConfig: {
     trackErrors: boolean
     trackEvents: boolean
   }
-  projectId: string
+  serviceId: string
   visitorHash: string
 }) => {
   for (const payload of payloads) {
     switch (payload.type) {
       case 'error': {
-        if (!projectConfig.trackErrors) break
+        if (!serviceConfig.trackErrors) break
         await db.insert(consoleErrors).values({
           columnNumber: payload.columnNumber,
           level: payload.level,
           lineNumber: payload.lineNumber,
           message: payload.message,
           path: payload.path,
-          projectId,
+          serviceId,
           sessionId: payload.sessionId,
           sourceUrl: payload.sourceUrl,
           stack: payload.stack,
@@ -189,14 +189,14 @@ const processPayloads = async ({
       }
 
       case 'event': {
-        if (!projectConfig.trackEvents) break
+        if (!serviceConfig.trackEvents) break
         await db.insert(events).values({
           name: payload.name,
           path: payload.path,
-          projectId,
           properties: payload.properties as
             | Record<string, boolean | null | number | string>
             | undefined,
+          serviceId,
           sessionId: payload.sessionId,
         })
         break
@@ -207,9 +207,9 @@ const processPayloads = async ({
           durationMs: payload.durationMs,
           enteredAt: new Date(payload.enteredAt),
           path: payload.path,
-          projectId,
           referrer: payload.referrer,
           scrollDepthPct: payload.scrollDepthPct,
+          serviceId,
           sessionId: payload.sessionId,
           title: payload.title,
         })
@@ -217,13 +217,13 @@ const processPayloads = async ({
       }
 
       case 'session': {
-        const existing = await db.query.sessions.findFirst({
+        const existing = await db.query.visitorSessions.findFirst({
           columns: { id: true },
-          where: eq(sessions.id, payload.sessionId),
+          where: eq(visitorSessions.id, payload.sessionId),
         })
 
         if (!existing) {
-          await db.insert(sessions).values({
+          await db.insert(visitorSessions).values({
             browserName: payload.device.browserName,
             browserVersion: payload.device.browserVersion,
             city: geo.city,
@@ -235,11 +235,11 @@ const processPayloads = async ({
             language: payload.device.language,
             osName: payload.device.osName,
             osVersion: payload.device.osVersion,
-            projectId,
             referrer: payload.referrer,
             region: geo.region,
             screenHeight: payload.device.screenHeight,
             screenWidth: payload.device.screenWidth,
+            serviceId,
             timezone: payload.device.timezone,
             utmCampaign: payload.utmCampaign,
             utmContent: payload.utmContent,

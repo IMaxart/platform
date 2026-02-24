@@ -26,7 +26,7 @@ export const Route = createFileRoute('/events')({
   component: EventsPage,
 })
 
-const DEMO_PROJECT_ID = '00000000-0000-0000-0000-000000000000'
+const DEMO_SERVICE_ID = '00000000-0000-0000-0000-000000000000'
 
 function EventsPage() {
   const [days, setDays] = useState('30')
@@ -36,9 +36,9 @@ function EventsPage() {
     enabled: false,
     queryFn: () =>
       getEvents({
-        data: { days: daysNum, projectId: DEMO_PROJECT_ID },
+        data: { days: daysNum, serviceId: DEMO_SERVICE_ID },
       }),
-    queryKey: ['events', DEMO_PROJECT_ID, daysNum],
+    queryKey: ['events', DEMO_SERVICE_ID, daysNum],
   })
 
   return (

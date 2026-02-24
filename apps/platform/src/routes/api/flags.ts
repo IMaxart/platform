@@ -1,7 +1,7 @@
 import type { FeatureFlagConditions } from '@platform/db/schema'
 
 import { db } from '@platform/db'
-import { featureFlags, sessions } from '@platform/db/schema'
+import { featureFlags, visitorSessions } from '@platform/db/schema'
 import { createFileRoute } from '@tanstack/react-router'
 import { and, eq } from 'drizzle-orm'
 
@@ -32,18 +32,18 @@ export const Route = createFileRoute('/api/flags')({
           const host = request.headers.get('host') ?? 'localhost'
           const tenant = await resolveTenant(host)
 
-          if (!tenant.projectId && !tenant.isAdmin) {
+          if (!tenant.serviceId && !tenant.isAdmin) {
             return Response.json({ enabled: false }, { headers: corsHeaders })
           }
 
-          const projectId = tenant.projectId
-          if (!projectId) {
+          const serviceId = tenant.serviceId
+          if (!serviceId) {
             return Response.json({ enabled: false }, { headers: corsHeaders })
           }
 
           const flag = await db.query.featureFlags.findFirst({
             where: and(
-              eq(featureFlags.projectId, projectId),
+              eq(featureFlags.serviceId, serviceId),
               eq(featureFlags.key, key),
             ),
           })
@@ -105,9 +105,9 @@ const evaluateConditions = async ({
     sessionId &&
     (conditions.countries?.length || conditions.deviceTypes?.length)
   ) {
-    const session = await db.query.sessions.findFirst({
+    const session = await db.query.visitorSessions.findFirst({
       columns: { countryCode: true, deviceType: true },
-      where: eq(sessions.id, sessionId),
+      where: eq(visitorSessions.id, sessionId),
     })
 
     if (session) {

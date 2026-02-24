@@ -25,7 +25,7 @@ export const Route = createFileRoute('/pages')({
   component: PagesPage,
 })
 
-const DEMO_PROJECT_ID = '00000000-0000-0000-0000-000000000000'
+const DEMO_SERVICE_ID = '00000000-0000-0000-0000-000000000000'
 
 function PagesPage() {
   const [days, setDays] = useState('30')
@@ -42,9 +42,9 @@ function PagesPage() {
     enabled: false,
     queryFn: () =>
       getTopPages({
-        data: { days: daysNum, limit: 100, projectId: DEMO_PROJECT_ID },
+        data: { days: daysNum, limit: 100, serviceId: DEMO_SERVICE_ID },
       }) as Promise<PageData[]>,
-    queryKey: ['pages', DEMO_PROJECT_ID, daysNum],
+    queryKey: ['pages', DEMO_SERVICE_ID, daysNum],
   })
 
   const formatDuration = (ms: number) => {

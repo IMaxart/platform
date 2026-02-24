@@ -19,6 +19,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@platform/auth": "workspace:*",
     "@platform/db": "workspace:*",
     "@platform/shared": "workspace:*",
     "@platform/ui": "workspace:*",

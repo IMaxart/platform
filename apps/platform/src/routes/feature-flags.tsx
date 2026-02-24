@@ -40,15 +40,15 @@ export const Route = createFileRoute('/feature-flags')({
   component: FeatureFlagsPage,
 })
 
-const DEMO_PROJECT_ID = '00000000-0000-0000-0000-000000000000'
+const DEMO_SERVICE_ID = '00000000-0000-0000-0000-000000000000'
 
 function FeatureFlagsPage() {
   const [isCreateOpen, setIsCreateOpen] = useState(false)
 
   const flagsQuery = useQuery({
     enabled: false,
-    queryFn: () => getFeatureFlags({ data: DEMO_PROJECT_ID }),
-    queryKey: ['feature-flags', DEMO_PROJECT_ID],
+    queryFn: () => getFeatureFlags({ data: DEMO_SERVICE_ID }),
+    queryKey: ['feature-flags', DEMO_SERVICE_ID],
   })
 
   const renderConditions = (conditions: FeatureFlagConditions | null) => {

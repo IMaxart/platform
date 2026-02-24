@@ -5,8 +5,12 @@ import {
   excludedDevices,
   featureFlags,
   pageViews,
+  projectMembers,
   projects,
-  sessions,
+  services,
+  statusEndpoints,
+  users,
+  visitorSessions,
 } from '@platform/db/schema'
 import { createServerFn } from '@tanstack/react-start'
 import {
@@ -24,30 +28,33 @@ import {
   sql,
 } from 'drizzle-orm'
 
-const getExcludedHashes = async (projectId: string): Promise<string[]> => {
+const getExcludedHashes = async (serviceId: string): Promise<string[]> => {
   const excluded = await db
     .select({ visitorHash: excludedDevices.visitorHash })
     .from(excludedDevices)
-    .where(eq(excludedDevices.projectId, projectId))
+    .where(eq(excludedDevices.serviceId, serviceId))
 
   return excluded.map((e) => e.visitorHash)
 }
 
 const excludeCondition = (excludedHashes: string[], showExcluded: boolean) => {
   if (showExcluded || excludedHashes.length === 0) return undefined
-  return not(inArray(sessions.visitorHash, excludedHashes))
+  return not(inArray(visitorSessions.visitorHash, excludedHashes))
 }
 
 // --- Projects ---
 
-/** Fetch all projects ordered by creation date. */
-export const getProjects = createServerFn({ method: 'GET' }).handler(
-  async () => {
+/** Fetch projects scoped to a team, or all if no teamId given. */
+export const getProjects = createServerFn({ method: 'GET' })
+  .inputValidator((d: undefined | { teamId?: string }) => d)
+  .handler(async ({ data }) => {
+    const conditions = data?.teamId ? [eq(projects.teamId, data.teamId)] : []
+
     return db.query.projects.findMany({
       orderBy: [desc(projects.createdAt)],
+      where: conditions.length > 0 ? and(...conditions) : undefined,
     })
-  },
-)
+  })
 
 /** Fetch a single project by ID. */
 export const getProject = createServerFn({ method: 'GET' })
@@ -61,15 +68,15 @@ export const getProject = createServerFn({ method: 'GET' })
 // --- Overview Stats ---
 
 type OverviewParams = {
-  projectId: string
+  serviceId: string
   showExcluded?: boolean
 }
 
 /** Fetch visitor stats: today, yesterday, last 7/30/365 days, page views, avg duration. */
 export const getVisitorStats = createServerFn({ method: 'GET' })
   .inputValidator((d: OverviewParams) => d)
-  .handler(async ({ data: { projectId, showExcluded = false } }) => {
-    const excludedHashes = await getExcludedHashes(projectId)
+  .handler(async ({ data: { serviceId, showExcluded = false } }) => {
+    const excludedHashes = await getExcludedHashes(serviceId)
     const now = new Date()
     const todayStart = new Date(
       now.getFullYear(),
@@ -82,8 +89,8 @@ export const getVisitorStats = createServerFn({ method: 'GET' })
     const yearStart = new Date(todayStart.getTime() - 365 * 86400000)
 
     const baseConditions = [
-      eq(sessions.projectId, projectId),
-      eq(sessions.isBot, false),
+      eq(visitorSessions.serviceId, serviceId),
+      eq(visitorSessions.isBot, false),
       excludeCondition(excludedHashes, showExcluded),
     ].filter(Boolean)
 
@@ -97,37 +104,45 @@ export const getVisitorStats = createServerFn({ method: 'GET' })
       avgDuration,
     ] = await Promise.all([
       db
-        .select({ count: countDistinct(sessions.visitorHash) })
-        .from(sessions)
-        .where(and(...baseConditions, gte(sessions.startedAt, todayStart))),
+        .select({ count: countDistinct(visitorSessions.visitorHash) })
+        .from(visitorSessions)
+        .where(
+          and(...baseConditions, gte(visitorSessions.startedAt, todayStart)),
+        ),
       db
-        .select({ count: countDistinct(sessions.visitorHash) })
-        .from(sessions)
+        .select({ count: countDistinct(visitorSessions.visitorHash) })
+        .from(visitorSessions)
         .where(
           and(
             ...baseConditions,
-            gte(sessions.startedAt, yesterdayStart),
-            lte(sessions.startedAt, todayStart),
+            gte(visitorSessions.startedAt, yesterdayStart),
+            lte(visitorSessions.startedAt, todayStart),
           ),
         ),
       db
-        .select({ count: countDistinct(sessions.visitorHash) })
-        .from(sessions)
-        .where(and(...baseConditions, gte(sessions.startedAt, day7Start))),
+        .select({ count: countDistinct(visitorSessions.visitorHash) })
+        .from(visitorSessions)
+        .where(
+          and(...baseConditions, gte(visitorSessions.startedAt, day7Start)),
+        ),
       db
-        .select({ count: countDistinct(sessions.visitorHash) })
-        .from(sessions)
-        .where(and(...baseConditions, gte(sessions.startedAt, day30Start))),
+        .select({ count: countDistinct(visitorSessions.visitorHash) })
+        .from(visitorSessions)
+        .where(
+          and(...baseConditions, gte(visitorSessions.startedAt, day30Start)),
+        ),
       db
-        .select({ count: countDistinct(sessions.visitorHash) })
-        .from(sessions)
-        .where(and(...baseConditions, gte(sessions.startedAt, yearStart))),
+        .select({ count: countDistinct(visitorSessions.visitorHash) })
+        .from(visitorSessions)
+        .where(
+          and(...baseConditions, gte(visitorSessions.startedAt, yearStart)),
+        ),
       db
         .select({ count: count() })
         .from(pageViews)
         .where(
           and(
-            eq(pageViews.projectId, projectId),
+            eq(pageViews.serviceId, serviceId),
             gte(pageViews.enteredAt, day30Start),
           ),
         ),
@@ -136,7 +151,7 @@ export const getVisitorStats = createServerFn({ method: 'GET' })
         .from(pageViews)
         .where(
           and(
-            eq(pageViews.projectId, projectId),
+            eq(pageViews.serviceId, serviceId),
             gte(pageViews.enteredAt, day30Start),
           ),
         ),
@@ -156,29 +171,29 @@ export const getVisitorStats = createServerFn({ method: 'GET' })
 /** Fetch daily visitor counts for chart over the given number of days. */
 export const getVisitorChart = createServerFn({ method: 'GET' })
   .inputValidator((d: OverviewParams & { days: number }) => d)
-  .handler(async ({ data: { days, projectId, showExcluded = false } }) => {
-    const excludedHashes = await getExcludedHashes(projectId)
+  .handler(async ({ data: { days, serviceId, showExcluded = false } }) => {
+    const excludedHashes = await getExcludedHashes(serviceId)
     const startDate = new Date()
     startDate.setDate(startDate.getDate() - days)
 
     const excludeFilter = excludeCondition(excludedHashes, showExcluded)
     const conditions = [
-      eq(sessions.projectId, projectId),
-      eq(sessions.isBot, false),
-      gte(sessions.startedAt, startDate),
+      eq(visitorSessions.serviceId, serviceId),
+      eq(visitorSessions.isBot, false),
+      gte(visitorSessions.startedAt, startDate),
       excludeFilter,
     ].filter(Boolean)
 
     const results = await db
       .select({
-        date: sql<string>`DATE(${sessions.startedAt})`.as('date'),
+        date: sql<string>`DATE(${visitorSessions.startedAt})`.as('date'),
         sessionCount: count(),
-        visitors: countDistinct(sessions.visitorHash),
+        visitors: countDistinct(visitorSessions.visitorHash),
       })
-      .from(sessions)
+      .from(visitorSessions)
       .where(and(...conditions))
-      .groupBy(sql`DATE(${sessions.startedAt})`)
-      .orderBy(sql`DATE(${sessions.startedAt})`)
+      .groupBy(sql`DATE(${visitorSessions.startedAt})`)
+      .orderBy(sql`DATE(${visitorSessions.startedAt})`)
 
     return results
   })
@@ -186,7 +201,7 @@ export const getVisitorChart = createServerFn({ method: 'GET' })
 /** Fetch top pages by views and unique visitors over the given days. */
 export const getTopPages = createServerFn({ method: 'GET' })
   .inputValidator((d: OverviewParams & { days: number; limit?: number }) => d)
-  .handler(async ({ data: { days, limit = 10, projectId } }) => {
+  .handler(async ({ data: { days, limit = 10, serviceId } }) => {
     const startDate = new Date()
     startDate.setDate(startDate.getDate() - days)
 
@@ -194,16 +209,16 @@ export const getTopPages = createServerFn({ method: 'GET' })
       .select({
         avgDurationMs: avg(pageViews.durationMs),
         path: pageViews.path,
-        uniqueVisitors: countDistinct(sessions.visitorHash),
+        uniqueVisitors: countDistinct(visitorSessions.visitorHash),
         views: count(),
       })
       .from(pageViews)
-      .innerJoin(sessions, eq(pageViews.sessionId, sessions.id))
+      .innerJoin(visitorSessions, eq(pageViews.sessionId, visitorSessions.id))
       .where(
         and(
-          eq(pageViews.projectId, projectId),
+          eq(pageViews.serviceId, serviceId),
           gte(pageViews.enteredAt, startDate),
-          eq(sessions.isBot, false),
+          eq(visitorSessions.isBot, false),
         ),
       )
       .groupBy(pageViews.path)
@@ -214,80 +229,80 @@ export const getTopPages = createServerFn({ method: 'GET' })
 /** Fetch top referrers by unique visitor count over the given days. */
 export const getTopReferrers = createServerFn({ method: 'GET' })
   .inputValidator((d: OverviewParams & { days: number; limit?: number }) => d)
-  .handler(async ({ data: { days, limit = 10, projectId } }) => {
+  .handler(async ({ data: { days, limit = 10, serviceId } }) => {
     const startDate = new Date()
     startDate.setDate(startDate.getDate() - days)
 
     return db
       .select({
-        count: countDistinct(sessions.visitorHash),
-        referrer: sessions.referrer,
+        count: countDistinct(visitorSessions.visitorHash),
+        referrer: visitorSessions.referrer,
       })
-      .from(sessions)
+      .from(visitorSessions)
       .where(
         and(
-          eq(sessions.projectId, projectId),
-          gte(sessions.startedAt, startDate),
-          eq(sessions.isBot, false),
-          ne(sql`${sessions.referrer}`, ''),
+          eq(visitorSessions.serviceId, serviceId),
+          gte(visitorSessions.startedAt, startDate),
+          eq(visitorSessions.isBot, false),
+          ne(sql`${visitorSessions.referrer}`, ''),
         ),
       )
-      .groupBy(sessions.referrer)
-      .orderBy(desc(countDistinct(sessions.visitorHash)))
+      .groupBy(visitorSessions.referrer)
+      .orderBy(desc(countDistinct(visitorSessions.visitorHash)))
       .limit(limit)
   })
 
 /** Fetch top countries by unique visitor count over the given days. */
 export const getTopCountries = createServerFn({ method: 'GET' })
   .inputValidator((d: OverviewParams & { days: number; limit?: number }) => d)
-  .handler(async ({ data: { days, limit = 10, projectId } }) => {
+  .handler(async ({ data: { days, limit = 10, serviceId } }) => {
     const startDate = new Date()
     startDate.setDate(startDate.getDate() - days)
 
     return db
       .select({
-        count: countDistinct(sessions.visitorHash),
-        countryCode: sessions.countryCode,
+        count: countDistinct(visitorSessions.visitorHash),
+        countryCode: visitorSessions.countryCode,
       })
-      .from(sessions)
+      .from(visitorSessions)
       .where(
         and(
-          eq(sessions.projectId, projectId),
-          gte(sessions.startedAt, startDate),
-          eq(sessions.isBot, false),
+          eq(visitorSessions.serviceId, serviceId),
+          gte(visitorSessions.startedAt, startDate),
+          eq(visitorSessions.isBot, false),
         ),
       )
-      .groupBy(sessions.countryCode)
-      .orderBy(desc(countDistinct(sessions.visitorHash)))
+      .groupBy(visitorSessions.countryCode)
+      .orderBy(desc(countDistinct(visitorSessions.visitorHash)))
       .limit(limit)
   })
 
 /** Fetch human vs bot session counts over the given days. */
 export const getBotStats = createServerFn({ method: 'GET' })
-  .inputValidator((d: { days: number; projectId: string }) => d)
-  .handler(async ({ data: { days, projectId } }) => {
+  .inputValidator((d: { days: number; serviceId: string }) => d)
+  .handler(async ({ data: { days, serviceId } }) => {
     const startDate = new Date()
     startDate.setDate(startDate.getDate() - days)
 
     const [humans, bots] = await Promise.all([
       db
         .select({ count: count() })
-        .from(sessions)
+        .from(visitorSessions)
         .where(
           and(
-            eq(sessions.projectId, projectId),
-            gte(sessions.startedAt, startDate),
-            eq(sessions.isBot, false),
+            eq(visitorSessions.serviceId, serviceId),
+            gte(visitorSessions.startedAt, startDate),
+            eq(visitorSessions.isBot, false),
           ),
         ),
       db
         .select({ count: count() })
-        .from(sessions)
+        .from(visitorSessions)
         .where(
           and(
-            eq(sessions.projectId, projectId),
-            gte(sessions.startedAt, startDate),
-            eq(sessions.isBot, true),
+            eq(visitorSessions.serviceId, serviceId),
+            gte(visitorSessions.startedAt, startDate),
+            eq(visitorSessions.isBot, true),
           ),
         ),
     ])
@@ -303,10 +318,10 @@ export const getBotStats = createServerFn({ method: 'GET' })
 /** Fetch custom events aggregated by name over the given days. */
 export const getEvents = createServerFn({ method: 'GET' })
   .inputValidator(
-    (d: { days: number; limit?: number; offset?: number; projectId: string }) =>
+    (d: { days: number; limit?: number; offset?: number; serviceId: string }) =>
       d,
   )
-  .handler(async ({ data: { days, limit = 50, offset = 0, projectId } }) => {
+  .handler(async ({ data: { days, limit = 50, offset = 0, serviceId } }) => {
     const startDate = new Date()
     startDate.setDate(startDate.getDate() - days)
 
@@ -318,7 +333,7 @@ export const getEvents = createServerFn({ method: 'GET' })
       })
       .from(events)
       .where(
-        and(eq(events.projectId, projectId), gte(events.createdAt, startDate)),
+        and(eq(events.serviceId, serviceId), gte(events.createdAt, startDate)),
       )
       .groupBy(events.name)
       .orderBy(desc(count()))
@@ -328,14 +343,14 @@ export const getEvents = createServerFn({ method: 'GET' })
 
 // --- Sessions ---
 
-/** Fetch sessions with page views, events, and console errors for the given project and date range. */
+/** Fetch sessions with page views, events, and console errors for the given service and date range. */
 export const getSessions = createServerFn({ method: 'GET' })
   .inputValidator(
     (d: {
       days: number
       limit?: number
       offset?: number
-      projectId: string
+      serviceId: string
       showBots?: boolean
       showExcluded?: boolean
     }) => d,
@@ -346,26 +361,26 @@ export const getSessions = createServerFn({ method: 'GET' })
         days,
         limit = 50,
         offset = 0,
-        projectId,
+        serviceId,
         showBots = false,
         showExcluded = false,
       },
     }) => {
-      const excludedHashes = await getExcludedHashes(projectId)
+      const excludedHashes = await getExcludedHashes(serviceId)
       const startDate = new Date()
       startDate.setDate(startDate.getDate() - days)
 
       const conditions = [
-        eq(sessions.projectId, projectId),
-        gte(sessions.startedAt, startDate),
-        showBots ? undefined : eq(sessions.isBot, false),
+        eq(visitorSessions.serviceId, serviceId),
+        gte(visitorSessions.startedAt, startDate),
+        showBots ? undefined : eq(visitorSessions.isBot, false),
         excludeCondition(excludedHashes, showExcluded),
       ].filter(Boolean)
 
-      return db.query.sessions.findMany({
+      return db.query.visitorSessions.findMany({
         limit,
         offset,
-        orderBy: [desc(sessions.startedAt)],
+        orderBy: [desc(visitorSessions.startedAt)],
         where: and(...conditions),
         with: {
           consoleErrors: {
@@ -392,16 +407,16 @@ export const getConsoleErrors = createServerFn({ method: 'GET' })
       level?: string
       limit?: number
       offset?: number
-      projectId: string
+      serviceId: string
     }) => d,
   )
   .handler(
-    async ({ data: { days, level, limit = 50, offset = 0, projectId } }) => {
+    async ({ data: { days, level, limit = 50, offset = 0, serviceId } }) => {
       const startDate = new Date()
       startDate.setDate(startDate.getDate() - days)
 
       const conditions = [
-        eq(consoleErrors.projectId, projectId),
+        eq(consoleErrors.serviceId, serviceId),
         gte(consoleErrors.createdAt, startDate),
         level ? eq(consoleErrors.level, level) : undefined,
       ].filter(Boolean)
@@ -432,25 +447,232 @@ export const getConsoleErrors = createServerFn({ method: 'GET' })
     },
   )
 
-// --- Feature Flags ---
+/** Create a new project optionally scoped to a team. */
+export const createProject = createServerFn({ method: 'POST' })
+  .inputValidator((d: { name: string; teamId?: string }) => d)
+  .handler(async ({ data }) => {
+    const [project] = await db
+      .insert(projects)
+      .values({
+        name: data.name,
+        teamId: data.teamId ?? null,
+      })
+      .returning()
 
-/** Fetch all feature flags for a project. */
-export const getFeatureFlags = createServerFn({ method: 'GET' })
+    return project
+  })
+
+// --- Project Members ---
+
+export const getProjectMembers = createServerFn({ method: 'GET' })
   .inputValidator((projectId: string) => projectId)
   .handler(async ({ data: projectId }) => {
-    return db.query.featureFlags.findMany({
-      orderBy: [desc(featureFlags.createdAt)],
-      where: eq(featureFlags.projectId, projectId),
+    return db
+      .select({
+        createdAt: projectMembers.createdAt,
+        email: users.email,
+        id: projectMembers.id,
+        name: users.name,
+        role: projectMembers.role,
+        userId: projectMembers.userId,
+      })
+      .from(projectMembers)
+      .innerJoin(users, eq(projectMembers.userId, users.id))
+      .where(eq(projectMembers.projectId, projectId))
+      .orderBy(desc(projectMembers.createdAt))
+  })
+
+export const addProjectMember = createServerFn({ method: 'POST' })
+  .inputValidator(
+    (d: { projectId: string; role?: string; userId: string }) => d,
+  )
+  .handler(async ({ data }) => {
+    const [member] = await db
+      .insert(projectMembers)
+      .values({
+        projectId: data.projectId,
+        role: data.role ?? 'viewer',
+        userId: data.userId,
+      })
+      .onConflictDoNothing()
+      .returning()
+
+    return member ?? null
+  })
+
+export const removeProjectMember = createServerFn({ method: 'POST' })
+  .inputValidator((d: { memberId: string }) => d)
+  .handler(async ({ data }) => {
+    await db.delete(projectMembers).where(eq(projectMembers.id, data.memberId))
+
+    return { ok: true }
+  })
+
+export const updateProjectMemberRole = createServerFn({ method: 'POST' })
+  .inputValidator((d: { memberId: string; role: string }) => d)
+  .handler(async ({ data }) => {
+    await db
+      .update(projectMembers)
+      .set({ role: data.role })
+      .where(eq(projectMembers.id, data.memberId))
+
+    return { ok: true }
+  })
+
+// --- Services ---
+
+export const getProjectServices = createServerFn({ method: 'GET' })
+  .inputValidator((projectId: string) => projectId)
+  .handler(async ({ data: projectId }) => {
+    return db.query.services.findMany({
+      orderBy: [desc(services.createdAt)],
+      where: eq(services.projectId, projectId),
+      with: {
+        endpoints: true,
+      },
     })
   })
 
-// --- Project Config ---
+type CreateServiceParams = {
+  allowedOrigins?: string[]
+  analyticsEnabled?: boolean
+  dataRetentionDays?: number
+  domain?: string
+  enabled?: boolean
+  environments?: string[]
+  name: string
+  primaryDomain?: string
+  projectId: string
+  publicStatusHost?: string
+  salt?: string
+  slug: string
+  statusEnabled?: boolean
+  trackErrors?: boolean
+  trackEvents?: boolean
+  trackFeatureFlags?: boolean
+}
 
-/** Update project tracking settings (errors, events, feature flags). */
-export const updateProjectConfig = createServerFn({ method: 'POST' })
+export const createService = createServerFn({ method: 'POST' })
+  .inputValidator((d: CreateServiceParams) => d)
+  .handler(async ({ data }) => {
+    const [service] = await db
+      .insert(services)
+      .values({
+        allowedOrigins: data.allowedOrigins ?? [],
+        analyticsEnabled: data.analyticsEnabled ?? false,
+        dataRetentionDays: data.dataRetentionDays ?? 365,
+        domain: data.domain ?? null,
+        enabled: data.enabled ?? true,
+        environments: data.environments ?? ['production'],
+        name: data.name,
+        primaryDomain: data.primaryDomain ?? null,
+        projectId: data.projectId,
+        publicStatusHost: data.publicStatusHost ?? null,
+        salt: data.salt ?? null,
+        slug: data.slug,
+        statusEnabled: data.statusEnabled ?? false,
+        trackErrors: data.trackErrors ?? true,
+        trackEvents: data.trackEvents ?? true,
+        trackFeatureFlags: data.trackFeatureFlags ?? false,
+      })
+      .returning()
+
+    return service
+  })
+
+export const deleteService = createServerFn({ method: 'POST' })
+  .inputValidator((d: { serviceId: string }) => d)
+  .handler(async ({ data }) => {
+    await db.delete(services).where(eq(services.id, data.serviceId))
+
+    return { ok: true }
+  })
+
+export const createEndpoint = createServerFn({ method: 'POST' })
   .inputValidator(
     (d: {
-      projectId: string
+      degradedMs: number
+      displayName: string
+      expectedStatusMax: number
+      expectedStatusMin: number
+      internalMode: string
+      internalPath: string
+      internalUrl?: string
+      intervalSec: number
+      key: string
+      method: string
+      publicUrl?: string
+      serviceId: string
+      timeoutMs: number
+      warnMs: number
+    }) => d,
+  )
+  .handler(async ({ data }) => {
+    const [endpoint] = await db
+      .insert(statusEndpoints)
+      .values({
+        degradedMs: data.degradedMs,
+        displayName: data.displayName,
+        expectedStatusMax: data.expectedStatusMax,
+        expectedStatusMin: data.expectedStatusMin,
+        internalMode: data.internalMode,
+        internalPath: data.internalPath,
+        internalUrl: data.internalUrl ?? null,
+        intervalSec: data.intervalSec,
+        key: data.key,
+        method: data.method,
+        publicUrl: data.publicUrl ?? null,
+        serviceId: data.serviceId,
+        timeoutMs: data.timeoutMs,
+        warnMs: data.warnMs,
+      })
+      .returning()
+
+    return endpoint
+  })
+
+export const deleteEndpoint = createServerFn({ method: 'POST' })
+  .inputValidator((d: { endpointId: string }) => d)
+  .handler(async ({ data }) => {
+    await db
+      .delete(statusEndpoints)
+      .where(eq(statusEndpoints.id, data.endpointId))
+
+    return { ok: true }
+  })
+
+/** Search users by email for adding to projects. */
+export const searchUsers = createServerFn({ method: 'GET' })
+  .inputValidator((d: { query: string }) => d)
+  .handler(async ({ data }) => {
+    if (data.query.length < 2) return []
+
+    return db
+      .select({ email: users.email, id: users.id, name: users.name })
+      .from(users)
+      .where(sql`${users.email} ILIKE ${'%' + data.query + '%'}`)
+      .limit(10)
+  })
+
+// --- Feature Flags ---
+
+/** Fetch all feature flags for a service. */
+export const getFeatureFlags = createServerFn({ method: 'GET' })
+  .inputValidator((serviceId: string) => serviceId)
+  .handler(async ({ data: serviceId }) => {
+    return db.query.featureFlags.findMany({
+      orderBy: [desc(featureFlags.createdAt)],
+      where: eq(featureFlags.serviceId, serviceId),
+    })
+  })
+
+// --- Service Config ---
+
+/** Update service tracking settings (errors, events, feature flags). */
+export const updateServiceConfig = createServerFn({ method: 'POST' })
+  .inputValidator(
+    (d: {
+      serviceId: string
       trackErrors: boolean
       trackEvents: boolean
       trackFeatureFlags: boolean
@@ -458,12 +680,12 @@ export const updateProjectConfig = createServerFn({ method: 'POST' })
   )
   .handler(
     async ({
-      data: { projectId, trackErrors, trackEvents, trackFeatureFlags },
+      data: { serviceId, trackErrors, trackEvents, trackFeatureFlags },
     }) => {
       await db
-        .update(projects)
+        .update(services)
         .set({ trackErrors, trackEvents, trackFeatureFlags })
-        .where(eq(projects.id, projectId))
+        .where(eq(services.id, serviceId))
 
       return { ok: true }
     },
@@ -471,12 +693,12 @@ export const updateProjectConfig = createServerFn({ method: 'POST' })
 
 // --- Excluded Devices ---
 
-/** Fetch the list of excluded visitor hashes for a project. */
+/** Fetch the list of excluded visitor hashes for a service. */
 export const getExcludedDevicesList = createServerFn({ method: 'GET' })
-  .inputValidator((projectId: string) => projectId)
-  .handler(async ({ data: projectId }) => {
+  .inputValidator((serviceId: string) => serviceId)
+  .handler(async ({ data: serviceId }) => {
     return db.query.excludedDevices.findMany({
       orderBy: [desc(excludedDevices.createdAt)],
-      where: eq(excludedDevices.projectId, projectId),
+      where: eq(excludedDevices.serviceId, serviceId),
     })
   })

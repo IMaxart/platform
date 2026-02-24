@@ -36,7 +36,7 @@ export const Route = createFileRoute('/errors')({
   component: ErrorsPage,
 })
 
-const DEMO_PROJECT_ID = '00000000-0000-0000-0000-000000000000'
+const DEMO_SERVICE_ID = '00000000-0000-0000-0000-000000000000'
 
 function ErrorsPage() {
   const [days, setDays] = useState('7')
@@ -50,10 +50,10 @@ function ErrorsPage() {
         data: {
           days: daysNum,
           ...(level !== 'all' && { level }),
-          projectId: DEMO_PROJECT_ID,
+          serviceId: DEMO_SERVICE_ID,
         },
       }),
-    queryKey: ['console-errors', DEMO_PROJECT_ID, daysNum, level],
+    queryKey: ['console-errors', DEMO_SERVICE_ID, daysNum, level],
   })
 
   return (

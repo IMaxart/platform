@@ -7,6 +7,7 @@ COPY packages/ui/package.json ./packages/ui/
 COPY packages/db/package.json ./packages/db/
 COPY packages/shared/package.json ./packages/shared/
 COPY packages/auth/package.json ./packages/auth/
+COPY packages/email/package.json ./packages/email/
 COPY packages/sdk/package.json ./packages/sdk/
 COPY packages/tsconfig/package.json ./packages/tsconfig/
 RUN pnpm install --frozen-lockfile
@@ -24,8 +25,14 @@ WORKDIR /app/apps/platform
 COPY --from=deps /app/node_modules /app/node_modules
 COPY --from=deps /app/apps/platform/node_modules /app/apps/platform/node_modules
 COPY --from=deps /app/packages/db/node_modules /app/packages/db/node_modules
+COPY --from=deps /app/packages/auth/node_modules /app/packages/auth/node_modules
+COPY --from=deps /app/packages/email/node_modules /app/packages/email/node_modules
 COPY --from=build /app/packages/db/src /app/packages/db/src
 COPY --from=build /app/packages/db/package.json /app/packages/db/package.json
+COPY --from=build /app/packages/auth/src /app/packages/auth/src
+COPY --from=build /app/packages/auth/package.json /app/packages/auth/package.json
+COPY --from=build /app/packages/email/src /app/packages/email/src
+COPY --from=build /app/packages/email/package.json /app/packages/email/package.json
 COPY --from=build /app/apps/platform/dist ./dist
 COPY --from=build /app/apps/platform/public ./public
 COPY --from=build /app/apps/platform/server.ts ./server.ts

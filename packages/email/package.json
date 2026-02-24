@@ -1,0 +1,22 @@
+{
+  "name": "@platform/email",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "license": "AGPL-3.0",
+  "exports": {
+    ".": "./src/index.ts",
+    "./templates": "./src/templates/index.ts"
+  },
+  "dependencies": {
+    "@react-email/components": "^0.0.36",
+    "@react-email/render": "^1.0.6",
+    "nodemailer": "^6.10.1"
+  },
+  "devDependencies": {
+    "@platform/tsconfig": "workspace:*",
+    "@types/nodemailer": "^6.4.17",
+    "react": "^19.1.0",
+    "typescript": "^5.9.3"
+  }
+}

@@ -7,15 +7,21 @@ import {
   featureFlags,
   pageViews,
   projects,
-  sessions,
+  services,
+  visitorSessions,
 } from '@platform/db/schema'
 
 const DEMO_PROJECT = {
-  allowedOrigins: ['http://localhost:3000'],
-  analyticsSubdomain: 'localhost:3000',
-  domain: 'localhost:3000',
   name: 'Demo Project',
+}
+
+const DEMO_SERVICE = {
+  allowedOrigins: ['http://localhost:3000'],
+  analyticsEnabled: true,
+  domain: 'localhost:3000',
+  name: 'Demo Service',
   salt: crypto.randomBytes(32).toString('hex'),
+  slug: 'demo',
 }
 
 const DEVICE_TYPES = ['desktop', 'mobile', 'tablet'] as const
@@ -62,6 +68,18 @@ async function seed() {
   // eslint-disable-next-line no-console
   console.log(`Created project: ${project.name} (${project.id})`)
 
+  const [service] = await db
+    .insert(services)
+    .values({ ...DEMO_SERVICE, projectId: project.id })
+    .returning()
+
+  if (!service) {
+    throw new Error('Failed to create demo service')
+  }
+
+  // eslint-disable-next-line no-console
+  console.log(`Created service: ${service.name} (${service.id})`)
+
   const sessionRecords = []
 
   for (let day = 0; day < 90; day++) {
@@ -86,7 +104,6 @@ async function seed() {
         language: randomItem(['pl', 'en', 'de']),
         osName: randomItem(OS_NAMES),
         osVersion: `${randomInt({ max: 17, min: 10 })}.${randomInt({ max: 9, min: 0 })}`,
-        projectId: project.id,
         referrer: randomItem([
           null,
           'https://google.com',
@@ -97,6 +114,7 @@ async function seed() {
         region: null,
         screenHeight: randomItem([667, 1024, 720, 900, 1080]),
         screenWidth: randomItem([375, 768, 1280, 1440, 1920]),
+        serviceId: service.id,
         startedAt,
         timezone: 'Europe/Warsaw',
         utmCampaign: null,
@@ -118,7 +136,7 @@ async function seed() {
 
   for (let i = 0; i < sessionRecords.length; i += BATCH_SIZE) {
     const batch = sessionRecords.slice(i, i + BATCH_SIZE)
-    const result = await db.insert(sessions).values(batch).returning()
+    const result = await db.insert(visitorSessions).values(batch).returning()
     insertedSessions.push(...result)
   }
 
@@ -142,9 +160,9 @@ async function seed() {
         durationMs: randomInt({ max: 300000, min: 5000 }),
         enteredAt,
         path: randomItem(PAGES),
-        projectId: project.id,
         referrer: p === 0 ? session.referrer : null,
         scrollDepthPct: randomInt({ max: 100, min: 10 }),
+        serviceId: service.id,
         sessionId: session.id,
         title: `Page Title ${p + 1}`,
       })
@@ -155,8 +173,8 @@ async function seed() {
         createdAt: session.startedAt,
         name: randomItem(EVENT_NAMES),
         path: randomItem(PAGES),
-        projectId: project.id,
         properties: { value: randomInt({ max: 100, min: 1 }) },
+        serviceId: service.id,
         sessionId: session.id,
       })
     }
@@ -174,7 +192,7 @@ async function seed() {
           'SyntaxError: Unexpected token',
         ]),
         path: randomItem(PAGES),
-        projectId: project.id,
+        serviceId: service.id,
         sessionId: session.id,
         sourceUrl: 'https://example.com/app.js',
         stack: 'at Object.<anonymous> (app.js:1:1)',
@@ -214,21 +232,21 @@ async function seed() {
       description: 'Enable the redesigned checkout experience',
       enabled: true,
       key: 'new_checkout_flow',
-      projectId: project.id,
+      serviceId: service.id,
     },
     {
       conditions: null,
       description: 'Enable dark mode for all users',
       enabled: true,
       key: 'dark_mode',
-      projectId: project.id,
+      serviceId: service.id,
     },
     {
       conditions: { countries: ['PL', 'DE'], deviceTypes: ['desktop'] },
       description: 'Show beta features to selected countries',
       enabled: false,
       key: 'beta_features',
-      projectId: project.id,
+      serviceId: service.id,
     },
   ])
 
