@@ -15,7 +15,7 @@ import {
   TableRow,
 } from '@platform/ui/components/table'
 import { useQuery } from '@tanstack/react-query'
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useParams } from '@tanstack/react-router'
 import {
   ChevronDown,
   ChevronRight,
@@ -56,11 +56,11 @@ type SessionData = {
   visitorHash: string
 }
 
-export const Route = createFileRoute('/sessions')({
+export const Route = createFileRoute(
+  '/projects/$projectId/services/$serviceId/sessions',
+)({
   component: SessionsPage,
 })
-
-const DEMO_SERVICE_ID = '00000000-0000-0000-0000-000000000000'
 
 const DeviceIcon = ({ type }: { type: string }) => {
   switch (type) {
@@ -74,17 +74,19 @@ const DeviceIcon = ({ type }: { type: string }) => {
 }
 
 function SessionsPage() {
+  const { serviceId } = useParams({
+    from: '/projects/$projectId/services/$serviceId/sessions',
+  })
   const [days, setDays] = useState('7')
   const [expandedSession, setExpandedSession] = useState<null | string>(null)
   const daysNum = Number(days)
 
   const sessionsQuery = useQuery<SessionData[]>({
-    enabled: false,
     queryFn: () =>
       getSessions({
-        data: { days: daysNum, limit: 50, serviceId: DEMO_SERVICE_ID },
+        data: { days: daysNum, limit: 50, serviceId },
       }) as unknown as Promise<SessionData[]>,
-    queryKey: ['sessions', DEMO_SERVICE_ID, daysNum],
+    queryKey: ['sessions', serviceId, daysNum],
   })
 
   const formatDuration = (start: Date, end: Date | null) => {

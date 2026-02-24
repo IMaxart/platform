@@ -15,6 +15,7 @@ import { Building2, ChevronRight, Loader2, Plus, Users } from 'lucide-react'
 import { useState } from 'react'
 
 import { Header } from '~/components/layout/header'
+import { usePlatformRole } from '~/hooks/use-platform-role'
 
 export const Route = createFileRoute('/teams/')({
   component: TeamsPage,
@@ -30,6 +31,7 @@ function TeamsPage() {
   const { data: orgs, refetch } = authClient.useListOrganizations()
   const [showCreate, setShowCreate] = useState(false)
   const [error, setError] = useState<null | string>(null)
+  const { isSuperAdmin } = usePlatformRole()
 
   const form = useForm({
     defaultValues: { name: '', slug: '' },
@@ -69,17 +71,19 @@ function TeamsPage() {
               Manage teams and their members
             </p>
           </div>
-          <Button
-            onClick={() => {
-              setShowCreate(true)
-            }}
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Create team
-          </Button>
+          {isSuperAdmin && (
+            <Button
+              onClick={() => {
+                setShowCreate(true)
+              }}
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Create team
+            </Button>
+          )}
         </div>
 
-        {showCreate && (
+        {showCreate && isSuperAdmin && (
           <Card>
             <CardHeader>
               <CardTitle>Create a new team</CardTitle>
@@ -194,17 +198,21 @@ function TeamsPage() {
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <Building2 className="text-muted-foreground mb-4 h-10 w-10" />
                 <p className="text-muted-foreground mb-4 text-sm">
-                  You don&apos;t have any teams yet
+                  {isSuperAdmin
+                    ? "You don't have any teams yet"
+                    : 'No teams available. Contact an administrator.'}
                 </p>
-                <Button
-                  onClick={() => {
-                    setShowCreate(true)
-                  }}
-                  variant="outline"
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  Create your first team
-                </Button>
+                {isSuperAdmin && (
+                  <Button
+                    onClick={() => {
+                      setShowCreate(true)
+                    }}
+                    variant="outline"
+                  >
+                    <Plus className="mr-2 h-4 w-4" />
+                    Create your first team
+                  </Button>
+                )}
               </CardContent>
             </Card>
           )}

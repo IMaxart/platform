@@ -1,4 +1,4 @@
-import { authClient } from '@platform/auth/client'
+import { authClient, useSession } from '@platform/auth/client'
 import { Avatar, AvatarFallback } from '@platform/ui/components/avatar'
 import { Badge } from '@platform/ui/components/badge'
 import { Button } from '@platform/ui/components/button'
@@ -40,6 +40,7 @@ import {
 import { useCallback, useState } from 'react'
 
 import { Header } from '~/components/layout/header'
+import { usePlatformRole } from '~/hooks/use-platform-role'
 
 export const Route = createFileRoute('/teams/$teamId/members')({
   component: TeamMembersPage,
@@ -113,7 +114,9 @@ function InviteSection({ teamId }: { teamId: string }) {
     if (!inviteLink) return
     await navigator.clipboard.writeText(inviteLink)
     setCopied(true)
-    setTimeout(() => { setCopied(false); }, 2000)
+    setTimeout(() => {
+      setCopied(false)
+    }, 2000)
   }
 
   return (
@@ -134,7 +137,9 @@ function InviteSection({ teamId }: { teamId: string }) {
               <Label htmlFor="invite-email">Email address</Label>
               <Input
                 id="invite-email"
-                onChange={(e) => { setEmail(e.target.value); }}
+                onChange={(e) => {
+                  setEmail(e.target.value)
+                }}
                 placeholder="colleague@example.com"
                 required
                 type="email"
@@ -273,6 +278,8 @@ function PendingInvitations({ teamId }: { teamId: string }) {
 
 function TeamMembersPage() {
   const { teamId } = Route.useParams()
+  const { data: session } = useSession()
+  const { isSuperAdmin } = usePlatformRole()
 
   const orgQuery = useQuery({
     queryFn: async () => {
@@ -285,6 +292,16 @@ function TeamMembersPage() {
   })
 
   const org = orgQuery.data
+
+  const currentMember = org?.members?.find(
+    (m) => m.userId === session?.user?.id,
+  )
+  const orgRole = currentMember?.role ?? 'member'
+  const canInvite =
+    isSuperAdmin ||
+    orgRole === 'owner' ||
+    orgRole === 'admin'
+  const canRemove = canInvite
 
   return (
     <>
@@ -304,7 +321,7 @@ function TeamMembersPage() {
                   <TableRow>
                     <TableHead>Member</TableHead>
                     <TableHead>Role</TableHead>
-                    <TableHead className="w-20" />
+                    {canRemove && <TableHead className="w-20" />}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -339,29 +356,34 @@ function TeamMembersPage() {
                         <TableCell>
                           <Badge variant="outline">{member.role}</Badge>
                         </TableCell>
-                        <TableCell>
-                          {member.role !== 'owner' && (
-                            <Button
-                              onClick={() => {
-                                void authClient.organization.removeMember({
-                                  memberIdOrEmail: member.id,
-                                  organizationId: teamId,
-                                })
-                                void orgQuery.refetch()
-                              }}
-                              size="icon"
-                              variant="ghost"
-                            >
-                              <Trash2 className="text-destructive h-4 w-4" />
-                            </Button>
-                          )}
-                        </TableCell>
+                        {canRemove && (
+                          <TableCell>
+                            {member.role !== 'owner' && (
+                              <Button
+                                onClick={() => {
+                                  void authClient.organization.removeMember({
+                                    memberIdOrEmail: member.id,
+                                    organizationId: teamId,
+                                  })
+                                  void orgQuery.refetch()
+                                }}
+                                size="icon"
+                                variant="ghost"
+                              >
+                                <Trash2 className="text-destructive h-4 w-4" />
+                              </Button>
+                            )}
+                          </TableCell>
+                        )}
                       </TableRow>
                     )
                   })}
                   {(!org?.members || org.members.length === 0) && (
                     <TableRow>
-                      <TableCell className="text-center" colSpan={3}>
+                      <TableCell
+                        className="text-center"
+                        colSpan={canRemove ? 3 : 2}
+                      >
                         No members yet
                       </TableCell>
                     </TableRow>
@@ -372,9 +394,9 @@ function TeamMembersPage() {
           </CardContent>
         </Card>
 
-        <InviteSection teamId={teamId} />
+        {canInvite && <InviteSection teamId={teamId} />}
 
-        <PendingInvitations teamId={teamId} />
+        {canInvite && <PendingInvitations teamId={teamId} />}
       </div>
     </>
   )

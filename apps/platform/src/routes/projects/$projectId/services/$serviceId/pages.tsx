@@ -13,7 +13,7 @@ import {
   TableRow,
 } from '@platform/ui/components/table'
 import { useQuery } from '@tanstack/react-query'
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useParams } from '@tanstack/react-router'
 import { useState } from 'react'
 
 import { TimeRangeSelect } from '~/components/dashboard/time-range-select'
@@ -21,13 +21,16 @@ import { Header } from '~/components/layout/header'
 import { getTopPages } from '~/lib/server/queries'
 import * as m from '~/paraglide/messages'
 
-export const Route = createFileRoute('/pages')({
+export const Route = createFileRoute(
+  '/projects/$projectId/services/$serviceId/pages',
+)({
   component: PagesPage,
 })
 
-const DEMO_SERVICE_ID = '00000000-0000-0000-0000-000000000000'
-
 function PagesPage() {
+  const { serviceId } = useParams({
+    from: '/projects/$projectId/services/$serviceId/pages',
+  })
   const [days, setDays] = useState('30')
   const daysNum = Number(days)
 
@@ -39,12 +42,11 @@ function PagesPage() {
   }
 
   const pages = useQuery<PageData[]>({
-    enabled: false,
     queryFn: () =>
       getTopPages({
-        data: { days: daysNum, limit: 100, serviceId: DEMO_SERVICE_ID },
+        data: { days: daysNum, limit: 100, serviceId },
       }) as Promise<PageData[]>,
-    queryKey: ['pages', DEMO_SERVICE_ID, daysNum],
+    queryKey: ['pages', serviceId, daysNum],
   })
 
   const formatDuration = (ms: number) => {

@@ -23,117 +23,147 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from '@platform/ui/components/sidebar'
+import { useQuery } from '@tanstack/react-query'
 import { Link, useLocation, useNavigate } from '@tanstack/react-router'
 import {
+  Activity,
+  AlertTriangle,
   BarChart3,
   Building2,
   Check,
   ChevronsUpDown,
+  FileText,
+  Flag,
   FolderOpen,
+  Layers,
   LogOut,
+  MousePointerClick,
   Plus,
+  Server,
   Settings,
+  Users,
 } from 'lucide-react'
 
-import * as m from '~/paraglide/messages'
+import { getProjects, getProjectServices } from '~/lib/server/queries'
 
-type NavItem = {
+type NavItemDef = {
   icon: LucideIcon
-  key: string
+  label: string
   path: string
 }
 
-const NAV_ITEMS: NavItem[] = [
-  { icon: BarChart3, key: 'projects', path: '/projects' },
-  { icon: Settings, key: 'settings', path: '/settings' },
-]
+const parseRouteContext = (pathname: string) => {
+  const projectMatch = /\/projects\/([^/]+)/.exec(pathname)
+  const serviceMatch = /\/services\/([^/]+)/.exec(pathname)
 
-const TEAM_ITEMS: NavItem[] = [
-  { icon: Building2, key: 'teams', path: '/teams' },
-]
-
-const NAV_LABELS: Record<string, () => string> = {
-  projects: () => 'Projects',
-  settings: () => m.common_settings(),
-  teams: () => 'Teams',
+  return {
+    projectId: projectMatch?.[1] ?? null,
+    serviceId: serviceMatch?.[1] ?? null,
+  }
 }
 
 export const AppSidebar = () => {
   const location = useLocation()
   const { data: session } = useSession()
+  const { projectId, serviceId } = parseRouteContext(location.pathname)
 
   return (
     <Sidebar>
       <SidebarHeader className="border-b px-6 py-5">
         <Link className="flex items-center gap-2.5" to="/projects">
-          <FolderOpen className="h-5 w-5" />
+          <Layers className="h-5 w-5" />
           <span className="text-lg font-semibold tracking-tight">Platform</span>
         </Link>
       </SidebarHeader>
       <SidebarContent className="pt-2">
         <TeamSwitcher />
+        <ProjectSwitcher activeProjectId={projectId} />
 
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-muted-foreground/70 px-3 text-[11px] font-medium tracking-wider uppercase">
-            {m.common_dashboard()}
-          </SidebarGroupLabel>
-          <SidebarGroupContent className="mt-1">
-            <SidebarMenu>
-              {NAV_ITEMS.map((item) => {
-                const isActive =
-                  item.path === '/'
-                    ? location.pathname === '/'
-                    : location.pathname.startsWith(item.path)
+        {projectId && (
+          <NavSection
+            items={[
+              {
+                icon: FolderOpen,
+                label: 'Overview',
+                path: `/projects/${projectId}`,
+              },
+              {
+                icon: Server,
+                label: 'Services',
+                path: `/projects/${projectId}/services`,
+              },
+              {
+                icon: Users,
+                label: 'Members',
+                path: `/projects/${projectId}/members`,
+              },
+            ]}
+            label="Project"
+            pathname={location.pathname}
+          />
+        )}
 
-                return (
-                  <SidebarMenuItem key={item.key}>
-                    <SidebarMenuButton
-                      asChild
-                      className={cn(
-                        'transition-all duration-200 ease-out',
-                        isActive && 'bg-accent font-medium',
-                      )}
-                    >
-                      <Link to={item.path}>
-                        <item.icon className="h-4 w-4" />
-                        <span>{NAV_LABELS[item.key]?.() ?? item.key}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                )
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {projectId && (
+          <ServiceSwitcher activeServiceId={serviceId} projectId={projectId} />
+        )}
 
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-muted-foreground/70 px-3 text-[11px] font-medium tracking-wider uppercase">
-            Organization
-          </SidebarGroupLabel>
-          <SidebarGroupContent className="mt-1">
-            <SidebarMenu>
-              {TEAM_ITEMS.map((item) => {
-                const isActive = location.pathname.startsWith(item.path)
-                return (
-                  <SidebarMenuItem key={item.key}>
-                    <SidebarMenuButton
-                      asChild
-                      className={cn(
-                        'transition-all duration-200 ease-out',
-                        isActive && 'bg-accent font-medium',
-                      )}
-                    >
-                      <Link to={item.path}>
-                        <item.icon className="h-4 w-4" />
-                        <span>{NAV_LABELS[item.key]?.() ?? item.key}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                )
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {serviceId && projectId && (
+          <NavSection
+            items={[
+              {
+                icon: BarChart3,
+                label: 'Analytics',
+                path: `/projects/${projectId}/services/${serviceId}`,
+              },
+              {
+                icon: FileText,
+                label: 'Pages',
+                path: `/projects/${projectId}/services/${serviceId}/pages`,
+              },
+              {
+                icon: MousePointerClick,
+                label: 'Events',
+                path: `/projects/${projectId}/services/${serviceId}/events`,
+              },
+              {
+                icon: Users,
+                label: 'Sessions',
+                path: `/projects/${projectId}/services/${serviceId}/sessions`,
+              },
+              {
+                icon: AlertTriangle,
+                label: 'Errors',
+                path: `/projects/${projectId}/services/${serviceId}/errors`,
+              },
+              {
+                icon: Flag,
+                label: 'Feature Flags',
+                path: `/projects/${projectId}/services/${serviceId}/flags`,
+              },
+              {
+                icon: Activity,
+                label: 'Status',
+                path: `/projects/${projectId}/services/${serviceId}/status`,
+              },
+              {
+                icon: Settings,
+                label: 'Settings',
+                path: `/projects/${projectId}/services/${serviceId}/settings`,
+              },
+            ]}
+            label="Service"
+            pathname={location.pathname}
+          />
+        )}
+
+        <NavSection
+          items={[
+            { icon: Building2, label: 'Teams', path: '/teams' },
+            { icon: Settings, label: 'Settings', path: '/settings' },
+          ]}
+          label="Account"
+          pathname={location.pathname}
+        />
       </SidebarContent>
       <SidebarFooter className="border-t p-3">
         {session?.user && (
@@ -141,6 +171,168 @@ export const AppSidebar = () => {
         )}
       </SidebarFooter>
     </Sidebar>
+  )
+}
+
+type NavSectionProps = {
+  items: NavItemDef[]
+  label: string
+  pathname: string
+}
+
+type ProjectSwitcherProps = {
+  activeProjectId: null | string
+}
+
+type ServiceSwitcherProps = {
+  activeServiceId: null | string
+  projectId: string
+}
+
+function NavSection({ items, label, pathname }: NavSectionProps) {
+  return (
+    <SidebarGroup>
+      <SidebarGroupLabel className="text-muted-foreground/70 px-3 text-[11px] font-medium tracking-wider uppercase">
+        {label}
+      </SidebarGroupLabel>
+      <SidebarGroupContent className="mt-1">
+        <SidebarMenu>
+          {items.map((item) => {
+            const isExact = item.path === pathname
+            const isPrefix =
+              pathname.startsWith(item.path) && item.path !== '/settings'
+            const isActive = isExact || (isPrefix && item.path.length > 10)
+
+            return (
+              <SidebarMenuItem key={item.path}>
+                <SidebarMenuButton
+                  asChild
+                  className={cn(
+                    'transition-all duration-200 ease-out',
+                    isActive && 'bg-accent font-medium',
+                  )}
+                >
+                  <Link to={item.path}>
+                    <item.icon className="h-4 w-4" />
+                    <span>{item.label}</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )
+          })}
+        </SidebarMenu>
+      </SidebarGroupContent>
+    </SidebarGroup>
+  )
+}
+
+function ProjectSwitcher({ activeProjectId }: ProjectSwitcherProps) {
+  const { data: activeOrg } = authClient.useActiveOrganization()
+  const navigate = useNavigate()
+
+  const { data: projects } = useQuery({
+    enabled: !!activeOrg?.id,
+    queryFn: () =>
+      getProjects({ data: activeOrg ? { teamId: activeOrg.id } : undefined }),
+    queryKey: ['projects', activeOrg?.id],
+  })
+
+  if (!projects || projects.length === 0) return null
+
+  const activeProject = projects.find((p) => p.id === activeProjectId)
+
+  return (
+    <SidebarGroup>
+      <SidebarGroupContent>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button className="w-full justify-between px-3" variant="outline">
+              <div className="flex items-center gap-2 truncate">
+                <FolderOpen className="h-4 w-4 shrink-0" />
+                <span className="truncate text-sm">
+                  {activeProject?.name ?? 'Select project'}
+                </span>
+              </div>
+              <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="w-56">
+            {projects.map((project) => (
+              <DropdownMenuItem
+                key={project.id}
+                onClick={() => {
+                  void navigate({ to: `/projects/${project.id}` })
+                }}
+              >
+                <FolderOpen className="mr-2 h-4 w-4" />
+                <span className="truncate">{project.name}</span>
+                {activeProjectId === project.id && (
+                  <Check className="ml-auto h-4 w-4" />
+                )}
+              </DropdownMenuItem>
+            ))}
+            <DropdownMenuSeparator />
+            <Link to="/projects">
+              <DropdownMenuItem>
+                <Plus className="mr-2 h-4 w-4" />
+                All projects
+              </DropdownMenuItem>
+            </Link>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </SidebarGroupContent>
+    </SidebarGroup>
+  )
+}
+
+function ServiceSwitcher({ activeServiceId, projectId }: ServiceSwitcherProps) {
+  const navigate = useNavigate()
+
+  const { data: services } = useQuery({
+    queryFn: () => getProjectServices({ data: projectId }),
+    queryKey: ['services', projectId],
+  })
+
+  if (!services || services.length === 0) return null
+
+  const activeService = services.find((s) => s.id === activeServiceId)
+
+  return (
+    <SidebarGroup>
+      <SidebarGroupContent>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button className="w-full justify-between px-3" variant="ghost">
+              <div className="flex items-center gap-2 truncate">
+                <Server className="h-4 w-4 shrink-0" />
+                <span className="truncate text-sm">
+                  {activeService?.name ?? 'Select service'}
+                </span>
+              </div>
+              <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start" className="w-56">
+            {services.map((service) => (
+              <DropdownMenuItem
+                key={service.id}
+                onClick={() => {
+                  void navigate({
+                    to: `/projects/${projectId}/services/${service.id}`,
+                  })
+                }}
+              >
+                <Server className="mr-2 h-4 w-4" />
+                <span className="truncate">{service.name}</span>
+                {activeServiceId === service.id && (
+                  <Check className="ml-auto h-4 w-4" />
+                )}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </SidebarGroupContent>
+    </SidebarGroup>
   )
 }
 
@@ -188,7 +380,7 @@ function TeamSwitcher() {
             <Link to="/teams">
               <DropdownMenuItem>
                 <Plus className="mr-2 h-4 w-4" />
-                Create team
+                Manage teams
               </DropdownMenuItem>
             </Link>
           </DropdownMenuContent>

@@ -101,7 +101,9 @@ function LoginPage() {
                   autoComplete="email"
                   id="email"
                   onBlur={field.handleBlur}
-                  onChange={(e) => { field.handleChange(e.target.value); }}
+                  onChange={(e) => {
+                    field.handleChange(e.target.value)
+                  }}
                   placeholder="you@example.com"
                   required
                   type="email"
@@ -127,7 +129,9 @@ function LoginPage() {
                   autoComplete="current-password"
                   id="password"
                   onBlur={field.handleBlur}
-                  onChange={(e) => { field.handleChange(e.target.value); }}
+                  onChange={(e) => {
+                    field.handleChange(e.target.value)
+                  }}
                   placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;"
                   required
                   type="password"

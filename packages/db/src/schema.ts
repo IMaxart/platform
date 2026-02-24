@@ -24,6 +24,7 @@ export const users = pgTable('users', {
   id: text('id').primaryKey(),
   image: text('image'),
   name: text('name').notNull(),
+  role: text('role').notNull().default('user'),
   twoFactorBackupCodes: text('two_factor_backup_codes'),
   twoFactorEnabled: boolean('two_factor_enabled'),
   twoFactorSecret: text('two_factor_secret'),
@@ -146,6 +147,7 @@ export const projects = pgTable('projects', {
     .notNull()
     .defaultNow(),
   id: uuid('id').primaryKey().defaultRandom(),
+  image: text('image'),
   name: text('name').notNull(),
   teamId: text('team_id').references(() => organizations.id, {
     onDelete: 'set null',
@@ -195,6 +197,7 @@ export const services = pgTable('services', {
   enabled: boolean('enabled').notNull().default(true),
   environments: text('environments').array().notNull().default(['production']),
   id: uuid('id').primaryKey().defaultRandom(),
+  image: text('image'),
   name: text('name').notNull(),
   primaryDomain: text('primary_domain'),
   projectId: uuid('project_id')

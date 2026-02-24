@@ -23,7 +23,7 @@ import {
 } from '@platform/ui/components/table'
 import { Tabs, TabsList, TabsTrigger } from '@platform/ui/components/tabs'
 import { useQuery } from '@tanstack/react-query'
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useParams } from '@tanstack/react-router'
 import { AlertCircle, AlertTriangle } from 'lucide-react'
 import { useState } from 'react'
 
@@ -32,28 +32,30 @@ import { Header } from '~/components/layout/header'
 import { getConsoleErrors } from '~/lib/server/queries'
 import * as m from '~/paraglide/messages'
 
-export const Route = createFileRoute('/errors')({
+export const Route = createFileRoute(
+  '/projects/$projectId/services/$serviceId/errors',
+)({
   component: ErrorsPage,
 })
 
-const DEMO_SERVICE_ID = '00000000-0000-0000-0000-000000000000'
-
 function ErrorsPage() {
+  const { serviceId } = useParams({
+    from: '/projects/$projectId/services/$serviceId/errors',
+  })
   const [days, setDays] = useState('7')
   const [level, setLevel] = useState<string>('all')
   const daysNum = Number(days)
 
   const errorsQuery = useQuery({
-    enabled: false,
     queryFn: () =>
       getConsoleErrors({
         data: {
           days: daysNum,
           ...(level !== 'all' && { level }),
-          serviceId: DEMO_SERVICE_ID,
+          serviceId,
         },
       }),
-    queryKey: ['console-errors', DEMO_SERVICE_ID, daysNum, level],
+    queryKey: ['console-errors', serviceId, daysNum, level],
   })
 
   return (

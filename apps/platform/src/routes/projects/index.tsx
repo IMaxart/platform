@@ -70,7 +70,9 @@ function CreateProjectForm({
                 <Input
                   id="project-name"
                   onBlur={field.handleBlur}
-                  onChange={(e) => { field.handleChange(e.target.value); }}
+                  onChange={(e) => {
+                    field.handleChange(e.target.value)
+                  }}
                   placeholder="ministry-life"
                   required
                   value={field.state.value}
@@ -123,7 +125,11 @@ function ProjectsPage() {
               Manage projects, analytics, and services
             </p>
           </div>
-          <Button onClick={() => { setShowCreate(true); }}>
+          <Button
+            onClick={() => {
+              setShowCreate(true)
+            }}
+          >
             <Plus className="mr-2 h-4 w-4" />
             New project
           </Button>
@@ -131,7 +137,9 @@ function ProjectsPage() {
 
         {showCreate && activeOrg && (
           <CreateProjectForm
-            onCancel={() => { setShowCreate(false); }}
+            onCancel={() => {
+              setShowCreate(false)
+            }}
             onSuccess={() => {
               setShowCreate(false)
               void projectsQuery.refetch()
@@ -185,7 +193,12 @@ function ProjectsPage() {
                 <p className="text-muted-foreground mb-4 text-sm">
                   No projects yet in this team
                 </p>
-                <Button onClick={() => { setShowCreate(true); }} variant="outline">
+                <Button
+                  onClick={() => {
+                    setShowCreate(true)
+                  }}
+                  variant="outline"
+                >
                   <Plus className="mr-2 h-4 w-4" />
                   Create your first project
                 </Button>

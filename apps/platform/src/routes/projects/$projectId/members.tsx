@@ -88,7 +88,9 @@ function AddMemberForm({ onCancel, onSuccess, projectId }: AddMemberFormProps) {
               <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
               <Input
                 className="pl-9"
-                onChange={(e) => { setSearchQuery(e.target.value); }}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value)
+                }}
                 placeholder="Search by email..."
                 value={searchQuery}
               />
@@ -99,7 +101,9 @@ function AddMemberForm({ onCancel, onSuccess, projectId }: AddMemberFormProps) {
                   <button
                     className="hover:bg-accent flex w-full items-center gap-3 rounded-md p-2 text-left text-sm transition-colors"
                     key={user.id}
-                    onClick={() => { setSelectedUser(user); }}
+                    onClick={() => {
+                      setSelectedUser(user)
+                    }}
                     type="button"
                   >
                     <div>
@@ -133,7 +137,9 @@ function AddMemberForm({ onCancel, onSuccess, projectId }: AddMemberFormProps) {
                 </p>
               </div>
               <Button
-                onClick={() => { setSelectedUser(null); }}
+                onClick={() => {
+                  setSelectedUser(null)
+                }}
                 size="sm"
                 type="button"
                 variant="ghost"
@@ -147,7 +153,9 @@ function AddMemberForm({ onCancel, onSuccess, projectId }: AddMemberFormProps) {
                 <div className="mb-4 space-y-2">
                   <Label>Role</Label>
                   <Select
-                    onValueChange={(value) => { field.handleChange(value); }}
+                    onValueChange={(value) => {
+                      field.handleChange(value)
+                    }}
                     value={field.state.value}
                   >
                     <SelectTrigger>
@@ -224,7 +232,11 @@ function ProjectMembersPage() {
               Manage who has access to this project
             </p>
           </div>
-          <Button onClick={() => { setShowAdd(true); }}>
+          <Button
+            onClick={() => {
+              setShowAdd(true)
+            }}
+          >
             <UserPlus className="mr-2 h-4 w-4" />
             Add member
           </Button>
@@ -232,7 +244,9 @@ function ProjectMembersPage() {
 
         {showAdd && (
           <AddMemberForm
-            onCancel={() => { setShowAdd(false); }}
+            onCancel={() => {
+              setShowAdd(false)
+            }}
             onSuccess={() => {
               setShowAdd(false)
               void membersQuery.refetch()

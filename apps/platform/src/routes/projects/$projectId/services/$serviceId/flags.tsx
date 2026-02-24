@@ -28,7 +28,7 @@ import {
   TableRow,
 } from '@platform/ui/components/table'
 import { useQuery } from '@tanstack/react-query'
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useParams } from '@tanstack/react-router'
 import { Flag, Plus } from 'lucide-react'
 import { useState } from 'react'
 
@@ -36,25 +36,27 @@ import { Header } from '~/components/layout/header'
 import { getFeatureFlags } from '~/lib/server/queries'
 import * as m from '~/paraglide/messages'
 
-export const Route = createFileRoute('/feature-flags')({
+export const Route = createFileRoute(
+  '/projects/$projectId/services/$serviceId/flags',
+)({
   component: FeatureFlagsPage,
 })
 
-const DEMO_SERVICE_ID = '00000000-0000-0000-0000-000000000000'
-
 function FeatureFlagsPage() {
+  const { serviceId } = useParams({
+    from: '/projects/$projectId/services/$serviceId/flags',
+  })
   const [isCreateOpen, setIsCreateOpen] = useState(false)
 
   const flagsQuery = useQuery({
-    enabled: false,
-    queryFn: () => getFeatureFlags({ data: DEMO_SERVICE_ID }),
-    queryKey: ['feature-flags', DEMO_SERVICE_ID],
+    queryFn: () => getFeatureFlags({ data: serviceId }),
+    queryKey: ['feature-flags', serviceId],
   })
 
   const renderConditions = (conditions: FeatureFlagConditions | null) => {
     if (!conditions) return '—'
 
-    const parts = []
+    const parts: string[] = []
     if (conditions.percentage !== undefined) {
       parts.push(
         `${conditions.percentage}% ${m.flags_percentage().toLowerCase()}`,
@@ -119,7 +121,7 @@ function FeatureFlagsPage() {
               {m.flags_title()}
             </CardTitle>
             <CardDescription>
-              Manage feature flags for your project
+              Manage feature flags for this service
             </CardDescription>
           </CardHeader>
           <CardContent>

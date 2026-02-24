@@ -14,7 +14,7 @@ import {
   TableRow,
 } from '@platform/ui/components/table'
 import { useQuery } from '@tanstack/react-query'
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useParams } from '@tanstack/react-router'
 import { useState } from 'react'
 
 import { TimeRangeSelect } from '~/components/dashboard/time-range-select'
@@ -22,23 +22,25 @@ import { Header } from '~/components/layout/header'
 import { getEvents } from '~/lib/server/queries'
 import * as m from '~/paraglide/messages'
 
-export const Route = createFileRoute('/events')({
+export const Route = createFileRoute(
+  '/projects/$projectId/services/$serviceId/events',
+)({
   component: EventsPage,
 })
 
-const DEMO_SERVICE_ID = '00000000-0000-0000-0000-000000000000'
-
 function EventsPage() {
+  const { serviceId } = useParams({
+    from: '/projects/$projectId/services/$serviceId/events',
+  })
   const [days, setDays] = useState('30')
   const daysNum = Number(days)
 
   const eventsQuery = useQuery({
-    enabled: false,
     queryFn: () =>
       getEvents({
-        data: { days: daysNum, serviceId: DEMO_SERVICE_ID },
+        data: { days: daysNum, serviceId },
       }),
-    queryKey: ['events', DEMO_SERVICE_ID, daysNum],
+    queryKey: ['events', serviceId, daysNum],
   })
 
   return (

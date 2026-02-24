@@ -39,7 +39,9 @@ const LanguageSwitcher = () => {
           <DropdownMenuItem
             className={current === locale.code ? 'font-medium' : ''}
             key={locale.code}
-            onClick={() => { setLocale(locale.code) }}
+            onClick={() => {
+              setLocale(locale.code)
+            }}
           >
             {locale.label}
           </DropdownMenuItem>
