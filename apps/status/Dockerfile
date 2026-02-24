@@ -32,6 +32,6 @@ COPY --from=build /app/apps/status/src ./src
 COPY --from=build /app/apps/status/package.json ./package.json
 
 ENV NODE_ENV=production
-EXPOSE 3001
+EXPOSE 3000
 
 CMD ["bun", "run", "server.ts"]

@@ -56,12 +56,12 @@ services:
         condition: service_completed_successfully
     environment:
       NODE_ENV: ${NODE_ENV:-production}
-      PORT: '3001'
+      PORT: 3000
       DATABASE_URL: postgresql://${POSTGRES_USER:-imaxart}:${POSTGRES_PASSWORD:-imaxart}@postgres:5432/${POSTGRES_DB:-imaxart}
     labels:
       - traefik.enable=true
       - traefik.http.routers.status.rule=Host(`status.${ADMIN_DOMAIN:-localhost}`)
-      - traefik.http.services.status.loadbalancer.server.port=3001
+      - traefik.http.services.status.loadbalancer.server.port=3000
 
 volumes:
   pgdata:
