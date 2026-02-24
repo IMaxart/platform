@@ -2,7 +2,9 @@ import type { Db } from './db'
 import type { Env } from './env'
 import type { CheckRow, DailyRollupRow, EndpointRow, ProbeKind } from './types'
 
-import { named } from './sql'
+import { db as drizzleDb } from '@platform/db/connection'
+import { statusChecks } from '@platform/db/schema'
+import { and, gte, lt } from 'drizzle-orm'
 
 type InternetState = {
   checkedAtMs: number
@@ -59,7 +61,9 @@ const probeUrl = async ({
 }): Promise<ProbeResult> => {
   const startedAt = performance.now()
   const controller = new AbortController()
-  const timer = setTimeout(() => { controller.abort(); }, timeoutMs)
+  const timer = setTimeout(() => {
+    controller.abort()
+  }, timeoutMs)
 
   try {
     const res = await fetch(url, {
@@ -136,7 +140,6 @@ const resolveEndpointProbeTarget = ({
 
   return {
     headers: {
-      // This is allowed in server-side fetch and enables Host-based routing via Traefik.
       host,
     },
     url: base.toString(),
@@ -164,7 +167,7 @@ const computeDayRollup = ({
   dayStartMs: number
   endpointId: string
   probe: ProbeKind
-  rows: { degraded: 0 | 1; latencyMs: null | number; ok: 0 | 1; }[]
+  rows: { degraded: 0 | 1; latencyMs: null | number; ok: 0 | 1 }[]
 }): DailyRollupRow => {
   const total = rows.length
   const up = rows.filter((r) => r.ok === 1).length
@@ -208,8 +211,8 @@ export const startMonitoring = ({ db, env }: { db: Db; env: Env }) => {
     nextRunAtByEndpointId: new Map(),
   }
 
-  const refreshEndpoints = () => {
-    const endpoints = db.listActiveEndpoints()
+  const refreshEndpoints = async () => {
+    const endpoints = await db.listActiveEndpoints()
     state.endpoints = endpoints
 
     for (const e of endpoints) {
@@ -236,7 +239,7 @@ export const startMonitoring = ({ db, env }: { db: Db; env: Env }) => {
     const ok =
       result.ok && result.statusCode !== null && result.statusCode < 500
 
-    db.insertInternetCheck({
+    await db.insertInternetCheck({
       check: {
         atMs: nowMs,
         errorKind: result.errorKind,
@@ -302,55 +305,58 @@ export const startMonitoring = ({ db, env }: { db: Db; env: Env }) => {
       statusCode: result.statusCode,
     }
 
-    db.insertCheck({ check })
+    await db.insertCheck({ check })
   }
 
-  const runMaintenance = ({ nowMs }: { nowMs: number }) => {
+  const runMaintenance = async ({ nowMs }: { nowMs: number }) => {
     const retentionMs = env.checksRetentionHours * 60 * 60 * 1000
-    db.deleteChecksBefore({ beforeMs: nowMs - retentionMs })
+    await db.deleteChecksBefore({ beforeMs: nowMs - retentionMs })
 
-    // We only keep raw checks for ~48h, so we continuously upsert daily rollups
-    // for today and yesterday before old raw checks are deleted.
     const todayStart = getDayStartUtcMs({ atMs: nowMs })
     const yesterdayStart = todayStart - 24 * 60 * 60 * 1000
 
-    const recomputeDay = ({ dayStartMs }: { dayStartMs: number }) => {
+    const recomputeDay = async ({ dayStartMs }: { dayStartMs: number }) => {
       const dayEndMs = dayStartMs + 24 * 60 * 60 * 1000
       const byKey = new Map<
         string,
         {
           endpointId: string
           probe: ProbeKind
-          rows: { degraded: 0 | 1; latencyMs: null | number; ok: 0 | 1; }[]
+          rows: { degraded: 0 | 1; latencyMs: null | number; ok: 0 | 1 }[]
         }
       >()
 
-      const stmt2 = db.sqlite.prepare(`
-        SELECT endpointId, probe, ok, degraded, latencyMs
-        FROM checks
-        WHERE atMs >= $dayStartMs AND atMs < $dayEndMs
-      `)
-      const rows2 = stmt2.all(named({ dayEndMs, dayStartMs })) as {
-        degraded: 0 | 1
-        endpointId: string
-        latencyMs: null | number
-        ok: 0 | 1
-        probe: ProbeKind
-      }[]
+      const checkRows = await drizzleDb
+        .select({
+          degraded: statusChecks.degraded,
+          endpointId: statusChecks.endpointId,
+          latencyMs: statusChecks.latencyMs,
+          ok: statusChecks.ok,
+          probe: statusChecks.probe,
+        })
+        .from(statusChecks)
+        .where(
+          and(
+            gte(statusChecks.checkedAt, new Date(dayStartMs)),
+            lt(statusChecks.checkedAt, new Date(dayEndMs)),
+          ),
+        )
 
-      for (const r of rows2) {
+      for (const r of checkRows) {
         const key = `${r.endpointId}:${r.probe}`
         const prev = byKey.get(key)
         const nextRows = prev?.rows ?? []
+        const ok: 0 | 1 = r.ok ? 1 : 0
+        const degraded: 0 | 1 = r.degraded ? 1 : 0
         nextRows.push({
-          degraded: r.degraded,
+          degraded,
           latencyMs: r.latencyMs,
-          ok: r.ok,
+          ok,
         })
 
         byKey.set(key, {
           endpointId: r.endpointId,
-          probe: r.probe,
+          probe: r.probe as ProbeKind,
           rows: nextRows,
         })
       }
@@ -362,17 +368,16 @@ export const startMonitoring = ({ db, env }: { db: Db; env: Env }) => {
           probe: entry.probe,
           rows: entry.rows,
         })
-        db.upsertDailyRollup({ rollup })
+        await db.upsertDailyRollup({ rollup })
       }
     }
 
-    recomputeDay({ dayStartMs: yesterdayStart })
-    recomputeDay({ dayStartMs: todayStart })
+    await recomputeDay({ dayStartMs: yesterdayStart })
+    await recomputeDay({ dayStartMs: todayStart })
   }
 
   let isTickRunning = false
   const tick = async () => {
-    // Avoid overlapping ticks if probes are slow.
     if (isTickRunning) return
     isTickRunning = true
     try {
@@ -411,8 +416,10 @@ export const startMonitoring = ({ db, env }: { db: Db; env: Env }) => {
   }
 
   const start = () => {
-    refreshEndpoints()
-    setInterval(refreshEndpoints, 30_000)
+    void refreshEndpoints()
+    setInterval(() => {
+      void refreshEndpoints()
+    }, 30_000)
 
     tick().catch((error: unknown) => {
       void error
@@ -425,11 +432,9 @@ export const startMonitoring = ({ db, env }: { db: Db; env: Env }) => {
 
     const runMaintenanceTick = () => {
       const nowMs = getAdminSafeNowMs()
-      try {
-        runMaintenance({ nowMs })
-      } catch (error) {
+      runMaintenance({ nowMs }).catch((error: unknown) => {
         void error
-      }
+      })
     }
     runMaintenanceTick()
     setInterval(runMaintenanceTick, env.maintenanceIntervalSec * 1000)

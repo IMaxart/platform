@@ -16,11 +16,11 @@ import {
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
-import { useTranslation } from 'react-i18next'
 
 import { TimeRangeSelect } from '~/components/dashboard/time-range-select'
 import { Header } from '~/components/layout/header'
 import { getEvents } from '~/lib/server/queries'
+import * as m from '~/paraglide/messages'
 
 export const Route = createFileRoute('/events')({
   component: EventsPage,
@@ -29,7 +29,6 @@ export const Route = createFileRoute('/events')({
 const DEMO_PROJECT_ID = '00000000-0000-0000-0000-000000000000'
 
 function EventsPage() {
-  const { t } = useTranslation()
   const [days, setDays] = useState('30')
   const daysNum = Number(days)
 
@@ -44,7 +43,7 @@ function EventsPage() {
 
   return (
     <>
-      <Header title={t('events.title')} />
+      <Header title={m.events_title()} />
       <div className="flex-1 space-y-6 p-4 md:p-6">
         <div className="flex items-center justify-between">
           <div />
@@ -53,19 +52,19 @@ function EventsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>{t('events.title')}</CardTitle>
+            <CardTitle>{m.events_title()}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>{t('events.name')}</TableHead>
+                    <TableHead>{m.events_name()}</TableHead>
                     <TableHead className="text-right">
-                      {t('events.count')}
+                      {m.events_count()}
                     </TableHead>
                     <TableHead className="text-right">
-                      {t('events.lastSeen')}
+                      {m.events_lastSeen()}
                     </TableHead>
                   </TableRow>
                 </TableHeader>
@@ -89,7 +88,7 @@ function EventsPage() {
                   ) : (
                     <TableRow>
                       <TableCell className="text-center" colSpan={3}>
-                        {t('common.noData')}
+                        {m.common_noData()}
                       </TableCell>
                     </TableRow>
                   )}

@@ -20,7 +20,7 @@ const ThemeContext = createContext<ThemeContextValue>({
   theme: 'system',
 })
 
-const THEME_KEY = 'analytics-theme'
+const THEME_KEY = 'platform-theme'
 
 const getStoredTheme = (): Theme => {
   if (typeof window === 'undefined') return 'system'
@@ -37,20 +37,21 @@ const getStoredTheme = (): Theme => {
   return 'system'
 }
 
+const resolveTheme = (theme: Theme): 'dark' | 'light' => {
+  if (theme === 'system') {
+    return window.matchMedia('(prefers-color-scheme: dark)').matches
+      ? 'dark'
+      : 'light'
+  }
+  return theme
+}
+
 const applyTheme = (theme: Theme) => {
   if (typeof window === 'undefined') return
 
   const root = document.documentElement
   root.classList.remove('light', 'dark')
-
-  const resolved =
-    theme === 'system'
-      ? window.matchMedia('(prefers-color-scheme: dark)').matches
-        ? 'dark'
-        : 'light'
-      : theme
-
-  root.classList.add(resolved)
+  root.classList.add(resolveTheme(theme))
 }
 
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
@@ -91,3 +92,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
 }
 
 export const useTheme = () => useContext(ThemeContext)
+
+export type { Theme }
+
+export const themeScript = `(function(){var t=localStorage.getItem('${THEME_KEY}')||'system';var d=t==='dark'||(t==='system'&&window.matchMedia('(prefers-color-scheme:dark)').matches);document.documentElement.classList.add(d?'dark':'light')})();`

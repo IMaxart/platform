@@ -7,7 +7,9 @@
   "exports": {
     ".": "./src/index.ts",
     "./lib/utils": "./src/lib/utils.ts",
-    "./components/*": "./src/components/*.tsx"
+    "./components/*": "./src/components/*.tsx",
+    "./providers/*": "./src/providers/*.tsx",
+    "./styles/*": "./src/styles/*"
   },
   "dependencies": {
     "class-variance-authority": "^0.7.1",

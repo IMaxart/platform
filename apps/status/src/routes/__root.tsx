@@ -1,10 +1,12 @@
 import type { ReactNode } from 'react'
 
+import { ThemeProvider, themeScript } from '@platform/ui'
+import { TooltipProvider } from '@platform/ui/components/tooltip'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { createRootRoute, HeadContent, Scripts } from '@tanstack/react-router'
 import { useState } from 'react'
 
-import Header from '~/components/Header'
+import Header from '~/components/header'
 
 import appCss from '~/styles/globals.css?url'
 
@@ -28,6 +30,11 @@ export const Route = createRootRoute({
         title: 'Status',
       },
     ],
+    scripts: [
+      {
+        children: themeScript,
+      },
+    ],
   }),
   shellComponent: RootDocument,
 })
@@ -37,14 +44,18 @@ function RootDocument({ children }: { children: ReactNode }) {
   const [queryClient] = useState(() => new QueryClient())
 
   return (
-    <html lang="pl">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <HeadContent />
       </head>
-      <body>
+      <body className="bg-background text-foreground min-h-screen antialiased">
         <QueryClientProvider client={queryClient}>
-          <Header />
-          {children}
+          <ThemeProvider>
+            <TooltipProvider>
+              <Header />
+              {children}
+            </TooltipProvider>
+          </ThemeProvider>
         </QueryClientProvider>
         <Scripts />
       </body>

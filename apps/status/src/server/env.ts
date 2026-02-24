@@ -11,10 +11,7 @@ const parseIntOr = ({
 }
 
 export type Env = {
-  adminHost: string
-  adminWriteToken: null | string
   checksRetentionHours: number
-  dbPath: string
   dokployApiKey: null | string
   dokployBaseUrl: null | string
   dokploySyncIntervalSec: number
@@ -31,13 +28,10 @@ export const getEnv = (): Env => {
   const port = parseIntOr({ fallback: 3000, value: env['PORT'] })
 
   return {
-    adminHost: env['ADMIN_HOST'] ?? 'status.imaxart.com',
-    adminWriteToken: env['ADMIN_WRITE_TOKEN'] ?? null,
     checksRetentionHours: parseIntOr({
       fallback: 48,
       value: env['CHECKS_RETENTION_HOURS'],
     }),
-    dbPath: env['STATUS_DB_PATH'] ?? './.local/status.sqlite',
     dokployApiKey: env['DOKPLOY_API_KEY'] ?? null,
     dokployBaseUrl: env['DOKPLOY_BASE_URL'] ?? null,
     dokploySyncIntervalSec: parseIntOr({

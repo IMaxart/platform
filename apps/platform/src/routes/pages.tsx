@@ -15,11 +15,11 @@ import {
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { useState } from 'react'
-import { useTranslation } from 'react-i18next'
 
 import { TimeRangeSelect } from '~/components/dashboard/time-range-select'
 import { Header } from '~/components/layout/header'
 import { getTopPages } from '~/lib/server/queries'
+import * as m from '~/paraglide/messages'
 
 export const Route = createFileRoute('/pages')({
   component: PagesPage,
@@ -28,16 +28,22 @@ export const Route = createFileRoute('/pages')({
 const DEMO_PROJECT_ID = '00000000-0000-0000-0000-000000000000'
 
 function PagesPage() {
-  const { t } = useTranslation()
   const [days, setDays] = useState('30')
   const daysNum = Number(days)
 
-  const pages = useQuery({
+  type PageData = {
+    avgDurationMs: null | string
+    path: string
+    uniqueVisitors: number
+    views: number
+  }
+
+  const pages = useQuery<PageData[]>({
     enabled: false,
     queryFn: () =>
       getTopPages({
         data: { days: daysNum, limit: 100, projectId: DEMO_PROJECT_ID },
-      }),
+      }) as Promise<PageData[]>,
     queryKey: ['pages', DEMO_PROJECT_ID, daysNum],
   })
 
@@ -50,7 +56,7 @@ function PagesPage() {
 
   return (
     <>
-      <Header title={t('pages.title')} />
+      <Header title={m.pages_title()} />
       <div className="flex-1 space-y-6 p-4 md:p-6">
         <div className="flex items-center justify-between">
           <div />
@@ -59,22 +65,22 @@ function PagesPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>{t('pages.title')}</CardTitle>
+            <CardTitle>{m.pages_title()}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>{t('pages.path')}</TableHead>
+                    <TableHead>{m.pages_path()}</TableHead>
                     <TableHead className="text-right">
-                      {t('pages.views')}
+                      {m.pages_views()}
                     </TableHead>
                     <TableHead className="text-right">
-                      {t('pages.uniqueVisitors')}
+                      {m.pages_uniqueVisitors()}
                     </TableHead>
                     <TableHead className="text-right">
-                      {t('pages.avgTime')}
+                      {m.pages_avgTime()}
                     </TableHead>
                   </TableRow>
                 </TableHeader>
@@ -101,7 +107,7 @@ function PagesPage() {
                   ) : (
                     <TableRow>
                       <TableCell className="text-center" colSpan={4}>
-                        {t('common.noData')}
+                        {m.common_noData()}
                       </TableCell>
                     </TableRow>
                   )}

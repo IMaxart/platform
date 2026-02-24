@@ -23,7 +23,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { Check, Copy, Trash2 } from 'lucide-react'
 import { useState } from 'react'
-import { useTranslation } from 'react-i18next'
 
 import { Header } from '~/components/layout/header'
 import {
@@ -31,6 +30,7 @@ import {
   getProject,
   updateProjectConfig,
 } from '~/lib/server/queries'
+import * as m from '~/paraglide/messages'
 
 export const Route = createFileRoute('/settings')({
   component: SettingsPage,
@@ -39,7 +39,6 @@ export const Route = createFileRoute('/settings')({
 const DEMO_PROJECT_ID = '00000000-0000-0000-0000-000000000000'
 
 function SettingsPage() {
-  const { t } = useTranslation()
   const [copied, setCopied] = useState(false)
   const queryClient = useQueryClient()
 
@@ -97,11 +96,11 @@ function SettingsPage() {
 
   return (
     <>
-      <Header title={t('settings.title')} />
+      <Header title={m.settings_title()} />
       <div className="flex-1 space-y-6 p-4 md:p-6">
         <Card>
           <CardHeader>
-            <CardTitle>{t('settings.title')}</CardTitle>
+            <CardTitle>{m.settings_title()}</CardTitle>
             <CardDescription>
               Project configuration and tracking setup
             </CardDescription>
@@ -109,22 +108,22 @@ function SettingsPage() {
           <CardContent className="space-y-6">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label>{t('settings.projectName')}</Label>
+                <Label>{m.settings_projectName()}</Label>
                 <Input readOnly value={project.data?.name ?? ''} />
               </div>
               <div className="space-y-2">
-                <Label>{t('settings.domain')}</Label>
+                <Label>{m.settings_domain()}</Label>
                 <Input readOnly value={project.data?.domain ?? ''} />
               </div>
               <div className="space-y-2">
-                <Label>{t('settings.analyticsSubdomain')}</Label>
+                <Label>{m.settings_analyticsSubdomain()}</Label>
                 <Input
                   readOnly
                   value={project.data?.analyticsSubdomain ?? ''}
                 />
               </div>
               <div className="space-y-2">
-                <Label>{t('settings.dataRetentionDays')}</Label>
+                <Label>{m.settings_dataRetentionDays()}</Label>
                 <Input
                   readOnly
                   type="number"
@@ -137,17 +136,17 @@ function SettingsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>{t('settings.features')}</CardTitle>
+            <CardTitle>{m.settings_features()}</CardTitle>
             <CardDescription>
-              {t('settings.featuresDescription')}
+              {m.settings_featuresDescription()}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label>{t('settings.trackEvents')}</Label>
+                <Label>{m.settings_trackEvents()}</Label>
                 <p className="text-muted-foreground text-sm">
-                  {t('settings.trackEventsDescription')}
+                  {m.settings_trackEventsDescription()}
                 </p>
               </div>
               <Switch
@@ -160,9 +159,9 @@ function SettingsPage() {
             <Separator />
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label>{t('settings.trackErrors')}</Label>
+                <Label>{m.settings_trackErrors()}</Label>
                 <p className="text-muted-foreground text-sm">
-                  {t('settings.trackErrorsDescription')}
+                  {m.settings_trackErrorsDescription()}
                 </p>
               </div>
               <Switch
@@ -175,9 +174,9 @@ function SettingsPage() {
             <Separator />
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label>{t('settings.trackFeatureFlags')}</Label>
+                <Label>{m.settings_trackFeatureFlags()}</Label>
                 <p className="text-muted-foreground text-sm">
-                  {t('settings.trackFeatureFlagsDescription')}
+                  {m.settings_trackFeatureFlagsDescription()}
                 </p>
               </div>
               <Switch
@@ -192,7 +191,7 @@ function SettingsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>{t('settings.trackingSnippet')}</CardTitle>
+            <CardTitle>{m.settings_trackingSnippet()}</CardTitle>
             <CardDescription>
               Add this snippet to your website to start tracking
             </CardDescription>
@@ -221,7 +220,7 @@ function SettingsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>{t('settings.excludedDevices')}</CardTitle>
+            <CardTitle>{m.settings_excludedDevices()}</CardTitle>
             <CardDescription>
               These devices are tracked but hidden from statistics by default
             </CardDescription>
@@ -229,7 +228,7 @@ function SettingsPage() {
           <CardContent>
             <div className="mb-4">
               <Button variant="outline">
-                {t('settings.addExcludedDevice')}
+                {m.settings_addExcludedDevice()}
               </Button>
             </div>
 
@@ -239,9 +238,9 @@ function SettingsPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>{t('settings.deviceName')}</TableHead>
-                    <TableHead>{t('sessions.visitor')}</TableHead>
-                    <TableHead>{t('settings.reason')}</TableHead>
+                    <TableHead>{m.settings_deviceName()}</TableHead>
+                    <TableHead>{m.sessions_visitor()}</TableHead>
+                    <TableHead>{m.settings_reason()}</TableHead>
                     <TableHead className="w-20" />
                   </TableRow>
                 </TableHeader>
@@ -270,7 +269,7 @@ function SettingsPage() {
                   ) : (
                     <TableRow>
                       <TableCell className="text-center" colSpan={4}>
-                        {t('common.noData')}
+                        {m.common_noData()}
                       </TableCell>
                     </TableRow>
                   )}

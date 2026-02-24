@@ -60,9 +60,9 @@ const syncOnce = async ({
 }) => {
   if (!env.dokployBaseUrl || !env.dokployApiKey) return
 
-  const services = db.listServices()
+  const services = await db.listServices()
   for (const service of services) {
-    const dokploy = db.getServiceDokploy({ serviceId: service.id })
+    const dokploy = await db.getServiceDokploy({ serviceId: service.id })
     if (!dokploy) continue
 
     try {
@@ -82,7 +82,7 @@ const syncOnce = async ({
       const latestMs = latestDeploymentMsFromList({ data })
       const nextLastDeployedAtMs = latestMs ?? dokploy.lastDeployedAtMs ?? null
 
-      db.updateServiceDokploySync({
+      await db.updateServiceDokploySync({
         lastDeployedAtMs: nextLastDeployedAtMs,
         lastSyncAtMs: nowMs,
         serviceId: service.id,

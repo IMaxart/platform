@@ -14,6 +14,7 @@ import {
 } from '@platform/ui/components/sidebar'
 import { Link, useLocation } from '@tanstack/react-router'
 import {
+  Activity,
   AlertTriangle,
   BarChart3,
   FileText,
@@ -23,7 +24,8 @@ import {
   Settings,
   Users,
 } from 'lucide-react'
-import { useTranslation } from 'react-i18next'
+
+import * as m from '~/paraglide/messages'
 
 type NavItem = {
   feature?: keyof ProjectConfig
@@ -60,15 +62,26 @@ const NAV_ITEMS: NavItem[] = [
     key: 'featureFlags',
     path: '/feature-flags',
   },
+  { icon: Activity, key: 'status', path: '/status' },
   { icon: Settings, key: 'settings', path: '/settings' },
 ]
+
+const NAV_LABELS: Record<string, () => string> = {
+  errors: () => m.common_errors(),
+  events: () => m.common_events(),
+  featureFlags: () => m.common_featureFlags(),
+  overview: () => m.common_overview(),
+  pages: () => m.common_pages(),
+  sessions: () => m.common_sessions(),
+  settings: () => m.common_settings(),
+  status: () => m.status_title(),
+}
 
 type AppSidebarProps = {
   projectConfig?: ProjectConfig
 }
 
 export const AppSidebar = ({ projectConfig }: AppSidebarProps) => {
-  const { t } = useTranslation()
   const location = useLocation()
 
   const visibleItems = NAV_ITEMS.filter(
@@ -81,14 +94,14 @@ export const AppSidebar = ({ projectConfig }: AppSidebarProps) => {
         <Link className="flex items-center gap-2.5" to="/">
           <Globe className="h-5 w-5" />
           <span className="text-lg font-semibold tracking-tight">
-            {t('common.analytics')}
+            {m.common_analytics()}
           </span>
         </Link>
       </SidebarHeader>
       <SidebarContent className="pt-2">
         <SidebarGroup>
           <SidebarGroupLabel className="text-muted-foreground/70 px-3 text-[11px] font-medium tracking-wider uppercase">
-            {t('common.dashboard')}
+            {m.common_dashboard()}
           </SidebarGroupLabel>
           <SidebarGroupContent className="mt-1">
             <SidebarMenu>
@@ -109,7 +122,7 @@ export const AppSidebar = ({ projectConfig }: AppSidebarProps) => {
                     >
                       <Link to={item.path}>
                         <item.icon className="h-4 w-4" />
-                        <span>{t(`common.${item.key}`)}</span>
+                        <span>{NAV_LABELS[item.key]?.() ?? item.key}</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>

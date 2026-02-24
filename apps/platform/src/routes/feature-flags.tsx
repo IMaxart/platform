@@ -31,10 +31,10 @@ import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { Flag, Plus } from 'lucide-react'
 import { useState } from 'react'
-import { useTranslation } from 'react-i18next'
 
 import { Header } from '~/components/layout/header'
 import { getFeatureFlags } from '~/lib/server/queries'
+import * as m from '~/paraglide/messages'
 
 export const Route = createFileRoute('/feature-flags')({
   component: FeatureFlagsPage,
@@ -43,7 +43,6 @@ export const Route = createFileRoute('/feature-flags')({
 const DEMO_PROJECT_ID = '00000000-0000-0000-0000-000000000000'
 
 function FeatureFlagsPage() {
-  const { t } = useTranslation()
   const [isCreateOpen, setIsCreateOpen] = useState(false)
 
   const flagsQuery = useQuery({
@@ -58,15 +57,15 @@ function FeatureFlagsPage() {
     const parts = []
     if (conditions.percentage !== undefined) {
       parts.push(
-        `${conditions.percentage}% ${t('flags.percentage').toLowerCase()}`,
+        `${conditions.percentage}% ${m.flags_percentage().toLowerCase()}`,
       )
     }
     if (conditions.countries?.length) {
-      parts.push(`${t('flags.countries')}: ${conditions.countries.join(', ')}`)
+      parts.push(`${m.flags_countries()}: ${conditions.countries.join(', ')}`)
     }
     if (conditions.deviceTypes?.length) {
       parts.push(
-        `${t('flags.deviceTypes')}: ${conditions.deviceTypes.join(', ')}`,
+        `${m.flags_deviceTypes()}: ${conditions.deviceTypes.join(', ')}`,
       )
     }
 
@@ -75,7 +74,7 @@ function FeatureFlagsPage() {
 
   return (
     <>
-      <Header title={t('flags.title')} />
+      <Header title={m.flags_title()} />
       <div className="flex-1 space-y-6 p-4 md:p-6">
         <div className="flex items-center justify-between">
           <div />
@@ -83,31 +82,31 @@ function FeatureFlagsPage() {
             <DialogTrigger asChild>
               <Button>
                 <Plus className="mr-2 h-4 w-4" />
-                {t('flags.createFlag')}
+                {m.flags_createFlag()}
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>{t('flags.createFlag')}</DialogTitle>
+                <DialogTitle>{m.flags_createFlag()}</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label>{t('flags.key')}</Label>
+                  <Label>{m.flags_key()}</Label>
                   <Input placeholder="new_feature" />
                 </div>
                 <div className="space-y-2">
-                  <Label>{t('flags.description')}</Label>
+                  <Label>{m.flags_description()}</Label>
                   <Input placeholder="Description of this flag" />
                 </div>
                 <div className="flex items-center gap-2">
                   <Switch />
-                  <Label>{t('flags.enabled')}</Label>
+                  <Label>{m.flags_enabled()}</Label>
                 </div>
                 <div className="space-y-2">
-                  <Label>{t('flags.percentage')}</Label>
+                  <Label>{m.flags_percentage()}</Label>
                   <Input max="100" min="0" placeholder="100" type="number" />
                 </div>
-                <Button className="w-full">{t('common.create')}</Button>
+                <Button className="w-full">{m.common_create()}</Button>
               </div>
             </DialogContent>
           </Dialog>
@@ -117,7 +116,7 @@ function FeatureFlagsPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Flag className="h-5 w-5" />
-              {t('flags.title')}
+              {m.flags_title()}
             </CardTitle>
             <CardDescription>
               Manage feature flags for your project
@@ -128,10 +127,10 @@ function FeatureFlagsPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>{t('flags.key')}</TableHead>
-                    <TableHead>{t('flags.description')}</TableHead>
+                    <TableHead>{m.flags_key()}</TableHead>
+                    <TableHead>{m.flags_description()}</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>{t('flags.conditions')}</TableHead>
+                    <TableHead>{m.flags_conditions()}</TableHead>
                     <TableHead className="w-20" />
                   </TableRow>
                 </TableHeader>
@@ -150,8 +149,8 @@ function FeatureFlagsPage() {
                             variant={flag.enabled ? 'default' : 'secondary'}
                           >
                             {flag.enabled
-                              ? t('flags.enabled')
-                              : t('flags.disabled')}
+                              ? m.flags_enabled()
+                              : m.flags_disabled()}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-sm">
@@ -165,7 +164,7 @@ function FeatureFlagsPage() {
                   ) : (
                     <TableRow>
                       <TableCell className="text-center" colSpan={5}>
-                        {t('common.noData')}
+                        {m.common_noData()}
                       </TableCell>
                     </TableRow>
                   )}

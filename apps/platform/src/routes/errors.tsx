@@ -26,11 +26,11 @@ import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { AlertCircle, AlertTriangle } from 'lucide-react'
 import { useState } from 'react'
-import { useTranslation } from 'react-i18next'
 
 import { TimeRangeSelect } from '~/components/dashboard/time-range-select'
 import { Header } from '~/components/layout/header'
 import { getConsoleErrors } from '~/lib/server/queries'
+import * as m from '~/paraglide/messages'
 
 export const Route = createFileRoute('/errors')({
   component: ErrorsPage,
@@ -39,7 +39,6 @@ export const Route = createFileRoute('/errors')({
 const DEMO_PROJECT_ID = '00000000-0000-0000-0000-000000000000'
 
 function ErrorsPage() {
-  const { t } = useTranslation()
   const [days, setDays] = useState('7')
   const [level, setLevel] = useState<string>('all')
   const daysNum = Number(days)
@@ -59,7 +58,7 @@ function ErrorsPage() {
 
   return (
     <>
-      <Header title={t('errors.title')} />
+      <Header title={m.errors_title()} />
       <div className="flex-1 space-y-6 p-4 md:p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <Tabs onValueChange={setLevel} value={level}>
@@ -67,11 +66,11 @@ function ErrorsPage() {
               <TabsTrigger value="all">All</TabsTrigger>
               <TabsTrigger value="error">
                 <AlertCircle className="mr-1 h-3 w-3" />
-                {t('errors.error')}
+                {m.errors_error()}
               </TabsTrigger>
               <TabsTrigger value="warning">
                 <AlertTriangle className="mr-1 h-3 w-3" />
-                {t('errors.warning')}
+                {m.errors_warning()}
               </TabsTrigger>
             </TabsList>
           </Tabs>
@@ -80,20 +79,20 @@ function ErrorsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>{t('errors.title')}</CardTitle>
+            <CardTitle>{m.errors_title()}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>{t('errors.level')}</TableHead>
-                    <TableHead>{t('errors.message')}</TableHead>
+                    <TableHead>{m.errors_level()}</TableHead>
+                    <TableHead>{m.errors_message()}</TableHead>
                     <TableHead className="text-right">
-                      {t('errors.count')}
+                      {m.errors_count()}
                     </TableHead>
                     <TableHead className="text-right">
-                      {t('errors.lastSeen')}
+                      {m.errors_lastSeen()}
                     </TableHead>
                     <TableHead className="w-20" />
                   </TableRow>
@@ -127,13 +126,13 @@ function ErrorsPage() {
                             <Dialog>
                               <DialogTrigger asChild>
                                 <Button size="sm" variant="ghost">
-                                  {t('errors.stackTrace')}
+                                  {m.errors_stackTrace()}
                                 </Button>
                               </DialogTrigger>
                               <DialogContent className="max-w-2xl">
                                 <DialogHeader>
                                   <DialogTitle>
-                                    {t('errors.stackTrace')}
+                                    {m.errors_stackTrace()}
                                   </DialogTitle>
                                 </DialogHeader>
                                 <pre className="bg-muted max-h-96 overflow-auto rounded-md p-4 text-xs">
@@ -153,7 +152,7 @@ function ErrorsPage() {
                   ) : (
                     <TableRow>
                       <TableCell className="text-center" colSpan={5}>
-                        {t('common.noData')}
+                        {m.common_noData()}
                       </TableCell>
                     </TableRow>
                   )}

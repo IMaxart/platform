@@ -4,7 +4,6 @@ import {
   CardHeader,
   CardTitle,
 } from '@platform/ui/components/card'
-import { useTranslation } from 'react-i18next'
 import {
   Area,
   AreaChart,
@@ -15,6 +14,8 @@ import {
   YAxis,
 } from 'recharts'
 
+import * as m from '~/paraglide/messages'
+
 type ChartData = {
   date: string
   sessionCount: number
@@ -22,13 +23,11 @@ type ChartData = {
 }
 
 export const VisitorsChart = ({ data }: { data: ChartData[] }) => {
-  const { t } = useTranslation()
-
   return (
     <Card className="transition-all duration-300 ease-out">
       <CardHeader className="pb-4">
         <CardTitle className="text-base font-medium">
-          {t('overview.visitors')}
+          {m.overview_visitors()}
         </CardTitle>
       </CardHeader>
       <CardContent className="pb-6">

@@ -23,6 +23,9 @@ FROM oven/bun:1 AS runtime
 WORKDIR /app/apps/platform
 COPY --from=deps /app/node_modules /app/node_modules
 COPY --from=deps /app/apps/platform/node_modules /app/apps/platform/node_modules
+COPY --from=deps /app/packages/db/node_modules /app/packages/db/node_modules
+COPY --from=build /app/packages/db/src /app/packages/db/src
+COPY --from=build /app/packages/db/package.json /app/packages/db/package.json
 COPY --from=build /app/apps/platform/dist ./dist
 COPY --from=build /app/apps/platform/public ./public
 COPY --from=build /app/apps/platform/server.ts ./server.ts

@@ -18,7 +18,6 @@ import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { Activity, Eye, MousePointerClick, Timer, Users } from 'lucide-react'
 import { useState } from 'react'
-import { useTranslation } from 'react-i18next'
 
 import { EmptyState } from '~/components/dashboard/empty-state'
 import { StatCard } from '~/components/dashboard/stat-card'
@@ -33,6 +32,7 @@ import {
   getVisitorChart,
   getVisitorStats,
 } from '~/lib/server/queries'
+import * as m from '~/paraglide/messages'
 
 export const Route = createFileRoute('/')({
   component: OverviewPage,
@@ -41,7 +41,6 @@ export const Route = createFileRoute('/')({
 const DEMO_PROJECT_ID = '00000000-0000-0000-0000-000000000000'
 
 function OverviewPage() {
-  const { t } = useTranslation()
   const [days, setDays] = useState('30')
   const daysNum = Number(days)
 
@@ -92,7 +91,7 @@ function OverviewPage() {
 
   return (
     <>
-      <Header title={t('overview.title')} />
+      <Header title={m.overview_title()} />
       <div className="flex-1 space-y-8 p-6 md:p-8">
         <div className="flex items-center justify-between">
           <div />
@@ -102,41 +101,41 @@ function OverviewPage() {
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-5">
           <StatCard
             icon={<Users className="h-4 w-4" />}
-            title={t('overview.visitorsToday')}
+            title={m.overview_visitorsToday()}
             value={stats.data?.today ?? '\u2014'}
           />
           <StatCard
             icon={<Users className="h-4 w-4" />}
-            title={t('overview.visitorsYesterday')}
+            title={m.overview_visitorsYesterday()}
             value={stats.data?.yesterday ?? '\u2014'}
           />
           <StatCard
             icon={<Eye className="h-4 w-4" />}
-            title={t('overview.visitors7d')}
+            title={m.overview_visitors7d()}
             value={stats.data?.last7 ?? '\u2014'}
           />
           <StatCard
             icon={<MousePointerClick className="h-4 w-4" />}
-            title={t('overview.visitors30d')}
+            title={m.overview_visitors30d()}
             value={stats.data?.last30 ?? '\u2014'}
           />
           <StatCard
             icon={<Activity className="h-4 w-4" />}
-            title={t('overview.visitorsYear')}
+            title={m.overview_visitorsYear()}
             value={stats.data?.lastYear ?? '\u2014'}
           />
         </div>
 
         <div className="grid gap-5 sm:grid-cols-3">
           <StatCard
-            description={t('overview.visitors30d')}
+            description={m.overview_visitors30d()}
             icon={<Eye className="h-4 w-4" />}
-            title={t('overview.pageViews')}
+            title={m.overview_pageViews()}
             value={stats.data?.totalPageViews ?? '\u2014'}
           />
           <StatCard
             icon={<Timer className="h-4 w-4" />}
-            title={t('overview.avgDuration')}
+            title={m.overview_avgDuration()}
             value={
               stats.data?.avgDurationMs
                 ? formatDuration(stats.data.avgDurationMs)
@@ -145,7 +144,7 @@ function OverviewPage() {
           />
           <StatCard
             icon={<Activity className="h-4 w-4" />}
-            title={`${t('overview.bots')} / ${t('overview.humans')}`}
+            title={`${m.overview_bots()} / ${m.overview_humans()}`}
             value={
               botStats.data
                 ? `${botStats.data.bots} / ${botStats.data.humans}`
@@ -168,7 +167,7 @@ function OverviewPage() {
           <Card className="transition-all duration-300 ease-out hover:shadow-md">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium">
-                {t('overview.topPages')}
+                {m.overview_topPages()}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -176,9 +175,9 @@ function OverviewPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>{t('pages.path')}</TableHead>
+                      <TableHead>{m.pages_path()}</TableHead>
                       <TableHead className="text-right">
-                        {t('pages.views')}
+                        {m.pages_views()}
                       </TableHead>
                     </TableRow>
                   </TableHeader>
@@ -199,7 +198,7 @@ function OverviewPage() {
                   </TableBody>
                 </Table>
               ) : (
-                <EmptyState title={t('common.noData')} />
+                <EmptyState title={m.common_noData()} />
               )}
             </CardContent>
           </Card>
@@ -207,7 +206,7 @@ function OverviewPage() {
           <Card className="transition-all duration-300 ease-out hover:shadow-md">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium">
-                {t('overview.topReferrers')}
+                {m.overview_topReferrers()}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -217,7 +216,7 @@ function OverviewPage() {
                     <TableRow>
                       <TableHead>Source</TableHead>
                       <TableHead className="text-right">
-                        {t('overview.visitors')}
+                        {m.overview_visitors()}
                       </TableHead>
                     </TableRow>
                   </TableHeader>
@@ -238,7 +237,7 @@ function OverviewPage() {
                   </TableBody>
                 </Table>
               ) : (
-                <EmptyState title={t('common.noData')} />
+                <EmptyState title={m.common_noData()} />
               )}
             </CardContent>
           </Card>
@@ -246,7 +245,7 @@ function OverviewPage() {
           <Card className="transition-all duration-300 ease-out hover:shadow-md">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium">
-                {t('overview.topCountries')}
+                {m.overview_topCountries()}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -256,7 +255,7 @@ function OverviewPage() {
                     <TableRow>
                       <TableHead>Country</TableHead>
                       <TableHead className="text-right">
-                        {t('overview.visitors')}
+                        {m.overview_visitors()}
                       </TableHead>
                     </TableRow>
                   </TableHeader>
@@ -279,7 +278,7 @@ function OverviewPage() {
                   </TableBody>
                 </Table>
               ) : (
-                <EmptyState title={t('common.noData')} />
+                <EmptyState title={m.common_noData()} />
               )}
             </CardContent>
           </Card>

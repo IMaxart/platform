@@ -153,6 +153,7 @@ export default tseslint.config(
       'eslint.config.js',
       'apps/platform/server.ts',
       'apps/platform/tracker/build.ts',
+      '**/paraglide/**',
     ],
   },
 )

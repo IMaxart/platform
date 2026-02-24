@@ -38,6 +38,8 @@ Thumbs.db
 
 # Generated
 *.gen.ts
+**/src/paraglide/
+**/project.inlang/cache/
 
 # Test coverage
 coverage/

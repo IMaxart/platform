@@ -1,12 +1,15 @@
 import { relations } from 'drizzle-orm'
 import {
   boolean,
+  doublePrecision,
   index,
   integer,
   jsonb,
   pgTable,
+  primaryKey,
   text,
   timestamp,
+  uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core'
 
@@ -276,3 +279,170 @@ export const featureFlagsRelations = relations(featureFlags, ({ one }) => ({
     references: [projects.id],
   }),
 }))
+
+// ── Status tables ──
+
+export const statusServices = pgTable('status_services', {
+  createdAt: timestamp('created_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  enabled: boolean('enabled').notNull().default(true),
+  id: uuid('id').primaryKey().defaultRandom(),
+  name: text('name').notNull(),
+  primaryDomain: text('primary_domain'),
+  publicStatusHost: text('public_status_host').notNull().unique(),
+  slug: text('slug').notNull().unique(),
+})
+
+export const statusEndpoints = pgTable(
+  'status_endpoints',
+  {
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    degradedMs: integer('degraded_ms').notNull(),
+    displayName: text('display_name').notNull(),
+    enabled: boolean('enabled').notNull().default(true),
+    expectedStatusMax: integer('expected_status_max').notNull(),
+    expectedStatusMin: integer('expected_status_min').notNull(),
+    id: uuid('id').primaryKey().defaultRandom(),
+    internalHost: text('internal_host'),
+    internalMode: text('internal_mode').notNull(),
+    internalPath: text('internal_path').notNull(),
+    internalUrl: text('internal_url'),
+    intervalSec: integer('interval_sec').notNull(),
+    key: text('key').notNull(),
+    method: text('method').notNull(),
+    publicUrl: text('public_url'),
+    serviceId: uuid('service_id')
+      .notNull()
+      .references(() => statusServices.id, { onDelete: 'cascade' }),
+    timeoutMs: integer('timeout_ms').notNull(),
+    warnMs: integer('warn_ms').notNull(),
+  },
+  (table) => [
+    uniqueIndex('status_endpoints_service_key_idx').on(
+      table.serviceId,
+      table.key,
+    ),
+  ],
+)
+
+export const statusChecks = pgTable(
+  'status_checks',
+  {
+    checkedAt: timestamp('checked_at', { withTimezone: true }).notNull(),
+    degraded: boolean('degraded').notNull(),
+    endpointId: uuid('endpoint_id')
+      .notNull()
+      .references(() => statusEndpoints.id, { onDelete: 'cascade' }),
+    errorKind: text('error_kind'),
+    errorMessage: text('error_message'),
+    id: uuid('id').primaryKey().defaultRandom(),
+    latencyMs: integer('latency_ms'),
+    ok: boolean('ok').notNull(),
+    probe: text('probe').notNull(),
+    statusCode: integer('status_code'),
+  },
+  (table) => [
+    index('status_checks_endpoint_probe_at_idx').on(
+      table.endpointId,
+      table.probe,
+      table.checkedAt,
+    ),
+  ],
+)
+
+export const statusInternetChecks = pgTable(
+  'status_internet_checks',
+  {
+    checkedAt: timestamp('checked_at', { withTimezone: true }).notNull(),
+    errorKind: text('error_kind'),
+    errorMessage: text('error_message'),
+    id: uuid('id').primaryKey().defaultRandom(),
+    latencyMs: integer('latency_ms'),
+    ok: boolean('ok').notNull(),
+  },
+  (table) => [index('status_internet_checks_at_idx').on(table.checkedAt)],
+)
+
+export const statusRollupsDaily = pgTable(
+  'status_rollups_daily',
+  {
+    avgLatencyMs: doublePrecision('avg_latency_ms'),
+    dayStart: timestamp('day_start', { withTimezone: true }).notNull(),
+    degraded: integer('degraded').notNull(),
+    down: integer('down').notNull(),
+    endpointId: uuid('endpoint_id')
+      .notNull()
+      .references(() => statusEndpoints.id, { onDelete: 'cascade' }),
+    p95LatencyMs: integer('p95_latency_ms'),
+    probe: text('probe').notNull(),
+    total: integer('total').notNull(),
+    up: integer('up').notNull(),
+  },
+  (table) => [
+    primaryKey({
+      columns: [table.endpointId, table.probe, table.dayStart],
+    }),
+  ],
+)
+
+export const statusServiceDokploy = pgTable('status_service_dokploy', {
+  lastDeployedAt: timestamp('last_deployed_at', { withTimezone: true }),
+  lastSyncAt: timestamp('last_sync_at', { withTimezone: true }).notNull(),
+  refId: text('ref_id').notNull(),
+  serviceId: uuid('service_id')
+    .primaryKey()
+    .references(() => statusServices.id, { onDelete: 'cascade' }),
+  type: text('type').notNull(),
+})
+
+// ── Status relations ──
+
+export const statusServicesRelations = relations(
+  statusServices,
+  ({ many, one }) => ({
+    dokploy: one(statusServiceDokploy),
+    endpoints: many(statusEndpoints),
+  }),
+)
+
+export const statusEndpointsRelations = relations(
+  statusEndpoints,
+  ({ many, one }) => ({
+    checks: many(statusChecks),
+    rollups: many(statusRollupsDaily),
+    service: one(statusServices, {
+      fields: [statusEndpoints.serviceId],
+      references: [statusServices.id],
+    }),
+  }),
+)
+
+export const statusChecksRelations = relations(statusChecks, ({ one }) => ({
+  endpoint: one(statusEndpoints, {
+    fields: [statusChecks.endpointId],
+    references: [statusEndpoints.id],
+  }),
+}))
+
+export const statusRollupsDailyRelations = relations(
+  statusRollupsDaily,
+  ({ one }) => ({
+    endpoint: one(statusEndpoints, {
+      fields: [statusRollupsDaily.endpointId],
+      references: [statusEndpoints.id],
+    }),
+  }),
+)
+
+export const statusServiceDokployRelations = relations(
+  statusServiceDokploy,
+  ({ one }) => ({
+    service: one(statusServices, {
+      fields: [statusServiceDokploy.serviceId],
+      references: [statusServices.id],
+    }),
+  }),
+)

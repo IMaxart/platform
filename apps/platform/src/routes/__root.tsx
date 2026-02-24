@@ -2,6 +2,7 @@
 
 import type { ReactNode } from 'react'
 
+import { ThemeProvider, themeScript } from '@platform/ui'
 import { SidebarInset, SidebarProvider } from '@platform/ui/components/sidebar'
 import { TooltipProvider } from '@platform/ui/components/tooltip'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -13,12 +14,8 @@ import {
 } from '@tanstack/react-router'
 
 import { AppSidebar } from '~/components/layout/app-sidebar'
-import { ThemeProvider } from '~/components/theme-provider'
-import { initI18n } from '~/i18n/config'
 
 import appCss from '~/styles/app.css?url'
-
-void initI18n()
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -50,13 +47,7 @@ export const Route = createRootRoute({
     ],
     scripts: [
       {
-        children: `
-          (function() {
-            var theme = localStorage.getItem('analytics-theme') || 'system';
-            var dark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
-            document.documentElement.classList.add(dark ? 'dark' : 'light');
-          })();
-        `,
+        children: themeScript,
       },
     ],
   }),

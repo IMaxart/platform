@@ -12,7 +12,7 @@ import { handleStaticRequest } from './src/server/static'
 process.chdir(path.dirname(fileURLToPath(import.meta.url)))
 
 const env = getEnv()
-const db = createDb({ dbPath: env.dbPath })
+const db = createDb()
 
 startMonitoring({ db, env })
 startDokploySync({ db, env })
@@ -26,7 +26,7 @@ Bun.serve({
     }
 
     if (url.pathname.startsWith('/api/')) {
-      return await handleApiRequest({ db, env, req })
+      return await handleApiRequest({ db, req })
     }
 
     return await handleStaticRequest({ req })

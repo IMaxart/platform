@@ -8,11 +8,16 @@ import {
 } from '@platform/ui/components/dropdown-menu'
 import { Separator } from '@platform/ui/components/separator'
 import { SidebarTrigger } from '@platform/ui/components/sidebar'
-import { Globe, Languages, Moon, Sun } from 'lucide-react'
-import { useTranslation } from 'react-i18next'
+import { ThemeToggle } from '@platform/ui/components/theme-toggle'
+import { Globe, Languages } from 'lucide-react'
 
-import { useTheme } from '~/components/theme-provider'
-import { setLanguage, SUPPORTED_LANGUAGES } from '~/i18n/config'
+import * as m from '~/paraglide/messages'
+import { getLocale, setLocale } from '~/paraglide/runtime'
+
+const SUPPORTED_LANGUAGES = [
+  { code: 'en', label: 'English' },
+  { code: 'pl', label: 'Polski' },
+] as const
 
 type HeaderProps = {
   environment?: {
@@ -24,9 +29,6 @@ type HeaderProps = {
 }
 
 export const Header = ({ environment, title }: HeaderProps) => {
-  const { setTheme, theme } = useTheme()
-  const { i18n, t } = useTranslation()
-
   return (
     <header className="flex h-14 shrink-0 items-center gap-2 border-b px-4">
       <SidebarTrigger />
@@ -39,7 +41,7 @@ export const Header = ({ environment, title }: HeaderProps) => {
               <Button className="h-8 gap-1.5" size="sm" variant="outline">
                 <Globe className="h-3.5 w-3.5" />
                 <span className="text-xs">
-                  {environment.value ?? t('common.allEnvironments')}
+                  {environment.value ?? m.common_allEnvironments()}
                 </span>
               </Button>
             </DropdownMenuTrigger>
@@ -50,7 +52,7 @@ export const Header = ({ environment, title }: HeaderProps) => {
                   environment.onChange(null)
                 }}
               >
-                {t('common.allEnvironments')}
+                {m.common_allEnvironments()}
               </DropdownMenuItem>
               {environment.options.map((env) => (
                 <DropdownMenuItem
@@ -79,12 +81,10 @@ export const Header = ({ environment, title }: HeaderProps) => {
           <DropdownMenuContent align="end">
             {SUPPORTED_LANGUAGES.map((lang) => (
               <DropdownMenuItem
-                className={
-                  i18n.language === lang.code ? 'bg-accent' : undefined
-                }
+                className={getLocale() === lang.code ? 'bg-accent' : undefined}
                 key={lang.code}
                 onClick={() => {
-                  setLanguage(lang.code)
+                  void setLocale(lang.code)
                 }}
               >
                 {lang.label}
@@ -93,40 +93,7 @@ export const Header = ({ environment, title }: HeaderProps) => {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button className="h-8 w-8" size="icon" variant="ghost">
-              <Sun className="h-4 w-4 scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90" />
-              <Moon className="absolute h-4 w-4 scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem
-              className={theme === 'light' ? 'bg-accent' : undefined}
-              onClick={() => {
-                setTheme('light')
-              }}
-            >
-              Light
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className={theme === 'dark' ? 'bg-accent' : undefined}
-              onClick={() => {
-                setTheme('dark')
-              }}
-            >
-              Dark
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className={theme === 'system' ? 'bg-accent' : undefined}
-              onClick={() => {
-                setTheme('system')
-              }}
-            >
-              System
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <ThemeToggle />
       </div>
     </header>
   )

@@ -24,7 +24,6 @@ import {
   Loader2,
 } from 'lucide-react'
 import { useState } from 'react'
-import { useTranslation } from 'react-i18next'
 
 import { Header } from '~/components/layout/header'
 import {
@@ -36,6 +35,7 @@ import {
   getVanillaJsSnippet,
   getViteReactSnippet,
 } from '~/lib/onboarding-templates'
+import * as m from '~/paraglide/messages'
 
 export const Route = createFileRoute('/onboarding')({
   component: OnboardingPage,
@@ -120,7 +120,6 @@ const CodeBlock = ({
 )
 
 function OnboardingPage() {
-  const { t } = useTranslation()
   const [currentStep, setCurrentStep] = useState<Step>('welcome')
   const [copiedField, setCopiedField] = useState<null | string>(null)
 
@@ -135,8 +134,8 @@ function OnboardingPage() {
     }, 2000)
   }
 
-  const copyLabel = t('settings.copySnippet')
-  const copiedLabel = t('settings.copied')
+  const copyLabel = m.settings_copySnippet()
+  const copiedLabel = m.settings_copied()
 
   const copyProps = {
     copiedField,
@@ -163,7 +162,7 @@ function OnboardingPage() {
 
   return (
     <>
-      <Header title={t('onboarding.title')} />
+      <Header title={m.onboarding_title()} />
       <div className="flex-1 p-4 md:p-6">
         <div className="mx-auto max-w-2xl space-y-6">
           <div className="flex items-center gap-2">
@@ -192,14 +191,14 @@ function OnboardingPage() {
           {currentStep === 'welcome' && (
             <Card>
               <CardHeader>
-                <CardTitle>{t('onboarding.welcomeTitle')}</CardTitle>
+                <CardTitle>{m.onboarding_welcomeTitle()}</CardTitle>
                 <CardDescription>
-                  {t('onboarding.welcomeDescription', { domain })}
+                  {m.onboarding_welcomeDescription({ domain })}
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <p className="text-muted-foreground text-sm">
-                  {t('onboarding.welcomeBody')}
+                  {m.onboarding_welcomeBody()}
                 </p>
               </CardContent>
             </Card>
@@ -208,9 +207,9 @@ function OnboardingPage() {
           {currentStep === 'install' && (
             <Card>
               <CardHeader>
-                <CardTitle>{t('onboarding.installTitle')}</CardTitle>
+                <CardTitle>{m.onboarding_installTitle()}</CardTitle>
                 <CardDescription>
-                  {t('onboarding.installDescription')}
+                  {m.onboarding_installDescription()}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -220,7 +219,7 @@ function OnboardingPage() {
                   field="install"
                 />
                 <p className="text-muted-foreground text-sm">
-                  {t('onboarding.installAlternative')}
+                  {m.onboarding_installAlternative()}
                 </p>
                 <CodeBlock
                   {...copyProps}
@@ -234,9 +233,9 @@ function OnboardingPage() {
           {currentStep === 'configure' && (
             <Card>
               <CardHeader>
-                <CardTitle>{t('onboarding.configureTitle')}</CardTitle>
+                <CardTitle>{m.onboarding_configureTitle()}</CardTitle>
                 <CardDescription>
-                  {t('onboarding.configureDescription')}
+                  {m.onboarding_configureDescription()}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -275,9 +274,9 @@ function OnboardingPage() {
           {currentStep === 'env' && (
             <Card>
               <CardHeader>
-                <CardTitle>{t('onboarding.envTitle')}</CardTitle>
+                <CardTitle>{m.onboarding_envTitle()}</CardTitle>
                 <CardDescription>
-                  {t('onboarding.envDescription')}
+                  {m.onboarding_envDescription()}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -293,14 +292,14 @@ function OnboardingPage() {
           {currentStep === 'ai-guide' && (
             <Card>
               <CardHeader>
-                <CardTitle>{t('onboarding.aiGuideTitle')}</CardTitle>
+                <CardTitle>{m.onboarding_aiGuideTitle()}</CardTitle>
                 <CardDescription>
-                  {t('onboarding.aiGuideDescription')}
+                  {m.onboarding_aiGuideDescription()}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <p className="text-muted-foreground text-sm">
-                  {t('onboarding.aiGuideBody')}
+                  {m.onboarding_aiGuideBody()}
                 </p>
                 <div className="flex gap-2">
                   <CopyButton
@@ -324,7 +323,7 @@ function OnboardingPage() {
                     variant="outline"
                   >
                     <Download className="mr-1 h-3 w-3" />
-                    {t('onboarding.downloadGuide')}
+                    {m.onboarding_downloadGuide()}
                   </Button>
                 </div>
               </CardContent>
@@ -340,11 +339,11 @@ function OnboardingPage() {
               variant="outline"
             >
               <ChevronLeft className="mr-1 h-4 w-4" />
-              {t('common.previous')}
+              {m.common_previous()}
             </Button>
             {stepIndex < STEPS.length - 1 && (
               <Button onClick={goNext}>
-                {t('common.next')}
+                {m.common_next()}
                 <ChevronRight className="ml-1 h-4 w-4" />
               </Button>
             )}
@@ -356,8 +355,6 @@ function OnboardingPage() {
 }
 
 function VerifyStep({ domain }: { domain: string }) {
-  const { t } = useTranslation()
-
   const verification = useQuery({
     queryFn: async () => {
       const response = await fetch(`https://${domain}/api/health`)
@@ -374,8 +371,8 @@ function VerifyStep({ domain }: { domain: string }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{t('onboarding.verifyTitle')}</CardTitle>
-        <CardDescription>{t('onboarding.verifyDescription')}</CardDescription>
+        <CardTitle>{m.onboarding_verifyTitle()}</CardTitle>
+        <CardDescription>{m.onboarding_verifyDescription()}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="flex items-center gap-3">
@@ -386,13 +383,13 @@ function VerifyStep({ domain }: { domain: string }) {
           )}
           <span className="text-sm">
             {isConnected
-              ? t('onboarding.verifySuccess')
-              : t('onboarding.verifyWaiting')}
+              ? m.onboarding_verifySuccess()
+              : m.onboarding_verifyWaiting()}
           </span>
         </div>
         {isConnected && (
           <Button asChild variant="default">
-            <a href="/">{t('onboarding.goToDashboard')}</a>
+            <a href="/">{m.onboarding_goToDashboard()}</a>
           </Button>
         )}
       </CardContent>

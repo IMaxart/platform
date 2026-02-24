@@ -24,11 +24,11 @@ import {
   Tablet,
 } from 'lucide-react'
 import { useState } from 'react'
-import { useTranslation } from 'react-i18next'
 
 import { TimeRangeSelect } from '~/components/dashboard/time-range-select'
 import { Header } from '~/components/layout/header'
 import { getSessions } from '~/lib/server/queries'
+import * as m from '~/paraglide/messages'
 
 type SessionData = {
   browserName: string
@@ -74,7 +74,6 @@ const DeviceIcon = ({ type }: { type: string }) => {
 }
 
 function SessionsPage() {
-  const { t } = useTranslation()
   const [days, setDays] = useState('7')
   const [expandedSession, setExpandedSession] = useState<null | string>(null)
   const daysNum = Number(days)
@@ -84,7 +83,7 @@ function SessionsPage() {
     queryFn: () =>
       getSessions({
         data: { days: daysNum, limit: 50, projectId: DEMO_PROJECT_ID },
-      }) as Promise<SessionData[]>,
+      }) as unknown as Promise<SessionData[]>,
     queryKey: ['sessions', DEMO_PROJECT_ID, daysNum],
   })
 
@@ -99,7 +98,7 @@ function SessionsPage() {
 
   return (
     <>
-      <Header title={t('sessions.title')} />
+      <Header title={m.sessions_title()} />
       <div className="flex-1 space-y-6 p-4 md:p-6">
         <div className="flex items-center justify-between">
           <div />
@@ -108,7 +107,7 @@ function SessionsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>{t('sessions.title')}</CardTitle>
+            <CardTitle>{m.sessions_title()}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
@@ -116,17 +115,17 @@ function SessionsPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-8" />
-                    <TableHead>{t('sessions.visitor')}</TableHead>
-                    <TableHead>{t('sessions.device')}</TableHead>
-                    <TableHead>{t('sessions.location')}</TableHead>
+                    <TableHead>{m.sessions_visitor()}</TableHead>
+                    <TableHead>{m.sessions_device()}</TableHead>
+                    <TableHead>{m.sessions_location()}</TableHead>
                     <TableHead className="text-right">
-                      {t('sessions.pagesViewed')}
+                      {m.sessions_pagesViewed()}
                     </TableHead>
                     <TableHead className="text-right">
-                      {t('sessions.duration')}
+                      {m.sessions_duration()}
                     </TableHead>
                     <TableHead className="text-right">
-                      {t('sessions.startedAt')}
+                      {m.sessions_startedAt()}
                     </TableHead>
                   </TableRow>
                 </TableHeader>
@@ -196,7 +195,7 @@ function SessionsPage() {
                                 <div className="space-y-4">
                                   <div>
                                     <h4 className="mb-2 text-sm font-medium">
-                                      {t('sessions.timeline')}
+                                      {m.sessions_timeline()}
                                     </h4>
                                     <div className="space-y-1">
                                       {session.pageViews.map((pv) => (
@@ -219,7 +218,7 @@ function SessionsPage() {
                                   {session.events.length > 0 ? (
                                     <div>
                                       <h4 className="mb-2 text-sm font-medium">
-                                        {t('common.events')}
+                                        {m.common_events()}
                                       </h4>
                                       <div className="flex flex-wrap gap-1">
                                         {session.events.map((evt) => (
@@ -236,7 +235,7 @@ function SessionsPage() {
                                   {session.consoleErrors.length > 0 ? (
                                     <div>
                                       <h4 className="mb-2 text-sm font-medium">
-                                        {t('common.errors')}
+                                        {m.common_errors()}
                                       </h4>
                                       <div className="space-y-1">
                                         {session.consoleErrors.map((err) => (
@@ -251,7 +250,7 @@ function SessionsPage() {
                                     </div>
                                   ) : null}
                                   <Button size="sm" variant="outline">
-                                    {t('sessions.excludeDevice')}
+                                    {m.sessions_excludeDevice()}
                                   </Button>
                                 </div>
                               </TableCell>
@@ -263,7 +262,7 @@ function SessionsPage() {
                   ) : (
                     <TableRow>
                       <TableCell className="text-center" colSpan={7}>
-                        {t('common.noData')}
+                        {m.common_noData()}
                       </TableCell>
                     </TableRow>
                   )}

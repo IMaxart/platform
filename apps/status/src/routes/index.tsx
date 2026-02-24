@@ -2,30 +2,21 @@ import type { PublicPageResponse } from '~/shared/api-types'
 
 import { Card, CardContent } from '@platform/ui/components/card'
 import { useQuery } from '@tanstack/react-query'
-import { createFileRoute, Navigate } from '@tanstack/react-router'
+import { createFileRoute } from '@tanstack/react-router'
+import { AlertCircle } from 'lucide-react'
 
-import { PublicStatusPage } from '~/components/public/public-status-page'
+import {
+  PublicStatusPage,
+  PublicStatusPageSkeleton,
+} from '~/components/public/public-status-page'
 import { fetchJson } from '~/lib/api-client'
 
 export const Route = createFileRoute('/')({
   component: IndexRoute,
 })
 
-const LoadingCard = ({ message }: { message: string }) => {
-  return (
-    <main className="mx-auto w-full max-w-6xl px-4 py-8">
-      <Card>
-        <CardContent className="text-muted-foreground p-6 text-sm">
-          {message}
-        </CardContent>
-      </Card>
-    </main>
-  )
-}
-
 function IndexRoute() {
   const pageQuery = useQuery({
-    // Avoid server-side fetch for a relative URL during SSR. This route is CSR-only.
     enabled: typeof window !== 'undefined',
     queryFn: async () => {
       return await fetchJson<PublicPageResponse>({ url: '/api/public/page' })
@@ -34,15 +25,36 @@ function IndexRoute() {
     refetchInterval: 30_000,
   })
 
-  if (pageQuery.isPending) return <LoadingCard message="Loading…" />
+  if (pageQuery.isPending) return <PublicStatusPageSkeleton />
+
   if (pageQuery.isError || !pageQuery.data) {
-    return <LoadingCard message="Failed to load status page." />
+    return (
+      <main className="mx-auto w-full max-w-3xl px-6 py-12 md:px-8">
+        <Card>
+          <CardContent className="flex flex-col items-center gap-3 p-8 text-center">
+            <AlertCircle className="text-muted-foreground h-8 w-8" />
+            <p className="text-muted-foreground text-sm">
+              Failed to load status page. Please try again later.
+            </p>
+          </CardContent>
+        </Card>
+      </main>
+    )
   }
 
   const data = pageQuery.data
   if (data.mode === 'public') return <PublicStatusPage data={data} />
-  if (data.mode === 'admin') return <Navigate to="/admin" />
+
   return (
-    <LoadingCard message={`No service configured for host: ${data.host}`} />
+    <main className="mx-auto w-full max-w-3xl px-6 py-12 md:px-8">
+      <Card>
+        <CardContent className="flex flex-col items-center gap-3 p-8 text-center">
+          <AlertCircle className="text-muted-foreground h-8 w-8" />
+          <p className="text-muted-foreground text-sm">
+            No service configured for host: {data.host}
+          </p>
+        </CardContent>
+      </Card>
+    </main>
   )
 }
