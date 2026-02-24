@@ -1,6 +1,10 @@
-import { Avatar, AvatarFallback, AvatarImage } from '@platform/ui/components/avatar'
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from '@platform/ui/components/avatar'
 import { Button } from '@platform/ui/components/button'
-import { Camera, Loader2 } from 'lucide-react'
+import { AlertCircle, Camera, Loader2 } from 'lucide-react'
 import { useCallback, useRef, useState } from 'react'
 
 type ImageUploadProps = {
@@ -28,11 +32,13 @@ export const ImageUpload = ({
 }: ImageUploadProps) => {
   const [uploading, setUploading] = useState(false)
   const [preview, setPreview] = useState<null | string>(currentImage ?? null)
+  const [error, setError] = useState<null | string>(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
   const handleUpload = useCallback(
     async (file: File) => {
       setUploading(true)
+      setError(null)
 
       const formData = new FormData()
       formData.append('file', file)
@@ -47,12 +53,18 @@ export const ImageUpload = ({
 
         const data = (await res.json()) as { error?: string; url?: string }
 
+        if (!res.ok || data.error) {
+          setError(data.error ?? 'Upload failed')
+          setUploading(false)
+          return
+        }
+
         if (data.url) {
           setPreview(data.url)
           onUploaded?.(data.url)
         }
       } catch {
-        // upload failed silently
+        setError('Network error. Try again.')
       }
 
       setUploading(false)
@@ -68,31 +80,39 @@ export const ImageUpload = ({
   }
 
   return (
-    <div className="group relative inline-block">
-      <Avatar className={sizeMap[size]}>
-        <AvatarImage alt={fallback} src={preview ?? undefined} />
-        <AvatarFallback className="text-xs">{fallback}</AvatarFallback>
-      </Avatar>
-      <Button
-        className="absolute -right-1 -bottom-1 h-6 w-6 rounded-full opacity-0 shadow-sm transition-opacity group-hover:opacity-100"
-        disabled={uploading}
-        onClick={() => inputRef.current?.click()}
-        size="icon"
-        variant="secondary"
-      >
-        {uploading ? (
-          <Loader2 className="h-3 w-3 animate-spin" />
-        ) : (
-          <Camera className="h-3 w-3" />
-        )}
-      </Button>
-      <input
-        accept="image/png,image/jpeg,image/webp,image/svg+xml,image/gif"
-        className="hidden"
-        onChange={handleChange}
-        ref={inputRef}
-        type="file"
-      />
+    <div className="space-y-1">
+      <div className="group relative inline-block">
+        <Avatar className={sizeMap[size]}>
+          <AvatarImage alt={fallback} src={preview ?? undefined} />
+          <AvatarFallback className="text-xs">{fallback}</AvatarFallback>
+        </Avatar>
+        <Button
+          className="absolute -right-1 -bottom-1 h-6 w-6 rounded-full shadow-sm transition-opacity hover:opacity-80"
+          disabled={uploading}
+          onClick={() => inputRef.current?.click()}
+          size="icon"
+          variant="secondary"
+        >
+          {uploading ? (
+            <Loader2 className="h-3 w-3 animate-spin" />
+          ) : (
+            <Camera className="h-3 w-3" />
+          )}
+        </Button>
+        <input
+          accept="image/png,image/jpeg,image/webp,image/svg+xml,image/gif"
+          className="hidden"
+          onChange={handleChange}
+          ref={inputRef}
+          type="file"
+        />
+      </div>
+      {error ? (
+        <p className="text-destructive flex items-center gap-1 text-xs">
+          <AlertCircle className="h-3 w-3" />
+          {error}
+        </p>
+      ) : null}
     </div>
   )
 }

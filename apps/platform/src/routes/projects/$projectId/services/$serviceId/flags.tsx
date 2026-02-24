@@ -29,7 +29,7 @@ import {
 } from '@platform/ui/components/table'
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute, useParams } from '@tanstack/react-router'
-import { Flag, Plus } from 'lucide-react'
+import { Flag, Loader2, Plus } from 'lucide-react'
 import { useState } from 'react'
 
 import { Header } from '~/components/layout/header'
@@ -137,7 +137,13 @@ function FeatureFlagsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {flagsQuery.data ? (
+                  {flagsQuery.isLoading ? (
+                    <TableRow>
+                      <TableCell className="py-12 text-center" colSpan={5}>
+                        <Loader2 className="text-muted-foreground mx-auto h-6 w-6 animate-spin" />
+                      </TableCell>
+                    </TableRow>
+                  ) : flagsQuery.data && flagsQuery.data.length > 0 ? (
                     flagsQuery.data.map((flag) => (
                       <TableRow key={flag.id}>
                         <TableCell className="font-mono text-sm">
@@ -165,8 +171,14 @@ function FeatureFlagsPage() {
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell className="text-center" colSpan={5}>
-                        {m.common_noData()}
+                      <TableCell className="py-12 text-center" colSpan={5}>
+                        <Flag className="text-muted-foreground mx-auto mb-2 h-8 w-8" />
+                        <p className="text-muted-foreground text-sm">
+                          {m.common_noData()}
+                        </p>
+                        <p className="text-muted-foreground mt-1 text-xs">
+                          Create your first feature flag to start A/B testing
+                        </p>
                       </TableCell>
                     </TableRow>
                   )}

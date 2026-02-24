@@ -1,12 +1,8 @@
-import { mkdir, writeFile } from 'node:fs/promises'
-import { join } from 'node:path'
-
 import { db } from '@platform/db'
 import { projects, services, users } from '@platform/db/schema'
-import { createAPIFileRoute } from '@tanstack/react-start/api'
+import { createFileRoute } from '@tanstack/react-router'
 import { eq } from 'drizzle-orm'
 
-const UPLOAD_DIR = join(process.cwd(), 'public', 'uploads')
 const MAX_SIZE = 2 * 1024 * 1024
 
 const ALLOWED_TYPES = new Set([
@@ -17,63 +13,90 @@ const ALLOWED_TYPES = new Set([
   'image/webp',
 ])
 
-export const APIRoute = createAPIFileRoute('/api/upload')({
-  POST: async ({ request }) => {
-    const formData = await request.formData()
-    const file = formData.get('file')
-    const entityType = formData.get('entityType') as string
-    const entityId = formData.get('entityId') as string
+const VALID_ENTITY_TYPES = new Set(['project', 'service', 'user'])
 
-    if (!(file instanceof File)) {
-      return new Response(JSON.stringify({ error: 'No file provided' }), {
-        headers: { 'Content-Type': 'application/json' },
-        status: 400,
-      })
-    }
+export const Route = createFileRoute('/api/upload')({
+  server: {
+    handlers: {
+      POST: async ({ request }) => {
+        try {
+          const formData = await request.formData()
+          const file = formData.get('file')
+          const entityType = formData.get('entityType') as string
+          const entityId = formData.get('entityId') as string
 
-    if (!ALLOWED_TYPES.has(file.type)) {
-      return new Response(
-        JSON.stringify({ error: 'Invalid file type. Use PNG, JPG, WebP, SVG, or GIF.' }),
-        { headers: { 'Content-Type': 'application/json' }, status: 400 },
-      )
-    }
+          if (!entityType || !entityId || !VALID_ENTITY_TYPES.has(entityType)) {
+            return Response.json(
+              { error: 'Invalid entity type or ID' },
+              { status: 400 },
+            )
+          }
 
-    if (file.size > MAX_SIZE) {
-      return new Response(
-        JSON.stringify({ error: 'File too large. Max 2MB.' }),
-        { headers: { 'Content-Type': 'application/json' }, status: 400 },
-      )
-    }
+          if (!file || typeof file === 'string') {
+            return Response.json({ error: 'No file provided' }, { status: 400 })
+          }
 
-    const ext = file.name.split('.').pop() ?? 'png'
-    const fileName = `${entityType}-${entityId}-${Date.now()}.${ext}`
-    const dir = join(UPLOAD_DIR, entityType)
+          const blob = file as Blob
+          const fileName =
+            'name' in file ? (file as { name: string }).name : 'upload.png'
+          const fileType = blob.type
 
-    await mkdir(dir, { recursive: true })
+          if (!ALLOWED_TYPES.has(fileType)) {
+            return Response.json(
+              {
+                error: `Invalid file type: ${fileType}. Use PNG, JPG, WebP, SVG, or GIF.`,
+              },
+              { status: 400 },
+            )
+          }
 
-    const buffer = Buffer.from(await file.arrayBuffer())
-    await writeFile(join(dir, fileName), buffer)
+          if (blob.size > MAX_SIZE) {
+            return Response.json(
+              { error: 'File too large. Max 2MB.' },
+              { status: 400 },
+            )
+          }
 
-    const imageUrl = `/uploads/${entityType}/${fileName}`
+          const ext = fileName.split('.').pop() ?? 'png'
+          const storedName = `${entityType}-${entityId}-${Date.now()}.${ext}`
+          const uploadDir = `${process.cwd()}/public/uploads/${entityType}`
+          const filePath = `${uploadDir}/${storedName}`
 
-    const updateImage = async () => {
-      switch (entityType) {
-        case 'project':
-          await db.update(projects).set({ image: imageUrl }).where(eq(projects.id, entityId))
-          break
-        case 'service':
-          await db.update(services).set({ image: imageUrl }).where(eq(services.id, entityId))
-          break
-        case 'user':
-          await db.update(users).set({ image: imageUrl }).where(eq(users.id, entityId))
-          break
-      }
-    }
+          await Bun.write(Bun.file(`${uploadDir}/.keep`), '')
+          await Bun.write(Bun.file(filePath), blob)
 
-    await updateImage()
+          const imageUrl = `/uploads/${entityType}/${storedName}`
 
-    return new Response(JSON.stringify({ url: imageUrl }), {
-      headers: { 'Content-Type': 'application/json' },
-    })
+          switch (entityType) {
+            case 'project':
+              await db
+                .update(projects)
+                .set({ image: imageUrl })
+                .where(eq(projects.id, entityId))
+              break
+            case 'service':
+              await db
+                .update(services)
+                .set({ image: imageUrl })
+                .where(eq(services.id, entityId))
+              break
+            case 'user':
+              await db
+                .update(users)
+                .set({ image: imageUrl })
+                .where(eq(users.id, entityId))
+              break
+          }
+
+          return Response.json({ url: imageUrl })
+        } catch (err) {
+          console.error('[Upload Error]', err)
+          return Response.json(
+            { error: 'Upload failed. Please try again.' },
+            { status: 500 },
+          )
+        }
+      },
+    },
   },
 })

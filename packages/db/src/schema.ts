@@ -25,13 +25,27 @@ export const users = pgTable('users', {
   image: text('image'),
   name: text('name').notNull(),
   role: text('role').notNull().default('user'),
-  twoFactorBackupCodes: text('two_factor_backup_codes'),
-  twoFactorEnabled: boolean('two_factor_enabled'),
-  twoFactorSecret: text('two_factor_secret'),
+  twoFactorEnabled: boolean('two_factor_enabled').default(false),
   updatedAt: timestamp('updated_at', { withTimezone: true })
     .notNull()
     .defaultNow(),
 })
+
+export const twoFactors = pgTable(
+  'two_factors',
+  {
+    backupCodes: text('backup_codes').notNull(),
+    id: text('id').primaryKey(),
+    secret: text('secret').notNull(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+  },
+  (table) => [
+    index('two_factors_secret_idx').on(table.secret),
+    index('two_factors_user_id_idx').on(table.userId),
+  ],
+)
 
 export const sessions = pgTable('sessions', {
   activeOrganizationId: text('active_organization_id'),
@@ -510,6 +524,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   passkeys: many(passkeys),
   projectMembers: many(projectMembers),
   sessions: many(sessions),
+  twoFactors: many(twoFactors),
 }))
 
 export const sessionsRelations = relations(sessions, ({ one }) => ({
@@ -529,6 +544,13 @@ export const accountsRelations = relations(accounts, ({ one }) => ({
 export const passkeysRelations = relations(passkeys, ({ one }) => ({
   user: one(users, {
     fields: [passkeys.userId],
+    references: [users.id],
+  }),
+}))
+
+export const twoFactorsRelations = relations(twoFactors, ({ one }) => ({
+  user: one(users, {
+    fields: [twoFactors.userId],
     references: [users.id],
   }),
 }))

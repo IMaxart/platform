@@ -297,10 +297,7 @@ function TeamMembersPage() {
     (m) => m.userId === session?.user?.id,
   )
   const orgRole = currentMember?.role ?? 'member'
-  const canInvite =
-    isSuperAdmin ||
-    orgRole === 'owner' ||
-    orgRole === 'admin'
+  const canInvite = isSuperAdmin || orgRole === 'owner' || orgRole === 'admin'
   const canRemove = canInvite
 
   return (

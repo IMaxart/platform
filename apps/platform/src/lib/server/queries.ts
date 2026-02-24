@@ -702,3 +702,29 @@ export const getExcludedDevicesList = createServerFn({ method: 'GET' })
       where: eq(excludedDevices.serviceId, serviceId),
     })
   })
+
+type AddExcludedDeviceParams = {
+  name: string
+  reason?: string
+  serviceId: string
+  visitorHash: string
+}
+
+export const addExcludedDevice = createServerFn({ method: 'POST' })
+  .inputValidator((d: AddExcludedDeviceParams) => d)
+  .handler(async ({ data }) => {
+    await db.insert(excludedDevices).values({
+      name: data.name,
+      reason: data.reason,
+      serviceId: data.serviceId,
+      visitorHash: data.visitorHash,
+    })
+    return { ok: true }
+  })
+
+export const deleteExcludedDevice = createServerFn({ method: 'POST' })
+  .inputValidator((d: { deviceId: string }) => d)
+  .handler(async ({ data: { deviceId } }) => {
+    await db.delete(excludedDevices).where(eq(excludedDevices.id, deviceId))
+    return { ok: true }
+  })

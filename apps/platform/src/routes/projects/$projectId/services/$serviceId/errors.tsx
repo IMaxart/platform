@@ -24,7 +24,7 @@ import {
 import { Tabs, TabsList, TabsTrigger } from '@platform/ui/components/tabs'
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute, useParams } from '@tanstack/react-router'
-import { AlertCircle, AlertTriangle } from 'lucide-react'
+import { AlertCircle, AlertTriangle, Loader2, ShieldCheck } from 'lucide-react'
 import { useState } from 'react'
 
 import { TimeRangeSelect } from '~/components/dashboard/time-range-select'
@@ -100,7 +100,13 @@ function ErrorsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {errorsQuery.data ? (
+                  {errorsQuery.isLoading ? (
+                    <TableRow>
+                      <TableCell className="py-12 text-center" colSpan={5}>
+                        <Loader2 className="text-muted-foreground mx-auto h-6 w-6 animate-spin" />
+                      </TableCell>
+                    </TableRow>
+                  ) : errorsQuery.data && errorsQuery.data.length > 0 ? (
                     errorsQuery.data.map((error, idx) => (
                       <TableRow key={`${error.message}-${idx}`}>
                         <TableCell>
@@ -153,8 +159,14 @@ function ErrorsPage() {
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell className="text-center" colSpan={5}>
-                        {m.common_noData()}
+                      <TableCell className="py-12 text-center" colSpan={5}>
+                        <ShieldCheck className="text-muted-foreground mx-auto mb-2 h-8 w-8" />
+                        <p className="text-muted-foreground text-sm">
+                          {m.common_noData()}
+                        </p>
+                        <p className="text-muted-foreground mt-1 text-xs">
+                          No errors captured — your service is running clean
+                        </p>
                       </TableCell>
                     </TableRow>
                   )}

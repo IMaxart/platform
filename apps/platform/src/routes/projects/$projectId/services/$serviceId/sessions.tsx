@@ -19,9 +19,11 @@ import { createFileRoute, useParams } from '@tanstack/react-router'
 import {
   ChevronDown,
   ChevronRight,
+  Loader2,
   Monitor,
   Smartphone,
   Tablet,
+  Users,
 } from 'lucide-react'
 import { useState } from 'react'
 
@@ -132,7 +134,13 @@ function SessionsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {sessionsQuery.data ? (
+                  {sessionsQuery.isLoading ? (
+                    <TableRow>
+                      <TableCell className="py-12 text-center" colSpan={7}>
+                        <Loader2 className="text-muted-foreground mx-auto h-6 w-6 animate-spin" />
+                      </TableCell>
+                    </TableRow>
+                  ) : sessionsQuery.data && sessionsQuery.data.length > 0 ? (
                     sessionsQuery.data.map((session) => {
                       const isExpanded = expandedSession === session.id
 
@@ -263,8 +271,15 @@ function SessionsPage() {
                     })
                   ) : (
                     <TableRow>
-                      <TableCell className="text-center" colSpan={7}>
-                        {m.common_noData()}
+                      <TableCell className="py-12 text-center" colSpan={7}>
+                        <Users className="text-muted-foreground mx-auto mb-2 h-8 w-8" />
+                        <p className="text-muted-foreground text-sm">
+                          {m.common_noData()}
+                        </p>
+                        <p className="text-muted-foreground mt-1 text-xs">
+                          Session recordings will appear here once visitors
+                          start browsing
+                        </p>
                       </TableCell>
                     </TableRow>
                   )}

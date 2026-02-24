@@ -47,6 +47,7 @@ import {
 import { getProjects, getProjectServices } from '~/lib/server/queries'
 
 type NavItemDef = {
+  disabled?: boolean
   icon: LucideIcon
   label: string
   path: string
@@ -108,59 +109,15 @@ export const AppSidebar = () => {
         )}
 
         {serviceId && projectId && (
-          <NavSection
-            items={[
-              {
-                icon: BarChart3,
-                label: 'Analytics',
-                path: `/projects/${projectId}/services/${serviceId}`,
-              },
-              {
-                icon: FileText,
-                label: 'Pages',
-                path: `/projects/${projectId}/services/${serviceId}/pages`,
-              },
-              {
-                icon: MousePointerClick,
-                label: 'Events',
-                path: `/projects/${projectId}/services/${serviceId}/events`,
-              },
-              {
-                icon: Users,
-                label: 'Sessions',
-                path: `/projects/${projectId}/services/${serviceId}/sessions`,
-              },
-              {
-                icon: AlertTriangle,
-                label: 'Errors',
-                path: `/projects/${projectId}/services/${serviceId}/errors`,
-              },
-              {
-                icon: Flag,
-                label: 'Feature Flags',
-                path: `/projects/${projectId}/services/${serviceId}/flags`,
-              },
-              {
-                icon: Activity,
-                label: 'Status',
-                path: `/projects/${projectId}/services/${serviceId}/status`,
-              },
-              {
-                icon: Settings,
-                label: 'Settings',
-                path: `/projects/${projectId}/services/${serviceId}/settings`,
-              },
-            ]}
-            label="Service"
+          <ServiceNavSection
             pathname={location.pathname}
+            projectId={projectId}
+            serviceId={serviceId}
           />
         )}
 
         <NavSection
-          items={[
-            { icon: Building2, label: 'Teams', path: '/teams' },
-            { icon: Settings, label: 'Settings', path: '/settings' },
-          ]}
+          items={[{ icon: Building2, label: 'Teams', path: '/teams' }]}
           label="Account"
           pathname={location.pathname}
         />
@@ -184,6 +141,12 @@ type ProjectSwitcherProps = {
   activeProjectId: null | string
 }
 
+type ServiceNavSectionProps = {
+  pathname: string
+  projectId: string
+  serviceId: string
+}
+
 type ServiceSwitcherProps = {
   activeServiceId: null | string
   projectId: string
@@ -198,6 +161,8 @@ function NavSection({ items, label, pathname }: NavSectionProps) {
       <SidebarGroupContent className="mt-1">
         <SidebarMenu>
           {items.map((item) => {
+            if (item.disabled) return null
+
             const isExact = item.path === pathname
             const isPrefix =
               pathname.startsWith(item.path) && item.path !== '/settings'
@@ -283,6 +248,70 @@ function ProjectSwitcher({ activeProjectId }: ProjectSwitcherProps) {
       </SidebarGroupContent>
     </SidebarGroup>
   )
+}
+
+function ServiceNavSection({
+  pathname,
+  projectId,
+  serviceId,
+}: ServiceNavSectionProps) {
+  const { data: services } = useQuery({
+    queryFn: () => getProjectServices({ data: projectId }),
+    queryKey: ['services', projectId],
+  })
+
+  const service = services?.find((s) => s.id === serviceId)
+  const analyticsEnabled = service?.analyticsEnabled ?? false
+  const statusEnabled = service?.statusEnabled ?? false
+  const base = `/projects/${projectId}/services/${serviceId}`
+
+  const items: NavItemDef[] = [
+    {
+      disabled: !analyticsEnabled,
+      icon: BarChart3,
+      label: 'Analytics',
+      path: base,
+    },
+    {
+      disabled: !analyticsEnabled,
+      icon: FileText,
+      label: 'Pages',
+      path: `${base}/pages`,
+    },
+    {
+      disabled: !analyticsEnabled,
+      icon: MousePointerClick,
+      label: 'Events',
+      path: `${base}/events`,
+    },
+    {
+      disabled: !analyticsEnabled,
+      icon: Users,
+      label: 'Sessions',
+      path: `${base}/sessions`,
+    },
+    {
+      disabled: !analyticsEnabled,
+      icon: AlertTriangle,
+      label: 'Errors',
+      path: `${base}/errors`,
+    },
+    {
+      disabled: !analyticsEnabled,
+      icon: Flag,
+      label: 'Feature Flags',
+      path: `${base}/flags`,
+    },
+    {
+      disabled: !statusEnabled,
+      icon: Activity,
+      label: 'Status',
+      path: `${base}/status`,
+    },
+    { icon: Settings, label: 'Settings', path: `${base}/settings` },
+  ]
+
+  return <NavSection items={items} label="Service" pathname={pathname} />
 }
 
 function ServiceSwitcher({ activeServiceId, projectId }: ServiceSwitcherProps) {

@@ -122,6 +122,7 @@ CREATE TABLE "project_members" (
 CREATE TABLE "projects" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"image" text,
 	"name" text NOT NULL,
 	"team_id" text,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
@@ -136,6 +137,7 @@ CREATE TABLE "services" (
 	"enabled" boolean DEFAULT true NOT NULL,
 	"environments" text[] DEFAULT '{"production"}' NOT NULL,
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"image" text,
 	"name" text NOT NULL,
 	"primary_domain" text,
 	"project_id" uuid NOT NULL,
@@ -226,6 +228,13 @@ CREATE TABLE "status_service_dokploy" (
 	"type" text NOT NULL
 );
 --> statement-breakpoint
+CREATE TABLE "two_factors" (
+	"backup_codes" text NOT NULL,
+	"id" text PRIMARY KEY NOT NULL,
+	"secret" text NOT NULL,
+	"user_id" text NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE "users" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"email" text NOT NULL,
@@ -233,9 +242,8 @@ CREATE TABLE "users" (
 	"id" text PRIMARY KEY NOT NULL,
 	"image" text,
 	"name" text NOT NULL,
-	"two_factor_backup_codes" text,
-	"two_factor_enabled" boolean,
-	"two_factor_secret" text,
+	"role" text DEFAULT 'user' NOT NULL,
+	"two_factor_enabled" boolean DEFAULT false,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
 	CONSTRAINT "users_email_unique" UNIQUE("email")
 );
@@ -300,6 +308,7 @@ ALTER TABLE "status_checks" ADD CONSTRAINT "status_checks_endpoint_id_status_end
 ALTER TABLE "status_endpoints" ADD CONSTRAINT "status_endpoints_service_id_services_id_fk" FOREIGN KEY ("service_id") REFERENCES "public"."services"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "status_rollups_daily" ADD CONSTRAINT "status_rollups_daily_endpoint_id_status_endpoints_id_fk" FOREIGN KEY ("endpoint_id") REFERENCES "public"."status_endpoints"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "status_service_dokploy" ADD CONSTRAINT "status_service_dokploy_service_id_services_id_fk" FOREIGN KEY ("service_id") REFERENCES "public"."services"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "two_factors" ADD CONSTRAINT "two_factors_user_id_users_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."users"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "visitor_sessions" ADD CONSTRAINT "visitor_sessions_service_id_services_id_fk" FOREIGN KEY ("service_id") REFERENCES "public"."services"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX "console_errors_service_id_idx" ON "console_errors" USING btree ("service_id");--> statement-breakpoint
 CREATE INDEX "console_errors_session_id_idx" ON "console_errors" USING btree ("session_id");--> statement-breakpoint
@@ -321,6 +330,8 @@ CREATE INDEX "project_members_user_idx" ON "project_members" USING btree ("user_
 CREATE INDEX "status_checks_endpoint_probe_at_idx" ON "status_checks" USING btree ("endpoint_id","probe","checked_at");--> statement-breakpoint
 CREATE UNIQUE INDEX "status_endpoints_service_key_idx" ON "status_endpoints" USING btree ("service_id","key");--> statement-breakpoint
 CREATE INDEX "status_internet_checks_at_idx" ON "status_internet_checks" USING btree ("checked_at");--> statement-breakpoint
+CREATE INDEX "two_factors_secret_idx" ON "two_factors" USING btree ("secret");--> statement-breakpoint
+CREATE INDEX "two_factors_user_id_idx" ON "two_factors" USING btree ("user_id");--> statement-breakpoint
 CREATE INDEX "visitor_sessions_service_id_idx" ON "visitor_sessions" USING btree ("service_id");--> statement-breakpoint
 CREATE INDEX "visitor_sessions_started_at_idx" ON "visitor_sessions" USING btree ("started_at");--> statement-breakpoint
 CREATE INDEX "visitor_sessions_visitor_hash_idx" ON "visitor_sessions" USING btree ("visitor_hash");--> statement-breakpoint

@@ -13,7 +13,14 @@ import { Label } from '@platform/ui/components/label'
 import { Separator } from '@platform/ui/components/separator'
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
-import { Fingerprint, Loader2, ShieldCheck, Trash2, User } from 'lucide-react'
+import {
+  Check,
+  Fingerprint,
+  Loader2,
+  ShieldCheck,
+  Trash2,
+  User,
+} from 'lucide-react'
 import { useCallback, useState } from 'react'
 
 import { ImageUpload } from '~/components/image-upload'
@@ -144,23 +151,121 @@ function PasskeySection() {
   )
 }
 
+function ProfileSection() {
+  const { data: session, refetch } = useSession()
+  const [name, setName] = useState<null | string>(null)
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+
+  const currentName = session?.user?.name ?? ''
+  const displayName = name ?? currentName
+  const hasChanges = name !== null && name !== currentName
+
+  const handleSave = useCallback(async () => {
+    if (!hasChanges) return
+    setSaving(true)
+    try {
+      await authClient.updateUser({ name: displayName })
+      await refetch()
+      setName(null)
+      setSaved(true)
+      setTimeout(() => {
+        setSaved(false)
+      }, 2000)
+    } catch {
+      // save failed
+    }
+    setSaving(false)
+  }, [displayName, hasChanges, refetch])
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <User className="h-5 w-5" />
+          Profile
+        </CardTitle>
+        <CardDescription>Your account information</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {session?.user && (
+          <div className="flex items-center gap-4">
+            <ImageUpload
+              currentImage={session.user.image}
+              entityId={session.user.id}
+              entityType="user"
+              fallback={session.user.name
+                .split(' ')
+                .map((n) => n[0])
+                .join('')
+                .toUpperCase()
+                .slice(0, 2)}
+              size="lg"
+            />
+            <div>
+              <p className="font-medium">{session.user.name}</p>
+              <p className="text-muted-foreground text-sm">
+                {session.user.email}
+              </p>
+            </div>
+          </div>
+        )}
+        <div className="space-y-2">
+          <Label>Name</Label>
+          <div className="flex gap-2">
+            <Input
+              onChange={(e) => {
+                setName(e.target.value)
+              }}
+              value={displayName}
+            />
+            <Button
+              disabled={!hasChanges || saving}
+              onClick={() => {
+                void handleSave()
+              }}
+              variant={saved ? 'default' : 'outline'}
+            >
+              {saving ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : saved ? (
+                <Check className="h-4 w-4" />
+              ) : (
+                'Save'
+              )}
+            </Button>
+          </div>
+        </div>
+        <div className="space-y-2">
+          <Label>Email</Label>
+          <Input disabled value={session?.user?.email ?? ''} />
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
 function TwoFactorSection() {
   const { data: session } = authClient.useSession()
   const [totpUri, setTotpUri] = useState<null | string>(null)
   const [backupCodes, setBackupCodes] = useState<null | string[]>(null)
   const [verifyCode, setVerifyCode] = useState('')
+  const [password, setPassword] = useState('')
+  const [showPasswordField, setShowPasswordField] = useState(false)
+  const [pendingAction, setPendingAction] = useState<
+    'disable' | 'enable' | null
+  >(null)
   const [error, setError] = useState<null | string>(null)
   const [loading, setLoading] = useState(false)
 
   const is2FAEnabled = session?.user?.twoFactorEnabled ?? false
 
   const handleEnable2FA = useCallback(async () => {
+    if (!password) return
     setError(null)
     setLoading(true)
     try {
-      const result = await authClient.twoFactor.enable({
-        password: prompt('Enter your password to enable 2FA') ?? '',
-      })
+      const result = await authClient.twoFactor.enable({ password })
       if (result.error) {
         setError(result.error.message ?? 'Failed to enable 2FA')
         setLoading(false)
@@ -168,11 +273,14 @@ function TwoFactorSection() {
       }
       setTotpUri(result.data?.totpURI ?? null)
       setBackupCodes(result.data?.backupCodes ?? null)
+      setShowPasswordField(false)
+      setPassword('')
+      setPendingAction(null)
     } catch {
       setError('Failed to enable 2FA')
     }
     setLoading(false)
-  }, [])
+  }, [password])
 
   const handleVerify = useCallback(async () => {
     if (verifyCode.length !== 6) return
@@ -196,22 +304,38 @@ function TwoFactorSection() {
   }, [verifyCode])
 
   const handleDisable2FA = useCallback(async () => {
-    const password = prompt('Enter your password to disable 2FA')
     if (!password) return
     setError(null)
     setLoading(true)
     try {
-      const result = await authClient.twoFactor.disable({
-        password,
-      })
+      const result = await authClient.twoFactor.disable({ password })
       if (result.error) {
         setError(result.error.message ?? 'Failed to disable 2FA')
+      } else {
+        setShowPasswordField(false)
+        setPassword('')
+        setPendingAction(null)
       }
     } catch {
       setError('Failed to disable 2FA')
     }
     setLoading(false)
-  }, [])
+  }, [password])
+
+  const startAction = (action: 'disable' | 'enable') => {
+    setShowPasswordField(true)
+    setPendingAction(action)
+    setError(null)
+    setPassword('')
+  }
+
+  const submitPassword = () => {
+    if (pendingAction === 'enable') {
+      void handleEnable2FA()
+    } else if (pendingAction === 'disable') {
+      void handleDisable2FA()
+    }
+  }
 
   return (
     <Card>
@@ -236,7 +360,7 @@ function TwoFactorSection() {
             <Button
               disabled={loading}
               onClick={() => {
-                void handleDisable2FA()
+                startAction('disable')
               }}
               variant="destructive"
             >
@@ -306,12 +430,55 @@ function TwoFactorSection() {
           <Button
             disabled={loading}
             onClick={() => {
-              void handleEnable2FA()
+              startAction('enable')
             }}
           >
             Enable 2FA
           </Button>
         )}
+
+        {showPasswordField && (
+          <div className="space-y-2 rounded-lg border p-4">
+            <Label className="text-sm">
+              Enter your password to{' '}
+              {pendingAction === 'enable' ? 'enable' : 'disable'} 2FA
+            </Label>
+            <div className="flex items-center gap-2">
+              <Input
+                className="max-w-[300px]"
+                onChange={(e) => {
+                  setPassword(e.target.value)
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    submitPassword()
+                  }
+                }}
+                placeholder="Your password"
+                type="password"
+                value={password}
+              />
+              <Button disabled={!password || loading} onClick={submitPassword}>
+                {loading ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : null}
+                Confirm
+              </Button>
+              <Button
+                onClick={() => {
+                  setShowPasswordField(false)
+                  setPassword('')
+                  setPendingAction(null)
+                  setError(null)
+                }}
+                variant="ghost"
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        )}
+
         {error && (
           <p className="text-destructive text-sm font-medium">{error}</p>
         )}
@@ -321,55 +488,11 @@ function TwoFactorSection() {
 }
 
 function UserSettingsPage() {
-  const { data: session } = useSession()
-
   return (
     <>
       <Header title={m.settings_title()} />
       <div className="flex-1 space-y-6 p-4 md:p-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <User className="h-5 w-5" />
-              Profile
-            </CardTitle>
-            <CardDescription>Your account information</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {session?.user && (
-              <div className="flex items-center gap-4">
-                <ImageUpload
-                  currentImage={session.user.image}
-                  entityId={session.user.id}
-                  entityType="user"
-                  fallback={
-                    session.user.name
-                      .split(' ')
-                      .map((n) => n[0])
-                      .join('')
-                      .toUpperCase()
-                      .slice(0, 2)
-                  }
-                  size="lg"
-                />
-                <div>
-                  <p className="font-medium">{session.user.name}</p>
-                  <p className="text-muted-foreground text-sm">
-                    {session.user.email}
-                  </p>
-                </div>
-              </div>
-            )}
-            <div className="space-y-2">
-              <Label>Name</Label>
-              <Input readOnly value={session?.user?.name ?? ''} />
-            </div>
-            <div className="space-y-2">
-              <Label>Email</Label>
-              <Input readOnly value={session?.user?.email ?? ''} />
-            </div>
-          </CardContent>
-        </Card>
+        <ProfileSection />
 
         <Separator />
         <h2 className="pt-2 text-lg font-semibold">Security</h2>

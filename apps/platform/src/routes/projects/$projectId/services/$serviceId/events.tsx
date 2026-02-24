@@ -15,6 +15,7 @@ import {
 } from '@platform/ui/components/table'
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute, useParams } from '@tanstack/react-router'
+import { Loader2, MousePointerClick } from 'lucide-react'
 import { useState } from 'react'
 
 import { TimeRangeSelect } from '~/components/dashboard/time-range-select'
@@ -71,7 +72,13 @@ function EventsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {eventsQuery.data ? (
+                  {eventsQuery.isLoading ? (
+                    <TableRow>
+                      <TableCell className="py-12 text-center" colSpan={3}>
+                        <Loader2 className="text-muted-foreground mx-auto h-6 w-6 animate-spin" />
+                      </TableCell>
+                    </TableRow>
+                  ) : eventsQuery.data && eventsQuery.data.length > 0 ? (
                     eventsQuery.data.map((event) => (
                       <TableRow key={event.name}>
                         <TableCell>
@@ -89,8 +96,15 @@ function EventsPage() {
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell className="text-center" colSpan={3}>
-                        {m.common_noData()}
+                      <TableCell className="py-12 text-center" colSpan={3}>
+                        <MousePointerClick className="text-muted-foreground mx-auto mb-2 h-8 w-8" />
+                        <p className="text-muted-foreground text-sm">
+                          {m.common_noData()}
+                        </p>
+                        <p className="text-muted-foreground mt-1 text-xs">
+                          Custom events will appear here once tracked via the
+                          SDK
+                        </p>
                       </TableCell>
                     </TableRow>
                   )}

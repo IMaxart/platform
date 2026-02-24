@@ -3,6 +3,7 @@ import { gzipSync } from 'node:zlib'
 
 const SERVER_PORT = Number(process.env.PORT ?? 3000)
 const CLIENT_DIR = path.resolve('./dist/client')
+const UPLOAD_DIR = path.resolve('./public/uploads')
 const SERVER_ENTRY = './dist/server/server.js'
 
 const COMPRESSIBLE_TYPES = new Set([
@@ -71,6 +72,20 @@ async function start() {
         })
 
         return compressResponse(response, acceptEncoding)
+      }
+
+      if (url.pathname.startsWith('/uploads/')) {
+        const uploadPath = path.join(
+          UPLOAD_DIR,
+          url.pathname.replace('/uploads/', ''),
+        )
+        const uploadFile = Bun.file(uploadPath)
+
+        if (await uploadFile.exists()) {
+          return new Response(uploadFile, {
+            headers: { 'Cache-Control': 'public, max-age=86400' },
+          })
+        }
       }
 
       const response = await handler.fetch(request)

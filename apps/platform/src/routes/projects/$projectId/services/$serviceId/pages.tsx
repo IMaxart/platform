@@ -14,6 +14,7 @@ import {
 } from '@platform/ui/components/table'
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute, useParams } from '@tanstack/react-router'
+import { FileText, Loader2 } from 'lucide-react'
 import { useState } from 'react'
 
 import { TimeRangeSelect } from '~/components/dashboard/time-range-select'
@@ -87,7 +88,13 @@ function PagesPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {pages.data ? (
+                  {pages.isLoading ? (
+                    <TableRow>
+                      <TableCell className="py-12 text-center" colSpan={4}>
+                        <Loader2 className="text-muted-foreground mx-auto h-6 w-6 animate-spin" />
+                      </TableCell>
+                    </TableRow>
+                  ) : pages.data && pages.data.length > 0 ? (
                     pages.data.map((page) => (
                       <TableRow key={page.path}>
                         <TableCell className="font-mono text-sm">
@@ -108,8 +115,15 @@ function PagesPage() {
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell className="text-center" colSpan={4}>
-                        {m.common_noData()}
+                      <TableCell className="py-12 text-center" colSpan={4}>
+                        <FileText className="text-muted-foreground mx-auto mb-2 h-8 w-8" />
+                        <p className="text-muted-foreground text-sm">
+                          {m.common_noData()}
+                        </p>
+                        <p className="text-muted-foreground mt-1 text-xs">
+                          Page views will appear here once visitors start
+                          browsing your site
+                        </p>
                       </TableCell>
                     </TableRow>
                   )}
