@@ -30,8 +30,6 @@ services:
       ADMIN_DOMAIN: ${ADMIN_DOMAIN:-localhost}
       HASH_SECRET: ${HASH_SECRET:-change-me-to-a-random-secret-at-least-32-chars}
       DATABASE_URL: postgresql://${POSTGRES_USER:-imaxart}:${POSTGRES_PASSWORD:-imaxart}@postgres:5432/${POSTGRES_DB:-imaxart}
-    ports:
-      - '${PORT_PLATFORM:-3000}:3000'
     labels:
       - traefik.enable=true
       - traefik.http.routers.platform.rule=Host(`platform.${ADMIN_DOMAIN:-localhost}`)
@@ -49,8 +47,6 @@ services:
       NODE_ENV: ${NODE_ENV:-production}
       PORT: '3001'
       DATABASE_URL: postgresql://${POSTGRES_USER:-imaxart}:${POSTGRES_PASSWORD:-imaxart}@postgres:5432/${POSTGRES_DB:-imaxart}
-    ports:
-      - '${PORT_STATUS:-3001}:3001'
     labels:
       - traefik.enable=true
       - traefik.http.routers.status.rule=Host(`status.${ADMIN_DOMAIN:-localhost}`)
