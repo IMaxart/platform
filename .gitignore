@@ -15,9 +15,8 @@ dist/
 
 # Environment (never commit secrets)
 .env
-.env.local
-.env.*.local
-# Only .env.example is committed
+.env.*
+!.env.example
 
 # SQLite
 *.sqlite
