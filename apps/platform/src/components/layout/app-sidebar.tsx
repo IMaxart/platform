@@ -113,7 +113,14 @@ export const AppSidebar = () => {
         ) : null}
 
         <NavSection
-          items={[{ icon: Building2, label: m.common_teams(), path: '/teams' }]}
+          items={[
+            {
+              icon: FolderOpen,
+              label: m.common_projects(),
+              path: '/projects',
+            },
+            { icon: Building2, label: m.common_teams(), path: '/teams' },
+          ]}
           label={m.common_account()}
           pathname={location.pathname}
         />

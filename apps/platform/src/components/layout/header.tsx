@@ -103,7 +103,14 @@ export const Header = ({ environment, title }: HeaderProps) => {
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <ThemeToggle />
+        <ThemeToggle
+          labels={{
+            dark: m.common_themeDark(),
+            light: m.common_themeLight(),
+            system: m.common_themeSystem(),
+            toggleTheme: m.common_toggleTheme(),
+          }}
+        />
 
         {session?.user !== undefined ? (
           <UserMenu
