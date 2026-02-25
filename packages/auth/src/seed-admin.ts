@@ -11,7 +11,8 @@ export const seedAdmin = async () => {
 
   if (!email || !password) return
 
-  const [{ total }] = await db.select({ total: count() }).from(users)
+  const result = await db.select({ total: count() }).from(users)
+  const { total } = result[0] ?? { total: 0 }
   if (total > 0) return
 
   try {

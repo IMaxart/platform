@@ -11,6 +11,9 @@
     "./providers/*": "./src/providers/*.tsx",
     "./styles/*": "./src/styles/*"
   },
+  "scripts": {
+    "type-check": "tsc --noEmit"
+  },
   "dependencies": {
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
