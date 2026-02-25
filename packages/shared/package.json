@@ -9,6 +9,7 @@
     "./validation": "./src/validation.ts"
   },
   "scripts": {
+    "lint": "eslint .",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {

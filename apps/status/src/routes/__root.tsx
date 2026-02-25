@@ -1,9 +1,8 @@
-import type { ReactNode } from 'react'
-
 import { ThemeProvider, themeScript } from '@platform/ui'
 import { TooltipProvider } from '@platform/ui/components/tooltip'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { createRootRoute, HeadContent, Scripts } from '@tanstack/react-router'
+import type { ReactNode } from 'react'
 
 import Header from '~/components/header'
 

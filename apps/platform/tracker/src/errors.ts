@@ -1,6 +1,5 @@
-import type { ErrorPayload, TrackerConfig } from './types'
-
 import { enqueue } from './collector'
+import type { ErrorPayload, TrackerConfig } from './types'
 
 /**
  * Attaches handlers for uncaught errors, unhandled rejections, and console.error/warn.

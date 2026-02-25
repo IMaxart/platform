@@ -1,7 +1,13 @@
 import type { Collector } from './collector'
+import { createCollector } from './collector'
+import { getDeviceInfo } from './device'
 import type { ErrorTracker } from './errors'
+import { createErrorTracker } from './errors'
 import type { FlagClient } from './flags'
+import { createFlagClient } from './flags'
 import type { HistoryPatcher, PageTracker } from './page-view'
+import { createPageTracker, patchHistoryApi } from './page-view'
+import { getOrCreateSession } from './session'
 import type {
   AnalyticsConfig,
   EventProperties,
@@ -10,13 +16,6 @@ import type {
   ResolvedConfig,
   SessionPayload,
 } from './types'
-
-import { createCollector } from './collector'
-import { getDeviceInfo } from './device'
-import { createErrorTracker } from './errors'
-import { createFlagClient } from './flags'
-import { createPageTracker, patchHistoryApi } from './page-view'
-import { getOrCreateSession } from './session'
 
 const resolveConfig = (config: AnalyticsConfig): ResolvedConfig => {
   const protocol = config.domain.startsWith('http') ? '' : 'https://'
@@ -132,7 +131,7 @@ export class Analytics {
    * ```
    */
   identify = (properties: IdentifyProperties): void => {
-    if (!this.collector || !this.sessionId) return
+    if (this.collector === null || this.sessionId === null) return
 
     this.collector.enqueue({
       properties,
@@ -239,7 +238,7 @@ export class Analytics {
    * ```
    */
   track = (event: string, properties?: EventProperties): void => {
-    if (!this.collector || !this.sessionId) return
+    if (this.collector === null || this.sessionId === null) return
 
     this.collector.enqueue({
       name: event,

@@ -1,6 +1,5 @@
-import type { PageViewPayload, TrackerConfig } from './types'
-
 import { enqueue } from './collector'
+import type { PageViewPayload, TrackerConfig } from './types'
 
 let currentPath: null | string = null
 let enteredAt: null | number = null

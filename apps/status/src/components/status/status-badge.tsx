@@ -1,6 +1,6 @@
-import type { CheckState } from '~/server/types'
-
 import { Badge } from '@platform/ui/components/badge'
+
+import type { CheckState } from '~/server/types'
 
 const getBadgeVariant = ({ state }: { state: CheckState }) => {
   if (state === 'UP') return 'success'

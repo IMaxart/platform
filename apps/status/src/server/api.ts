@@ -1,7 +1,3 @@
-import type { Db } from './db'
-import type { CheckState, ProbeKind } from './types'
-import type { PublicPageResponse } from '~/shared/api-types'
-
 import { db as drizzleDb } from '@platform/db/connection'
 import {
   statusChecks,
@@ -9,6 +5,11 @@ import {
   statusRollupsDaily,
 } from '@platform/db/schema'
 import { and, eq, gte, sql as rawSql, sum } from 'drizzle-orm'
+
+import type { PublicPageResponse } from '~/shared/api-types'
+
+import type { Db } from './db'
+import type { CheckState, ProbeKind } from './types'
 
 const json = (body: unknown, init?: ResponseInit) => {
   return Response.json(body, init)

@@ -18,7 +18,9 @@ export const TeamInvite = ({
   <Layout preview={`You've been invited to join ${teamName}`}>
     <Text style={heading}>Team Invitation</Text>
     <Text style={paragraph}>
-      {inviterName ? `${inviterName} has invited you` : 'You have been invited'}{' '}
+      {inviterName !== undefined
+        ? `${inviterName} has invited you`
+        : 'You have been invited'}{' '}
       to join <strong>{teamName}</strong> as a <strong>{role}</strong>.
     </Text>
     <Button href={url} style={button}>

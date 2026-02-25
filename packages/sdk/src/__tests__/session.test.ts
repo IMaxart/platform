@@ -33,7 +33,10 @@ describe('getOrCreateSession', () => {
 
     expect(stored).not.toBeNull()
 
-    const parsed = JSON.parse(stored!) as { id: string; startedAt: number }
+    const parsed = JSON.parse(stored ?? '{}') as {
+      id: string
+      startedAt: number
+    }
     expect(parsed.id).toBe(session.id)
   })
 

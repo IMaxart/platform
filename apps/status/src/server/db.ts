@@ -1,13 +1,3 @@
-import type {
-  CheckRow,
-  DailyRollupRow,
-  EndpointRow,
-  InternetCheckRow,
-  ProbeKind,
-  ServiceRow,
-} from './types'
-import type { DokployRefType } from '~/shared/api-types'
-
 import { db as drizzleDb } from '@platform/db/connection'
 import {
   services,
@@ -18,6 +8,17 @@ import {
   statusServiceDokploy,
 } from '@platform/db/schema'
 import { and, asc, desc, eq, gte, lt } from 'drizzle-orm'
+
+import type { DokployRefType } from '~/shared/api-types'
+
+import type {
+  CheckRow,
+  DailyRollupRow,
+  EndpointRow,
+  InternetCheckRow,
+  ProbeKind,
+  ServiceRow,
+} from './types'
 
 const boolToInt = (value: boolean): 0 | 1 => (value ? 1 : 0)
 

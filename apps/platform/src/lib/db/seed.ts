@@ -1,5 +1,3 @@
-import crypto from 'node:crypto'
-
 import { db } from '@platform/db'
 import {
   consoleErrors,
@@ -10,6 +8,7 @@ import {
   services,
   visitorSessions,
 } from '@platform/db/schema'
+import crypto from 'node:crypto'
 
 const DEMO_PROJECT = {
   name: 'Demo Project',

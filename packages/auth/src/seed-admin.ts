@@ -9,7 +9,7 @@ export const seedAdmin = async () => {
   const name = process.env['ADMIN_NAME'] ?? 'Admin'
   const password = process.env['ADMIN_PASSWORD']
 
-  if (!email || !password) return
+  if (email === undefined || password === undefined) return
 
   const result = await db.select({ total: count() }).from(users)
   const { total } = result[0] ?? { total: 0 }

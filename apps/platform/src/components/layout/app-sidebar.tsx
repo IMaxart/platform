@@ -1,5 +1,3 @@
-import type { LucideIcon } from 'lucide-react'
-
 import { authClient, useSession } from '@platform/auth/client'
 import { cn } from '@platform/ui'
 import { Avatar, AvatarFallback } from '@platform/ui/components/avatar'
@@ -25,6 +23,7 @@ import {
 } from '@platform/ui/components/sidebar'
 import { useQuery } from '@tanstack/react-query'
 import { Link, useLocation, useNavigate } from '@tanstack/react-router'
+import type { LucideIcon } from 'lucide-react'
 import {
   Activity,
   AlertTriangle,

@@ -1,10 +1,10 @@
-import type { Db } from './db'
-import type { Env } from './env'
-import type { CheckRow, DailyRollupRow, EndpointRow, ProbeKind } from './types'
-
 import { db as drizzleDb } from '@platform/db/connection'
 import { statusChecks } from '@platform/db/schema'
 import { and, gte, lt } from 'drizzle-orm'
+
+import type { Db } from './db'
+import type { Env } from './env'
+import type { CheckRow, DailyRollupRow, EndpointRow, ProbeKind } from './types'
 
 type InternetState = {
   checkedAtMs: number

@@ -18,7 +18,10 @@ export const createCollector = (config: ResolvedConfig): Collector => {
     const batch = queue.splice(0, config.maxBatchSize)
     const body = JSON.stringify(batch)
 
-    if (typeof navigator !== 'undefined' && navigator.sendBeacon) {
+    if (
+      typeof navigator !== 'undefined' &&
+      typeof navigator.sendBeacon === 'function'
+    ) {
       navigator.sendBeacon(config.endpoint, body)
       return
     }

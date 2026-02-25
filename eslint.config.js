@@ -46,7 +46,7 @@ export default tseslint.config(
     },
     settings: {
       react: {
-        version: 'detect',
+        version: '19',
       },
     },
   },
@@ -60,13 +60,12 @@ export default tseslint.config(
           internalPattern: ['^~/.*'],
           newlinesBetween: 1,
           groups: [
-            'type',
-            'builtin',
-            'external',
+            ['builtin', 'external'],
             'internal',
             ['parent', 'sibling', 'index'],
             'side-effect',
             'style',
+            'unknown',
           ],
         },
       ],
@@ -125,9 +124,21 @@ export default tseslint.config(
     },
   },
   {
-    files: ['**/server.ts', '**/seed.ts'],
+    files: [
+      '**/server.ts',
+      '**/seed.ts',
+      '**/seed-admin.ts',
+      'packages/email/src/index.ts',
+    ],
     rules: {
       'no-console': 'off',
+    },
+  },
+  {
+    files: ['**/__tests__/**/*.ts', '**/__benchmarks__/**/*.ts'],
+    rules: {
+      '@typescript-eslint/no-misused-spread': 'off',
+      '@typescript-eslint/unbound-method': 'off',
     },
   },
   {
@@ -146,6 +157,9 @@ export default tseslint.config(
       'apps/platform/server.ts',
       'apps/platform/tracker/build.ts',
       '**/paraglide/**',
+      '**/drizzle.config.ts',
+      '**/tsup.config.ts',
+      '**/vitest.config.ts',
     ],
   },
 )

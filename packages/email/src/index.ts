@@ -1,6 +1,5 @@
-import type { ReactElement } from 'react'
-
 import { render } from '@react-email/render'
+import type { ReactElement } from 'react'
 
 import { hasSmtp, smtpFrom, transporter } from './transport'
 

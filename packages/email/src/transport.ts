@@ -12,12 +12,15 @@ export const smtpFrom =
 
 export const hasSmtp = Boolean(smtpHost)
 
-export const transporter = smtpHost
-  ? createTransport({
-      auth:
-        smtpUser && smtpPass ? { pass: smtpPass, user: smtpUser } : undefined,
-      host: smtpHost,
-      port: smtpPort,
-      secure: smtpPort === 465,
-    })
-  : null
+export const transporter =
+  smtpHost !== undefined
+    ? createTransport({
+        auth:
+          smtpUser !== undefined && smtpPass !== undefined
+            ? { pass: smtpPass, user: smtpUser }
+            : undefined,
+        host: smtpHost,
+        port: smtpPort,
+        secure: smtpPort === 465,
+      })
+    : null

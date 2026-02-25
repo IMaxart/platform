@@ -101,7 +101,6 @@ async function seed() {
         language: randomItem(['pl', 'en', 'de']),
         osName: randomItem(OS_NAMES),
         osVersion: `${randomInt({ max: 17, min: 10 })}.${randomInt({ max: 9, min: 0 })}`,
-        serviceId: service.id,
         referrer: randomItem([
           null,
           'https://google.com',
@@ -112,6 +111,7 @@ async function seed() {
         region: null,
         screenHeight: randomItem([667, 1024, 720, 900, 1080]),
         screenWidth: randomItem([375, 768, 1280, 1440, 1920]),
+        serviceId: service.id,
         startedAt,
         timezone: 'Europe/Warsaw',
         utmCampaign: null,
@@ -156,9 +156,9 @@ async function seed() {
         durationMs: randomInt({ max: 300000, min: 5000 }),
         enteredAt,
         path: randomItem(PAGES),
-        serviceId: service.id,
         referrer: p === 0 ? session.referrer : null,
         scrollDepthPct: randomInt({ max: 100, min: 10 }),
+        serviceId: service.id,
         sessionId: session.id,
         title: `Page Title ${p + 1}`,
       })
@@ -169,8 +169,8 @@ async function seed() {
         createdAt: session.startedAt,
         name: randomItem(EVENT_NAMES),
         path: randomItem(PAGES),
-        serviceId: service.id,
         properties: { value: randomInt({ max: 100, min: 1 }) },
+        serviceId: service.id,
         sessionId: session.id,
       })
     }

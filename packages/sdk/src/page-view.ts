@@ -28,13 +28,13 @@ export const createPageTracker = ({
   }
 
   const onScroll = () => {
-    if (!currentPath) return
+    if (currentPath === null) return
     const depth = getScrollDepth()
     if (depth > maxScrollDepth) maxScrollDepth = depth
   }
 
   const endCurrentPageView = () => {
-    if (!currentPath || !enteredAt) return
+    if (currentPath === null || enteredAt === null) return
 
     onPayload({
       durationMs: Date.now() - enteredAt,
@@ -63,11 +63,7 @@ export const createPageTracker = ({
   const onVisibilityChange = () => {
     if (document.visibilityState === 'hidden') {
       endCurrentPageView()
-    } else if (
-      document.visibilityState === 'visible' &&
-      lastTrackedPath &&
-      !currentPath
-    ) {
+    } else if (lastTrackedPath !== null && currentPath === null) {
       trackPageView(lastTrackedPath)
     }
   }

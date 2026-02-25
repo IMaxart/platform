@@ -1,8 +1,3 @@
-import { betterAuth } from 'better-auth'
-import { drizzleAdapter } from 'better-auth/adapters/drizzle'
-import { organization } from 'better-auth/plugins/organization'
-import { twoFactor } from 'better-auth/plugins/two-factor'
-
 import { passkey } from '@better-auth/passkey'
 import { db } from '@platform/db'
 import * as schema from '@platform/db/schema'
@@ -12,6 +7,10 @@ import {
   TeamInvite,
   VerifyEmail,
 } from '@platform/email/templates'
+import { betterAuth } from 'better-auth'
+import { drizzleAdapter } from 'better-auth/adapters/drizzle'
+import { organization } from 'better-auth/plugins/organization'
+import { twoFactor } from 'better-auth/plugins/two-factor'
 
 export const auth: ReturnType<typeof betterAuth> = betterAuth({
   baseURL: process.env['BETTER_AUTH_URL'] ?? 'http://localhost:3000',

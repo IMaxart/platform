@@ -98,7 +98,7 @@ describe('Analytics', () => {
     expect(navigator.sendBeacon).toHaveBeenCalled()
     const body = (navigator.sendBeacon as ReturnType<typeof vi.fn>).mock
       .calls[0]?.[1] as string
-    const payloads = JSON.parse(body) as Array<{ type: string }>
+    const payloads = JSON.parse(body) as { type: string }[]
     const eventPayload = payloads.find((p) => p.type === 'event')
     expect(eventPayload).toBeDefined()
   })
@@ -123,7 +123,7 @@ describe('Analytics', () => {
     expect(navigator.sendBeacon).toHaveBeenCalled()
     const body = (navigator.sendBeacon as ReturnType<typeof vi.fn>).mock
       .calls[0]?.[1] as string
-    const payloads = JSON.parse(body) as Array<{ type: string }>
+    const payloads = JSON.parse(body) as { type: string }[]
     const identifyPayload = payloads.find((p) => p.type === 'identify')
     expect(identifyPayload).toBeDefined()
   })

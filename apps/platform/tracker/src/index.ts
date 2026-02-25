@@ -1,5 +1,3 @@
-import type { AnalyticsAPI, SessionPayload, TrackerConfig } from './types'
-
 import { enqueue, flush } from './collector'
 import { getDeviceInfo } from './device'
 import { initErrorTracking } from './errors'
@@ -7,6 +5,7 @@ import { trackEvent } from './events'
 import { getFlag } from './flags'
 import { initPageTracking } from './page-view'
 import { getSession } from './session'
+import type { AnalyticsAPI, SessionPayload, TrackerConfig } from './types'
 
 const isDNTEnabled = (): boolean => {
   const dnt =

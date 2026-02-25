@@ -1,6 +1,5 @@
-import type { FeatureFlagConditions } from '@platform/db/schema'
-
 import { db } from '@platform/db'
+import type { FeatureFlagConditions } from '@platform/db/schema'
 import { featureFlags, visitorSessions } from '@platform/db/schema'
 import { createFileRoute } from '@tanstack/react-router'
 import { and, eq } from 'drizzle-orm'

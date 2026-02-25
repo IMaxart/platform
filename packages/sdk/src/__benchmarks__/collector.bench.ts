@@ -1,8 +1,7 @@
 import { bench, describe } from 'vitest'
 
-import type { ResolvedConfig } from '../types'
-
 import { createCollector } from '../collector'
+import type { ResolvedConfig } from '../types'
 
 const config: ResolvedConfig = {
   endpoint: 'https://localhost/api/collect',

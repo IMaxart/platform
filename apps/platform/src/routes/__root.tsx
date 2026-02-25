@@ -1,7 +1,5 @@
 /// <reference types="vite/client" />
 
-import type { ReactNode } from 'react'
-
 import { ThemeProvider, themeScript } from '@platform/ui'
 import { SidebarInset, SidebarProvider } from '@platform/ui/components/sidebar'
 import { TooltipProvider } from '@platform/ui/components/tooltip'
@@ -14,6 +12,7 @@ import {
   Scripts,
   useLocation,
 } from '@tanstack/react-router'
+import type { ReactNode } from 'react'
 
 import { AppSidebar } from '~/components/layout/app-sidebar'
 import { getSession } from '~/lib/server/auth'

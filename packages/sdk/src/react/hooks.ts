@@ -1,8 +1,7 @@
-import type { EventProperties, FlagValue, IdentifyProperties } from '../types'
-
 import { useEffect, useMemo, useState } from 'react'
 
 import { analytics } from '../analytics'
+import type { EventProperties, FlagValue, IdentifyProperties } from '../types'
 
 /**
  * Access the analytics singleton with stable method references.

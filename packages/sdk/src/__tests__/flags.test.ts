@@ -83,7 +83,10 @@ describe('createFlagClient', () => {
   })
 
   it('warns and returns false for unknown flags (404)', async () => {
-    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const noop = () => {
+      /* intentional no-op for mock */
+    }
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(noop)
     vi.stubGlobal(
       'fetch',
       vi.fn(() =>

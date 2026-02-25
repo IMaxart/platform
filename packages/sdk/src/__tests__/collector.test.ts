@@ -1,8 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type { ResolvedConfig } from '../types'
-
 import { createCollector } from '../collector'
+import type { ResolvedConfig } from '../types'
 
 const createTestConfig = (
   overrides?: Partial<ResolvedConfig>,

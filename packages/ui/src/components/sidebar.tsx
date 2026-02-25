@@ -5,6 +5,8 @@ import { PanelLeftIcon } from 'lucide-react'
 import { Slot } from 'radix-ui'
 import * as React from 'react'
 
+import { useIsMobile } from '../hooks/use-mobile'
+import { cn } from '../lib/utils'
 import { Button } from './button'
 import { Input } from './input'
 import { Separator } from './separator'
@@ -22,8 +24,6 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from './tooltip'
-import { useIsMobile } from '../hooks/use-mobile'
-import { cn } from '../lib/utils'
 
 const SIDEBAR_COOKIE_NAME = 'sidebar_state'
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
@@ -338,7 +338,11 @@ function SidebarProvider({
 
   // Helper to toggle the sidebar.
   const toggleSidebar = React.useCallback(() => {
-    isMobile ? setOpenMobile((open) => !open) : setOpen((open) => !open)
+    if (isMobile) {
+      setOpenMobile((open) => !open)
+    } else {
+      setOpen((open) => !open)
+    }
   }, [isMobile, setOpen, setOpenMobile])
 
   // Adds a keyboard shortcut to toggle the sidebar.
@@ -579,15 +583,12 @@ function SidebarMenuButton({
     />
   )
 
-  if (!tooltip) {
+  if (tooltip === undefined) {
     return button
   }
 
-  if (typeof tooltip === 'string') {
-    tooltip = {
-      children: tooltip,
-    }
-  }
+  const tooltipProps =
+    typeof tooltip === 'string' ? { children: tooltip } : tooltip
 
   return (
     <Tooltip>
@@ -596,7 +597,7 @@ function SidebarMenuButton({
         align="center"
         hidden={state !== 'collapsed' || isMobile}
         side="right"
-        {...tooltip}
+        {...tooltipProps}
       />
     </Tooltip>
   )
@@ -609,10 +610,12 @@ function SidebarMenuSkeleton({
 }: React.ComponentProps<'div'> & {
   showIcon?: boolean
 }) {
-  // Random width between 50 to 90%.
+  const id = React.useId()
   const width = React.useMemo(() => {
-    return `${Math.floor(Math.random() * 40) + 50}%`
-  }, [])
+    const hash = id.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
+    const value = (Math.abs(hash) % 41) + 50
+    return `${value}%`
+  }, [id])
 
   return (
     <div

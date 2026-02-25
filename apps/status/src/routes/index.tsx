@@ -1,5 +1,3 @@
-import type { PublicPageResponse } from '~/shared/api-types'
-
 import { Card, CardContent } from '@platform/ui/components/card'
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
@@ -10,6 +8,7 @@ import {
   PublicStatusPageSkeleton,
 } from '~/components/public/public-status-page'
 import { fetchJson } from '~/lib/api-client'
+import type { PublicPageResponse } from '~/shared/api-types'
 
 export const Route = createFileRoute('/')({
   component: IndexRoute,

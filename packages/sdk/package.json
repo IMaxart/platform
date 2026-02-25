@@ -48,6 +48,7 @@
   },
   "scripts": {
     "build": "tsup",
+    "lint": "eslint .",
     "type-check": "tsc --noEmit",
     "test": "vitest run",
     "bench": "vitest bench",

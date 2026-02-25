@@ -1,6 +1,5 @@
-import type { EventPayload, TrackerConfig } from './types'
-
 import { enqueue } from './collector'
+import type { EventPayload, TrackerConfig } from './types'
 
 /**
  * Queues a custom event with optional properties for collection.

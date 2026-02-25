@@ -1,6 +1,3 @@
-import type { CheckState } from '~/server/types'
-import type { PublicPageResponse } from '~/shared/api-types'
-
 import { Card, CardContent } from '@platform/ui/components/card'
 import { Skeleton } from '@platform/ui/components/skeleton'
 import {
@@ -12,6 +9,8 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
 
 import { bucketChecks } from '~/components/status/timeline'
+import type { CheckState } from '~/server/types'
+import type { PublicPageResponse } from '~/shared/api-types'
 
 type PublicMode = Extract<PublicPageResponse, { mode: 'public' }>
 

@@ -1,6 +1,7 @@
+import type { DokployRefType } from '~/shared/api-types'
+
 import type { Db } from './db'
 import type { Env } from './env'
-import type { DokployRefType } from '~/shared/api-types'
 
 const parseDateMs = ({ value }: { value: unknown }) => {
   if (typeof value === 'number' && Number.isFinite(value)) return value

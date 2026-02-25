@@ -1,5 +1,3 @@
-import type { CollectPayload } from '@platform/shared/validation'
-
 import { db } from '@platform/db'
 import {
   consoleErrors,
@@ -8,6 +6,7 @@ import {
   services,
   visitorSessions,
 } from '@platform/db/schema'
+import type { CollectPayload } from '@platform/shared/validation'
 import { collectBatchSchema } from '@platform/shared/validation'
 import { createFileRoute } from '@tanstack/react-router'
 import { eq } from 'drizzle-orm'
