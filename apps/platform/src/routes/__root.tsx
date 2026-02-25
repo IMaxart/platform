@@ -50,8 +50,8 @@ export const Route = createRootRoute({
     const session = await getSession()
 
     if (!session) {
-      // eslint-disable-next-line @typescript-eslint/only-throw-error -- TanStack Router redirect API
-      throw redirect({ to: '/login' })
+      redirect({ throw: true, to: '/login' })
+      return { session: null }
     }
 
     return { session }

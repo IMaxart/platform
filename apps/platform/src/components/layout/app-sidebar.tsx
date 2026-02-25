@@ -80,7 +80,7 @@ export const AppSidebar = () => {
         <TeamSwitcher />
         <ProjectSwitcher activeProjectId={projectId} />
 
-        {projectId && (
+        {projectId !== null ? (
           <NavSection
             items={[
               {
@@ -102,19 +102,19 @@ export const AppSidebar = () => {
             label="Project"
             pathname={location.pathname}
           />
-        )}
+        ) : null}
 
-        {projectId && (
+        {projectId !== null ? (
           <ServiceSwitcher activeServiceId={serviceId} projectId={projectId} />
-        )}
+        ) : null}
 
-        {serviceId && projectId && (
+        {serviceId !== null && projectId !== null ? (
           <ServiceNavSection
             pathname={location.pathname}
             projectId={projectId}
             serviceId={serviceId}
           />
-        )}
+        ) : null}
 
         <NavSection
           items={[{ icon: Building2, label: 'Teams', path: '/teams' }]}
@@ -123,9 +123,9 @@ export const AppSidebar = () => {
         />
       </SidebarContent>
       <SidebarFooter className="border-t p-3">
-        {session?.user && (
+        {session?.user !== undefined ? (
           <UserMenu email={session.user.email} name={session.user.name} />
-        )}
+        ) : null}
       </SidebarFooter>
     </Sidebar>
   )
@@ -161,7 +161,7 @@ function NavSection({ items, label, pathname }: NavSectionProps) {
       <SidebarGroupContent className="mt-1">
         <SidebarMenu>
           {items.map((item) => {
-            if (item.disabled) return null
+            if (item.disabled === true) return null
 
             const isExact = item.path === pathname
             const isPrefix =
@@ -174,7 +174,7 @@ function NavSection({ items, label, pathname }: NavSectionProps) {
                   asChild
                   className={cn(
                     'transition-all duration-200 ease-out',
-                    isActive && 'bg-accent font-medium',
+                    isActive ? 'bg-accent font-medium' : undefined,
                   )}
                 >
                   <Link to={item.path}>
@@ -195,11 +195,14 @@ function ProjectSwitcher({ activeProjectId }: ProjectSwitcherProps) {
   const { data: activeOrg } = authClient.useActiveOrganization()
   const navigate = useNavigate()
 
+  const teamId = activeOrg?.id
   const { data: projects } = useQuery({
-    enabled: !!activeOrg?.id,
+    enabled: teamId !== undefined,
     queryFn: () =>
-      getProjects({ data: activeOrg ? { teamId: activeOrg.id } : undefined }),
-    queryKey: ['projects', activeOrg?.id],
+      getProjects({
+        data: teamId !== undefined ? { teamId } : undefined,
+      }),
+    queryKey: ['projects', teamId],
   })
 
   if (!projects || projects.length === 0) return null

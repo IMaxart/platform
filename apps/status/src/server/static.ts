@@ -14,7 +14,7 @@ const fileExists = async ({ filePath }: { filePath: string }) => {
 
 const serveFile = ({ filePath }: { filePath: string }) => {
   const file = Bun.file(filePath)
-  const type = file.type ?? 'application/octet-stream'
+  const type = file.type
   const pathname = filePath.slice(clientDir.length).replaceAll(path.sep, '/')
 
   const isFingerprintedAsset = pathname.startsWith('/assets/')
@@ -42,7 +42,7 @@ export const handleStaticRequest = async ({ req }: { req: Request }) => {
   const url = new URL(req.url)
 
   const candidate = resolveStaticPath({ url })
-  if (candidate && (await fileExists({ filePath: candidate }))) {
+  if (candidate !== null && (await fileExists({ filePath: candidate }))) {
     return serveFile({ filePath: candidate })
   }
 

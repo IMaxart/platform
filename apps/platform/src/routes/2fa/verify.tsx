@@ -93,7 +93,7 @@ function TwoFactorVerifyPage() {
             )}
           </form.Field>
 
-          {error ? (
+          {error !== null ? (
             <p className="text-destructive text-center text-sm font-medium">
               {error}
             </p>

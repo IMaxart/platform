@@ -24,11 +24,11 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: pnpm build
       - run: pnpm format:check
       - run: pnpm lint
       - run: pnpm type-check
       - run: pnpm test
-      - run: pnpm build
 
   migration-check:
     name: Migration Check

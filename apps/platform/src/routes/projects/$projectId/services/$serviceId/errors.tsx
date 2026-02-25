@@ -32,6 +32,15 @@ import { Header } from '~/components/layout/header'
 import { getConsoleErrors } from '~/lib/server/queries'
 import * as m from '~/paraglide/messages'
 
+type ConsoleErrorRow = {
+  count: number
+  lastSeen: string
+  latestPath: null | string
+  latestStack: null | string
+  level: string
+  message: string
+}
+
 export const Route = createFileRoute(
   '/projects/$projectId/services/$serviceId/errors',
 )({
@@ -46,7 +55,7 @@ function ErrorsPage() {
   const [level, setLevel] = useState<string>('all')
   const daysNum = Number(days)
 
-  const errorsQuery = useQuery({
+  const errorsQuery = useQuery<ConsoleErrorRow[]>({
     queryFn: () =>
       getConsoleErrors({
         data: {
@@ -54,7 +63,7 @@ function ErrorsPage() {
           ...(level !== 'all' && { level }),
           serviceId,
         },
-      }),
+      }) as Promise<ConsoleErrorRow[]>,
     queryKey: ['console-errors', serviceId, daysNum, level],
   })
 
@@ -130,7 +139,7 @@ function ErrorsPage() {
                           {new Date(error.lastSeen).toLocaleString()}
                         </TableCell>
                         <TableCell>
-                          {error.latestStack ? (
+                          {error.latestStack !== null ? (
                             <Dialog>
                               <DialogTrigger asChild>
                                 <Button size="sm" variant="ghost">
@@ -146,7 +155,7 @@ function ErrorsPage() {
                                 <pre className="bg-muted max-h-96 overflow-auto rounded-md p-4 text-xs">
                                   {error.latestStack}
                                 </pre>
-                                {error.latestPath ? (
+                                {error.latestPath !== null ? (
                                   <p className="text-muted-foreground text-sm">
                                     Page: {error.latestPath}
                                   </p>

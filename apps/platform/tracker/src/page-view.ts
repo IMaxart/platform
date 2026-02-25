@@ -29,7 +29,7 @@ const endPageView = ({
   config: TrackerConfig
   sessionId: string
 }) => {
-  if (!currentPath || !enteredAt) return
+  if (currentPath === null || enteredAt === null) return
 
   const payload: PageViewPayload = {
     durationMs: Date.now() - enteredAt,
@@ -94,7 +94,7 @@ export const initPageTracking = ({
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'hidden') {
       endPageView({ config, sessionId })
-    } else if (document.visibilityState === 'visible' && !currentPath) {
+    } else if (currentPath === null) {
       startPageView(window.location.pathname + window.location.search)
     }
   })

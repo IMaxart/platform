@@ -41,6 +41,27 @@ import {
   getProjectServices,
 } from '~/lib/server/queries'
 
+type ProjectService = {
+  analyticsEnabled: boolean
+  domain: null | string
+  enabled: boolean
+  endpoints: StatusEndpoint[]
+  id: string
+  name: string
+  publicStatusHost: null | string
+  slug: string
+  statusEnabled: boolean
+}
+
+type StatusEndpoint = {
+  displayName: string
+  enabled: boolean
+  id: string
+  internalPath: string
+  intervalSec: number
+  method: string
+}
+
 export const Route = createFileRoute('/projects/$projectId/services/')({
   component: ServicesPage,
 })
@@ -261,12 +282,16 @@ function CreateServiceForm({
       await createService({
         data: {
           analyticsEnabled: value.analyticsEnabled,
-          domain: value.domain || undefined,
+          ...(value.domain ? { domain: value.domain } : {}),
           name: value.name,
-          primaryDomain: value.primaryDomain || undefined,
+          ...(value.primaryDomain
+            ? { primaryDomain: value.primaryDomain }
+            : {}),
           projectId,
-          publicStatusHost: value.publicStatusHost || undefined,
-          salt,
+          ...(value.publicStatusHost
+            ? { publicStatusHost: value.publicStatusHost }
+            : {}),
+          ...(salt !== undefined ? { salt } : {}),
           slug,
           statusEnabled: value.statusEnabled,
         },
@@ -462,7 +487,8 @@ function ServicesPage() {
   )
 
   const servicesQuery = useQuery({
-    queryFn: () => getProjectServices({ data: projectId }),
+    queryFn: async () =>
+      (await getProjectServices({ data: projectId })) as ProjectService[],
     queryKey: ['services', projectId],
   })
 
@@ -542,8 +568,9 @@ function ServicesPage() {
                   </CardTitle>
                   <CardDescription className="mt-1">
                     {service.domain ?? service.slug}
-                    {service.publicStatusHost &&
-                      ` · ${service.publicStatusHost}`}
+                    {service.publicStatusHost !== null
+                      ? ` · ${service.publicStatusHost}`
+                      : ''}
                   </CardDescription>
                 </div>
                 <DropdownMenu>

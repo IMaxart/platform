@@ -32,7 +32,7 @@ export const Route = createFileRoute('/api/upload')({
             )
           }
 
-          if (!file || typeof file === 'string') {
+          if (file === null || typeof file === 'string') {
             return Response.json({ error: 'No file provided' }, { status: 400 })
           }
 

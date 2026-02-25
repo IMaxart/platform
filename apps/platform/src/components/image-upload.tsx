@@ -53,13 +53,13 @@ export const ImageUpload = ({
 
         const data = (await res.json()) as { error?: string; url?: string }
 
-        if (!res.ok || data.error) {
+        if (!res.ok || (data.error !== undefined && data.error !== '')) {
           setError(data.error ?? 'Upload failed')
           setUploading(false)
           return
         }
 
-        if (data.url) {
+        if (data.url !== undefined) {
           setPreview(data.url)
           onUploaded?.(data.url)
         }
@@ -107,7 +107,7 @@ export const ImageUpload = ({
           type="file"
         />
       </div>
-      {error ? (
+      {error !== null ? (
         <p className="text-destructive flex items-center gap-1 text-xs">
           <AlertCircle className="h-3 w-3" />
           {error}

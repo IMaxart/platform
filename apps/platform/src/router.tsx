@@ -11,10 +11,3 @@ export function getRouter() {
 
   return router
 }
-
-declare module '@tanstack/react-router' {
-  // eslint-disable-next-line @typescript-eslint/consistent-type-definitions -- TanStack Router requires interface for module augmentation
-  interface Register {
-    router: ReturnType<typeof getRouter>
-  }
-}

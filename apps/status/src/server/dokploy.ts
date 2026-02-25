@@ -58,7 +58,7 @@ const syncOnce = async ({
   env: Env
   nowMs: number
 }) => {
-  if (!env.dokployBaseUrl || !env.dokployApiKey) return
+  if (env.dokployBaseUrl === null || env.dokployApiKey === null) return
 
   const services = await db.listServices()
   for (const service of services) {
@@ -94,7 +94,7 @@ const syncOnce = async ({
 }
 
 export const startDokploySync = ({ db, env }: { db: Db; env: Env }) => {
-  const enabled = Boolean(env.dokployBaseUrl && env.dokployApiKey)
+  const enabled = env.dokployBaseUrl !== null && env.dokployApiKey !== null
   if (!enabled) return
 
   const run = () => {

@@ -19,7 +19,7 @@ export const getStartSsrServer = async (): Promise<StartServer> => {
     const url = pathToFileURL(abs).toString()
     const mod = (await import(url)) as unknown as StartServerModule
 
-    if (!mod.default || typeof mod.default.fetch !== 'function') {
+    if (typeof mod.default.fetch !== 'function') {
       throw new Error('Invalid TanStack Start server bundle')
     }
 
@@ -38,7 +38,7 @@ export const normalizeRequestForSsr = ({ req }: { req: Request }) => {
   const forwardedHost = req.headers.get('x-forwarded-host')
   const hostHeader = req.headers.get('host')
   const host = (forwardedHost ?? hostHeader)?.split(',')[0]?.trim()
-  if (!host) return req
+  if (host === undefined) return req
 
   const url = new URL(req.url)
   const absolute = `${proto}://${host}${url.pathname}${url.search}${url.hash}`

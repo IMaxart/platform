@@ -54,7 +54,14 @@ const FEATURES = [
   },
 ] as const
 
-const COMPARISON = [
+type ComparisonRow = {
+  feature: string
+  ga: boolean
+  ours: boolean
+  plausible: boolean
+}
+
+const COMPARISON: ComparisonRow[] = [
   {
     feature: 'Privacy-first (no cookies)',
     ga: false,
@@ -68,7 +75,7 @@ const COMPARISON = [
   { feature: 'Multi-environment', ga: false, ours: true, plausible: false },
   { feature: 'Open source (AGPL)', ga: false, ours: true, plausible: true },
   { feature: 'Free forever', ga: true, ours: true, plausible: false },
-] as const
+]
 
 function LandingPage() {
   return (

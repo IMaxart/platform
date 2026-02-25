@@ -140,7 +140,7 @@ function TeamsPage() {
                   </form.Field>
                 </div>
 
-                {error ? (
+                {error !== null ? (
                   <p className="text-destructive text-sm font-medium">
                     {error}
                   </p>
@@ -174,7 +174,11 @@ function TeamsPage() {
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {orgs?.map((org) => (
-            <Link key={org.id} to={`/teams/${org.id}/members`}>
+            <Link
+              key={org.id}
+              params={{ teamId: org.id }}
+              to="/teams/$teamId/members"
+            >
               <Card className="cursor-pointer transition-all duration-200 hover:shadow-md">
                 <CardContent className="flex items-center gap-4 p-5">
                   <div className="bg-muted flex h-10 w-10 shrink-0 items-center justify-center rounded-lg">

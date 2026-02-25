@@ -55,35 +55,31 @@ function InviteSection({ teamId }: { teamId: string }) {
   const [inviteLink, setInviteLink] = useState<null | string>(null)
   const [copied, setCopied] = useState(false)
 
-  const handleInviteByEmail = useCallback(
-    async (e: Event) => {
-      e.preventDefault()
-      setError(null)
-      setSuccess(false)
-      setLoading(true)
+  const handleInviteByEmail = useCallback(async () => {
+    setError(null)
+    setSuccess(false)
+    setLoading(true)
 
-      try {
-        const result = await authClient.organization.inviteMember({
-          email,
-          organizationId: teamId,
-          role: role as 'admin' | 'member' | 'owner',
-        })
+    try {
+      const result = await authClient.organization.inviteMember({
+        email,
+        organizationId: teamId,
+        role: role as 'admin' | 'member' | 'owner',
+      })
 
-        if (result.error) {
-          setError(result.error.message ?? 'Failed to send invitation')
-          setLoading(false)
-          return
-        }
-
-        setSuccess(true)
-        setEmail('')
-      } catch {
-        setError('Failed to send invitation')
+      if (result.error) {
+        setError(result.error.message ?? 'Failed to send invitation')
+        setLoading(false)
+        return
       }
-      setLoading(false)
-    },
-    [email, role, teamId],
-  )
+
+      setSuccess(true)
+      setEmail('')
+    } catch {
+      setError('Failed to send invitation')
+    }
+    setLoading(false)
+  }, [email, role, teamId])
 
   const handleGenerateLink = useCallback(async () => {
     setError(null)
@@ -103,7 +99,7 @@ function InviteSection({ teamId }: { teamId: string }) {
       }
 
       const baseUrl = window.location.origin
-      setInviteLink(`${baseUrl}/invite/${result.data?.id ?? ''}`)
+      setInviteLink(`${baseUrl}/invite/${result.data.id}`)
     } catch {
       setError('Failed to generate invite link')
     }
@@ -111,7 +107,7 @@ function InviteSection({ teamId }: { teamId: string }) {
   }, [role, teamId])
 
   const copyLink = async () => {
-    if (!inviteLink) return
+    if (inviteLink === null) return
     await navigator.clipboard.writeText(inviteLink)
     setCopied(true)
     setTimeout(() => {
@@ -131,7 +127,13 @@ function InviteSection({ teamId }: { teamId: string }) {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <form className="space-y-4" onSubmit={handleInviteByEmail}>
+        <form
+          className="space-y-4"
+          onSubmit={(e) => {
+            e.preventDefault()
+            void handleInviteByEmail()
+          }}
+        >
           <div className="grid gap-4 sm:grid-cols-3">
             <div className="space-y-2 sm:col-span-2">
               <Label htmlFor="invite-email">Email address</Label>
@@ -183,7 +185,7 @@ function InviteSection({ teamId }: { teamId: string }) {
           </div>
         </form>
 
-        {inviteLink && (
+        {inviteLink !== null && (
           <div className="flex items-center gap-2">
             <code className="bg-muted flex-1 truncate rounded-md px-3 py-2 text-sm">
               {inviteLink}
@@ -210,7 +212,7 @@ function InviteSection({ teamId }: { teamId: string }) {
           </p>
         )}
 
-        {error && (
+        {error !== null && (
           <p className="text-destructive text-sm font-medium">{error}</p>
         )}
       </CardContent>
@@ -224,7 +226,8 @@ function PendingInvitations({ teamId }: { teamId: string }) {
       const result = await authClient.organization.getFullOrganization({
         query: { organizationId: teamId },
       })
-      return result.data?.invitations ?? []
+      if (result.error) throw new Error(result.error.message)
+      return result.data.invitations
     },
     queryKey: ['invitations', teamId],
   })
@@ -286,6 +289,7 @@ function TeamMembersPage() {
       const result = await authClient.organization.getFullOrganization({
         query: { organizationId: teamId },
       })
+      if (result.error) throw new Error(result.error.message)
       return result.data
     },
     queryKey: ['organization', teamId],
@@ -293,9 +297,7 @@ function TeamMembersPage() {
 
   const org = orgQuery.data
 
-  const currentMember = org?.members?.find(
-    (m) => m.userId === session?.user?.id,
-  )
+  const currentMember = org?.members.find((m) => m.userId === session?.user.id)
   const orgRole = currentMember?.role ?? 'member'
   const canInvite = isSuperAdmin || orgRole === 'owner' || orgRole === 'admin'
   const canRemove = canInvite
@@ -322,14 +324,14 @@ function TeamMembersPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {org?.members?.map((member) => {
-                    const initials =
-                      member.user.name
-                        ?.split(' ')
-                        .map((n) => n[0])
-                        .join('')
-                        .toUpperCase()
-                        .slice(0, 2) ?? '??'
+                  {org?.members.map((member) => {
+                    const raw = member.user.name
+                      .split(' ')
+                      .map((n) => n[0])
+                      .join('')
+                      .toUpperCase()
+                      .slice(0, 2)
+                    const initials = raw || '??'
 
                     return (
                       <TableRow key={member.id}>
@@ -375,7 +377,7 @@ function TeamMembersPage() {
                       </TableRow>
                     )
                   })}
-                  {(!org?.members || org.members.length === 0) && (
+                  {(org?.members.length ?? 0) === 0 && (
                     <TableRow>
                       <TableCell
                         className="text-center"

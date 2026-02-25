@@ -35,10 +35,8 @@ function LoginPage() {
           return
         }
 
-        if (
-          (result.data as Record<string, unknown> | undefined)
-            ?.twoFactorRedirect
-        ) {
+        const data = result.data as Record<string, unknown> | undefined
+        if (data?.['twoFactorRedirect'] === true) {
           await navigate({ to: '/2fa/verify' })
           return
         }
@@ -57,7 +55,7 @@ function LoginPage() {
     try {
       const result = await authClient.signIn.passkey()
 
-      if (result?.error) {
+      if (result.error) {
         setError(result.error.message ?? 'Passkey authentication failed')
         setPasskeyLoading(false)
         return
@@ -141,7 +139,7 @@ function LoginPage() {
             )}
           </form.Field>
 
-          {error ? (
+          {error !== null ? (
             <p className="text-destructive text-sm font-medium">{error}</p>
           ) : null}
 

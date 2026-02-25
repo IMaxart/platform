@@ -175,7 +175,7 @@ function SessionsPage() {
                               </div>
                             </TableCell>
                             <TableCell>
-                              {session.countryCode ? (
+                              {session.countryCode !== null ? (
                                 <Badge variant="outline">
                                   {session.countryCode}
                                 </Badge>
@@ -217,7 +217,7 @@ function SessionsPage() {
                                             {pv.path}
                                           </span>
                                           <span className="text-muted-foreground">
-                                            {pv.durationMs
+                                            {pv.durationMs !== null
                                               ? `${Math.round(pv.durationMs / 1000)}s`
                                               : '—'}
                                           </span>

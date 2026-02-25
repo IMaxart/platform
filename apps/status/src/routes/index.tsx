@@ -27,7 +27,7 @@ function IndexRoute() {
 
   if (pageQuery.isPending) return <PublicStatusPageSkeleton />
 
-  if (pageQuery.isError || !pageQuery.data) {
+  if (pageQuery.isError) {
     return (
       <main className="mx-auto w-full max-w-3xl px-6 py-12 md:px-8">
         <Card>

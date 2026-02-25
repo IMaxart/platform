@@ -50,7 +50,6 @@ const daysAgo = (days: number) => {
 }
 
 async function seed() {
-  // eslint-disable-next-line no-console
   console.log('Seeding database...')
 
   const [project] = await db.insert(projects).values(DEMO_PROJECT).returning()
@@ -59,7 +58,6 @@ async function seed() {
     throw new Error('Failed to create demo project')
   }
 
-  // eslint-disable-next-line no-console
   console.log(`Created project: ${project.name} (${project.id})`)
 
   const sessionRecords = []
@@ -122,7 +120,6 @@ async function seed() {
     insertedSessions.push(...result)
   }
 
-  // eslint-disable-next-line no-console
   console.log(`Created ${insertedSessions.length} sessions`)
 
   const pageViewRecords = []
@@ -187,7 +184,6 @@ async function seed() {
     await db.insert(pageViews).values(batch)
   }
 
-  // eslint-disable-next-line no-console
   console.log(`Created ${pageViewRecords.length} page views`)
 
   for (let i = 0; i < eventRecords.length; i += BATCH_SIZE) {
@@ -195,7 +191,6 @@ async function seed() {
     await db.insert(events).values(batch)
   }
 
-  // eslint-disable-next-line no-console
   console.log(`Created ${eventRecords.length} events`)
 
   if (errorRecords.length > 0) {
@@ -205,7 +200,6 @@ async function seed() {
     }
   }
 
-  // eslint-disable-next-line no-console
   console.log(`Created ${errorRecords.length} console errors`)
 
   await db.insert(featureFlags).values([
@@ -232,10 +226,8 @@ async function seed() {
     },
   ])
 
-  // eslint-disable-next-line no-console
   console.log('Created 3 feature flags')
 
-  // eslint-disable-next-line no-console
   console.log('Seeding complete!')
   process.exit(0)
 }

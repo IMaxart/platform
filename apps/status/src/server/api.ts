@@ -76,7 +76,7 @@ const computeUptimeFromChecks = async ({
 
   const row = rows[0]
   if (!row) return null
-  return getUptimePercent({ total: row.total ?? 0, up: row.up ?? 0 })
+  return getUptimePercent({ total: row.total, up: row.up })
 }
 
 const computeUptimeFromDailyRollups = async ({
@@ -124,7 +124,7 @@ const computeServiceUptimeFromChecks = async ({
 
   const row = rows[0]
   if (!row) return null
-  return getUptimePercent({ total: row.total ?? 0, up: row.up ?? 0 })
+  return getUptimePercent({ total: row.total, up: row.up })
 }
 
 const computeServiceUptimeFromDailyRollups = async ({
@@ -172,7 +172,8 @@ export const handleApiRequest = async ({
   try {
     const url = new URL(req.url)
     const host = getRequestHost({ req })
-    if (!host) return json({ error: 'Missing Host header' }, { status: 400 })
+    if (host === null)
+      return json({ error: 'Missing Host header' }, { status: 400 })
 
     if (url.pathname === '/api/public/page' && req.method === 'GET') {
       const service = await db.getServiceByPublicHost({ host })

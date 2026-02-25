@@ -21,7 +21,7 @@ export const lookupGeo = (ip: string, headers: Headers): GeoData => {
 
   const city = headers.get('x-vercel-ip-city') ?? headers.get('x-city') ?? null
 
-  if (country) {
+  if (country !== null) {
     return { city, countryCode: country, region }
   }
 

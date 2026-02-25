@@ -113,7 +113,7 @@ const resolveEndpointProbeTarget = ({
   probe: ProbeKind
 }) => {
   if (probe === 'public') {
-    if (!endpoint.publicUrl) return null
+    if (endpoint.publicUrl === null) return null
     const headers: Record<string, string> = {}
     return {
       headers,
@@ -122,7 +122,7 @@ const resolveEndpointProbeTarget = ({
   }
 
   if (endpoint.internalMode === 'directUrl') {
-    if (!endpoint.internalUrl) return null
+    if (endpoint.internalUrl === null) return null
     const headers: Record<string, string> = {}
     return {
       headers,
@@ -131,7 +131,7 @@ const resolveEndpointProbeTarget = ({
   }
 
   const host = endpoint.internalHost
-  if (!host) return null
+  if (host === null) return null
 
   const base = new URL(env.internalTraefikBaseUrl)
   base.pathname = endpoint.internalPath
@@ -383,7 +383,7 @@ export const startMonitoring = ({ db, env }: { db: Db; env: Env }) => {
     try {
       const nowMs = getAdminSafeNowMs()
       const internet = await runInternetProbe({ nowMs })
-      const internetOk = internet?.ok ?? false
+      const internetOk = internet.ok
 
       for (const endpoint of state.endpoints) {
         const nextRunAt = state.nextRunAtByEndpointId.get(endpoint.id) ?? 0

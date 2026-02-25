@@ -107,7 +107,7 @@ function PagesPage() {
                           {page.uniqueVisitors}
                         </TableCell>
                         <TableCell className="text-right">
-                          {page.avgDurationMs
+                          {page.avgDurationMs !== null
                             ? formatDuration(Number(page.avgDurationMs))
                             : '—'}
                         </TableCell>

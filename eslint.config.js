@@ -90,7 +90,7 @@ export default tseslint.config(
       '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
       '@typescript-eslint/no-explicit-any': 'error',
       '@typescript-eslint/no-unnecessary-condition': 'warn',
-      '@typescript-eslint/strict-boolean-expressions': 'off',
+      '@typescript-eslint/strict-boolean-expressions': 'error',
       '@typescript-eslint/switch-exhaustiveness-check': 'error',
       '@typescript-eslint/no-floating-promises': 'error',
       '@typescript-eslint/no-misused-promises': [
@@ -125,23 +125,14 @@ export default tseslint.config(
     },
   },
   {
-    files: ['**/tracker/**/*.ts'],
-    rules: {
-      '@typescript-eslint/no-unsafe-member-access': 'off',
-      '@typescript-eslint/no-unsafe-assignment': 'off',
-      '@typescript-eslint/no-unsafe-call': 'off',
-      '@typescript-eslint/no-unsafe-argument': 'off',
-      '@typescript-eslint/restrict-template-expressions': 'off',
-    },
-  },
-  {
-    files: ['**/server.ts'],
+    files: ['**/server.ts', '**/seed.ts'],
     rules: {
       'no-console': 'off',
     },
   },
   {
     ignores: [
+      '**/*.d.ts',
       '**/node_modules/**',
       '**/dist/**',
       '**/.output/**',

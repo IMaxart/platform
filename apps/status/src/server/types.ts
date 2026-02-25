@@ -67,6 +67,6 @@ export type ServiceRow = {
   id: string
   name: string
   primaryDomain: null | string
-  publicStatusHost: string
+  publicStatusHost: null | string
   slug: string
 }

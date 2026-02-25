@@ -68,8 +68,9 @@ function ServiceSettingsPage() {
         data: { serviceId, ...config },
       }),
     onError: (_err, _vars, context) => {
-      if (context?.previousData) {
-        queryClient.setQueryData(['services', projectId], context.previousData)
+      const ctx = context as { previousData?: unknown }
+      if (ctx.previousData !== null && ctx.previousData !== undefined) {
+        queryClient.setQueryData(['services', projectId], ctx.previousData)
       }
     },
     onMutate: async (newConfig) => {
@@ -332,7 +333,7 @@ function ServiceSettingsPage() {
                           {device.visitorHash.slice(0, 12)}...
                         </TableCell>
                         <TableCell>
-                          {device.reason ? (
+                          {device.reason !== null ? (
                             <Badge variant="outline">{device.reason}</Badge>
                           ) : (
                             '—'

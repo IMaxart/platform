@@ -48,7 +48,8 @@ const excludeCondition = (excludedHashes: string[], showExcluded: boolean) => {
 export const getProjects = createServerFn({ method: 'GET' })
   .inputValidator((d: undefined | { teamId?: string }) => d)
   .handler(async ({ data }) => {
-    const conditions = data?.teamId ? [eq(projects.teamId, data.teamId)] : []
+    const teamId = data?.teamId
+    const conditions = teamId !== undefined ? [eq(projects.teamId, teamId)] : []
 
     return db.query.projects.findMany({
       orderBy: [desc(projects.createdAt)],
@@ -418,7 +419,7 @@ export const getConsoleErrors = createServerFn({ method: 'GET' })
       const conditions = [
         eq(consoleErrors.serviceId, serviceId),
         gte(consoleErrors.createdAt, startDate),
-        level ? eq(consoleErrors.level, level) : undefined,
+        level !== undefined ? eq(consoleErrors.level, level) : undefined,
       ].filter(Boolean)
 
       return db

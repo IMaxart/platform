@@ -107,8 +107,12 @@ function ProjectsPage() {
   const [showCreate, setShowCreate] = useState(false)
 
   const projectsQuery = useQuery({
-    enabled: !!activeOrg?.id,
-    queryFn: () => getProjects({ data: { teamId: activeOrg?.id } }),
+    enabled: activeOrg?.id !== undefined,
+    queryFn: () =>
+      getProjects({
+        data:
+          activeOrg?.id !== undefined ? { teamId: activeOrg.id } : undefined,
+      }),
     queryKey: ['projects', activeOrg?.id],
   })
 

@@ -1,4 +1,3 @@
-import { authClient } from '@platform/auth/client'
 import { Button } from '@platform/ui/components/button'
 import { Input } from '@platform/ui/components/input'
 import { Label } from '@platform/ui/components/label'
@@ -6,6 +5,33 @@ import { useForm } from '@tanstack/react-form'
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { ArrowLeft, Loader2, Lock } from 'lucide-react'
 import { useState } from 'react'
+
+type PasswordResetResponse = {
+  message: string
+  status: boolean
+}
+
+const requestPasswordReset = async ({
+  email,
+  redirectTo,
+}: {
+  email: string
+  redirectTo: string
+}): Promise<{ error: null | string }> => {
+  const res = await fetch('/api/auth/forget-password', {
+    body: JSON.stringify({ email, redirectTo }),
+    headers: { 'Content-Type': 'application/json' },
+    method: 'POST',
+  })
+
+  if (!res.ok) {
+    const body: unknown = await res.json().catch(() => null)
+    const parsed = body as null | Partial<PasswordResetResponse>
+    return { error: parsed?.message ?? 'Failed to send reset email' }
+  }
+
+  return { error: null }
+}
 
 export const Route = createFileRoute('/forgot-password')({
   component: ForgotPasswordPage,
@@ -21,13 +47,13 @@ function ForgotPasswordPage() {
       setError(null)
 
       try {
-        const result = await authClient.forgetPassword({
+        const result = await requestPasswordReset({
           email: value.email,
           redirectTo: '/reset-password',
         })
 
-        if (result.error) {
-          setError(result.error.message ?? 'Failed to send reset email')
+        if (result.error !== null) {
+          setError(result.error)
           return
         }
 
@@ -92,7 +118,7 @@ function ForgotPasswordPage() {
               )}
             </form.Field>
 
-            {error ? (
+            {error !== null ? (
               <p className="text-destructive text-sm font-medium">{error}</p>
             ) : null}
 

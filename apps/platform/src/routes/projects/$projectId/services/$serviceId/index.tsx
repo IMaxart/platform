@@ -31,6 +31,38 @@ import {
   getVisitorStats,
 } from '~/lib/server/queries'
 
+type BotStats = {
+  bots: number
+  humans: number
+}
+
+type TopCountryRow = {
+  count: number
+  countryCode: null | string
+}
+
+type TopPageRow = {
+  avgDurationMs: null | string
+  path: string
+  uniqueVisitors: number
+  views: number
+}
+
+type TopReferrerRow = {
+  count: number
+  referrer: null | string
+}
+
+type VisitorStats = {
+  avgDurationMs: number
+  last7: number
+  last30: number
+  lastYear: number
+  today: number
+  totalPageViews: number
+  yesterday: number
+}
+
 export const Route = createFileRoute(
   '/projects/$projectId/services/$serviceId/',
 )({
@@ -168,27 +200,38 @@ function ServiceAnalyticsOverview() {
   })
 
   const stats = useQuery({
-    queryFn: () => getVisitorStats({ data: { serviceId } }),
+    queryFn: async () =>
+      (await getVisitorStats({ data: { serviceId } })) as VisitorStats,
     queryKey: ['visitor-stats', serviceId],
   })
 
   const topPages = useQuery({
-    queryFn: () => getTopPages({ data: { days: 30, limit: 5, serviceId } }),
+    queryFn: async () =>
+      (await getTopPages({
+        data: { days: 30, limit: 5, serviceId },
+      })) as TopPageRow[],
     queryKey: ['top-pages', serviceId],
   })
 
   const topReferrers = useQuery({
-    queryFn: () => getTopReferrers({ data: { days: 30, limit: 5, serviceId } }),
+    queryFn: async () =>
+      (await getTopReferrers({
+        data: { days: 30, limit: 5, serviceId },
+      })) as TopReferrerRow[],
     queryKey: ['top-referrers', serviceId],
   })
 
   const topCountries = useQuery({
-    queryFn: () => getTopCountries({ data: { days: 30, limit: 5, serviceId } }),
+    queryFn: async () =>
+      (await getTopCountries({
+        data: { days: 30, limit: 5, serviceId },
+      })) as TopCountryRow[],
     queryKey: ['top-countries', serviceId],
   })
 
   const botStats = useQuery({
-    queryFn: () => getBotStats({ data: { days: 30, serviceId } }),
+    queryFn: async () =>
+      (await getBotStats({ data: { days: 30, serviceId } })) as BotStats,
     queryKey: ['bot-stats', serviceId],
   })
 
@@ -266,7 +309,7 @@ function ServiceAnalyticsOverview() {
                     <Badge variant="secondary">{page.views}</Badge>
                   </div>
                 ))}
-                {!topPages.data?.length && (
+                {(topPages.data?.length ?? 0) === 0 && (
                   <p className="text-muted-foreground text-sm">No data yet</p>
                 )}
               </div>
@@ -291,7 +334,7 @@ function ServiceAnalyticsOverview() {
                     <Badge variant="secondary">{ref.count}</Badge>
                   </div>
                 ))}
-                {!topReferrers.data?.length && (
+                {(topReferrers.data?.length ?? 0) === 0 && (
                   <p className="text-muted-foreground text-sm">No data yet</p>
                 )}
               </div>
@@ -316,7 +359,7 @@ function ServiceAnalyticsOverview() {
                     <Badge variant="secondary">{country.count}</Badge>
                   </div>
                 ))}
-                {!topCountries.data?.length && (
+                {(topCountries.data?.length ?? 0) === 0 && (
                   <p className="text-muted-foreground text-sm">No data yet</p>
                 )}
               </div>

@@ -22,7 +22,7 @@ export const Route = createFileRoute('/api/flags')({
           const key = url.searchParams.get('key')
           const sessionId = url.searchParams.get('sid')
 
-          if (!key) {
+          if (key === null) {
             return Response.json(
               { error: 'Missing key parameter' },
               { headers: corsHeaders, status: 400 },
@@ -32,12 +32,12 @@ export const Route = createFileRoute('/api/flags')({
           const host = request.headers.get('host') ?? 'localhost'
           const tenant = await resolveTenant(host)
 
-          if (!tenant.serviceId && !tenant.isAdmin) {
+          if (tenant.serviceId === null && !tenant.isAdmin) {
             return Response.json({ enabled: false }, { headers: corsHeaders })
           }
 
           const serviceId = tenant.serviceId
-          if (!serviceId) {
+          if (serviceId === null) {
             return Response.json({ enabled: false }, { headers: corsHeaders })
           }
 
@@ -95,15 +95,18 @@ const evaluateConditions = async ({
   sessionId: null | string
 }): Promise<boolean> => {
   if (conditions.percentage !== undefined) {
-    const hash = sessionId
-      ? Array.from(sessionId).reduce((acc, c) => acc + c.charCodeAt(0), 0) % 100
-      : Math.random() * 100
+    const hash =
+      sessionId !== null
+        ? Array.from(sessionId).reduce((acc, c) => acc + c.charCodeAt(0), 0) %
+          100
+        : Math.random() * 100
     if (hash >= conditions.percentage) return false
   }
 
   if (
-    sessionId &&
-    (conditions.countries?.length || conditions.deviceTypes?.length)
+    sessionId !== null &&
+    ((conditions.countries?.length ?? 0) > 0 ||
+      (conditions.deviceTypes?.length ?? 0) > 0)
   ) {
     const session = await db.query.visitorSessions.findFirst({
       columns: { countryCode: true, deviceType: true },
@@ -112,15 +115,17 @@ const evaluateConditions = async ({
 
     if (session) {
       if (
-        conditions.countries?.length &&
-        session.countryCode &&
+        conditions.countries !== undefined &&
+        conditions.countries.length > 0 &&
+        session.countryCode !== null &&
         !conditions.countries.includes(session.countryCode)
       ) {
         return false
       }
 
       if (
-        conditions.deviceTypes?.length &&
+        conditions.deviceTypes !== undefined &&
+        conditions.deviceTypes.length > 0 &&
         !conditions.deviceTypes.includes(session.deviceType)
       ) {
         return false

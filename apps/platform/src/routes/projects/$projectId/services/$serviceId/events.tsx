@@ -23,6 +23,12 @@ import { Header } from '~/components/layout/header'
 import { getEvents } from '~/lib/server/queries'
 import * as m from '~/paraglide/messages'
 
+type EventRow = {
+  count: number
+  lastSeen: string
+  name: string
+}
+
 export const Route = createFileRoute(
   '/projects/$projectId/services/$serviceId/events',
 )({
@@ -36,11 +42,11 @@ function EventsPage() {
   const [days, setDays] = useState('30')
   const daysNum = Number(days)
 
-  const eventsQuery = useQuery({
+  const eventsQuery = useQuery<EventRow[]>({
     queryFn: () =>
       getEvents({
         data: { days: daysNum, serviceId },
-      }),
+      }) as Promise<EventRow[]>,
     queryKey: ['events', serviceId, daysNum],
   })
 

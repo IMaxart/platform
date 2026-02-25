@@ -16,7 +16,7 @@ export const getSession = (): SessionData => {
   try {
     const stored = sessionStorage.getItem(SESSION_KEY)
 
-    if (stored) {
+    if (stored !== null) {
       return JSON.parse(stored) as SessionData
     }
   } catch {

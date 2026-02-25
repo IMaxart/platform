@@ -62,10 +62,13 @@ function FeatureFlagsPage() {
         `${conditions.percentage}% ${m.flags_percentage().toLowerCase()}`,
       )
     }
-    if (conditions.countries?.length) {
+    if (conditions.countries !== undefined && conditions.countries.length > 0) {
       parts.push(`${m.flags_countries()}: ${conditions.countries.join(', ')}`)
     }
-    if (conditions.deviceTypes?.length) {
+    if (
+      conditions.deviceTypes !== undefined &&
+      conditions.deviceTypes.length > 0
+    ) {
       parts.push(
         `${m.flags_deviceTypes()}: ${conditions.deviceTypes.join(', ')}`,
       )

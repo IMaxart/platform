@@ -14,7 +14,7 @@ export const EmptyState = ({ description, icon, title }: EmptyStateProps) => (
       {icon ?? <Inbox className="text-muted-foreground h-8 w-8" />}
     </div>
     <h3 className="text-foreground mb-1 text-sm font-medium">{title}</h3>
-    {description ? (
+    {description !== undefined ? (
       <p className="text-muted-foreground max-w-xs text-sm">{description}</p>
     ) : null}
   </div>

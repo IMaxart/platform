@@ -27,7 +27,9 @@ export const StatCard = ({
       <CardTitle className="text-muted-foreground text-sm font-medium">
         {title}
       </CardTitle>
-      {icon ? <div className="text-muted-foreground/60">{icon}</div> : null}
+      {icon !== undefined && icon !== null ? (
+        <div className="text-muted-foreground/60">{icon}</div>
+      ) : null}
     </CardHeader>
     <CardContent>
       <div className="text-3xl font-semibold tracking-tight">{value}</div>
@@ -49,7 +51,7 @@ export const StatCard = ({
           {trend.label}
         </p>
       ) : null}
-      {description ? (
+      {description !== undefined ? (
         <p className="text-muted-foreground mt-1 text-xs">{description}</p>
       ) : null}
     </CardContent>

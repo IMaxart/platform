@@ -80,7 +80,7 @@ function ResetPasswordPage() {
             )}
           </form.Field>
 
-          {error ? (
+          {error !== null ? (
             <p className="text-destructive text-sm font-medium">{error}</p>
           ) : null}
 

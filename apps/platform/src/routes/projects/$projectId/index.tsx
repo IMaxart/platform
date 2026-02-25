@@ -13,6 +13,17 @@ import { Activity, BarChart3, Server } from 'lucide-react'
 import { Header } from '~/components/layout/header'
 import { getProjectServices } from '~/lib/server/queries'
 
+type ProjectService = {
+  analyticsEnabled: boolean
+  domain: null | string
+  enabled: boolean
+  endpoints: { id: string }[]
+  id: string
+  name: string
+  slug: string
+  statusEnabled: boolean
+}
+
 export const Route = createFileRoute('/projects/$projectId/')({
   component: ProjectOverview,
 })
@@ -21,7 +32,8 @@ function ProjectOverview() {
   const { projectId } = useParams({ from: '/projects/$projectId/' })
 
   const servicesQuery = useQuery({
-    queryFn: () => getProjectServices({ data: projectId }),
+    queryFn: async () =>
+      (await getProjectServices({ data: projectId })) as ProjectService[],
     queryKey: ['services', projectId],
   })
 

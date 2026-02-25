@@ -1,6 +1,16 @@
 import { authClient, useSession } from '@platform/auth/client'
 import { Button } from '@platform/ui/components/button'
-import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
+
+type AcceptInvitationResult = {
+  data?: unknown
+  error?: { message: string }
+}
+import {
+  createFileRoute,
+  Link,
+  useNavigate,
+  useParams,
+} from '@tanstack/react-router'
 import { Building2, Check, Loader2 } from 'lucide-react'
 import { useCallback, useState } from 'react'
 
@@ -9,7 +19,7 @@ export const Route = createFileRoute('/invite/$token')({
 })
 
 function InvitePage() {
-  const { token } = Route.useParams()
+  const { token } = useParams({ from: '/invite/$token' })
   const navigate = useNavigate()
   const { data: session } = useSession()
   const [loading, setLoading] = useState(false)
@@ -21,12 +31,12 @@ function InvitePage() {
     setLoading(true)
 
     try {
-      const result = await authClient.organization.acceptInvitation({
+      const result = (await authClient.organization.acceptInvitation({
         invitationId: token,
-      })
+      })) as AcceptInvitationResult
 
       if (result.error) {
-        setError(result.error.message ?? 'Failed to join team')
+        setError(result.error.message || 'Failed to join team')
         setLoading(false)
         return
       }
@@ -58,7 +68,7 @@ function InvitePage() {
             <Link to="/login">
               <Button className="w-full">Sign in</Button>
             </Link>
-            <Link to="/register">
+            <Link to="/login">
               <Button className="w-full" variant="outline">
                 Create account
               </Button>
@@ -111,7 +121,7 @@ function InvitePage() {
           </div>
         )}
 
-        {error && (
+        {error !== null && (
           <p className="text-destructive mt-4 text-sm font-medium">{error}</p>
         )}
       </div>

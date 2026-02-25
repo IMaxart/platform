@@ -25,6 +25,6 @@ export const fetchJson = async <T>({
 
   const fallbackMessage = `Request failed (${res.status})`
   const body = await readJson<{ error?: string }>(res)
-  const message = body?.error ?? fallbackMessage
+  const message = body.error ?? fallbackMessage
   throw new ApiError({ message, status: res.status })
 }

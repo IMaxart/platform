@@ -6,9 +6,9 @@ import { getUserRole } from '~/lib/server/auth'
 export const usePlatformRole = () => {
   const { data: session } = useSession()
 
-  const userId = session?.user?.id
+  const userId = session?.user.id
   const { data: role } = useQuery({
-    enabled: !!userId,
+    enabled: userId !== undefined,
     queryFn: () => getUserRole({ data: userId ?? '' }),
     queryKey: ['platform-role', userId],
     staleTime: 5 * 60 * 1000,

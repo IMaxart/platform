@@ -193,9 +193,10 @@ const EndpointCard = ({
   nowMs: number
 }) => {
   const state = endpoint.latest?.state ?? 'UNKNOWN'
-  const lastChecked = endpoint.latest?.atMs
-    ? formatRelativeTime({ ms: endpoint.latest.atMs })
-    : null
+  const atMs = endpoint.latest?.atMs
+  const lastChecked =
+    atMs !== undefined ? formatRelativeTime({ ms: atMs }) : null
+  const latencyMs = endpoint.latest?.latencyMs ?? null
 
   return (
     <motion.div
@@ -211,12 +212,11 @@ const EndpointCard = ({
                 {endpoint.displayName}
               </h3>
               <div className="text-muted-foreground mt-1 flex items-center gap-3 text-xs">
-                {lastChecked ? <span>Checked {lastChecked}</span> : null}
-                {endpoint.latest?.latencyMs !== null &&
-                endpoint.latest?.latencyMs !== undefined ? (
-                  <span className="tabular-nums">
-                    {endpoint.latest.latencyMs}ms
-                  </span>
+                {lastChecked !== null ? (
+                  <span>Checked {lastChecked}</span>
+                ) : null}
+                {latencyMs !== null ? (
+                  <span className="tabular-nums">{latencyMs}ms</span>
                 ) : null}
               </div>
             </div>
@@ -302,6 +302,8 @@ export const PublicStatusPageSkeleton = () => {
 }
 
 export const PublicStatusPage = ({ data }: { data: PublicMode }) => {
+  const lastDeployedAtMs = data.deploy?.lastDeployedAtMs ?? null
+
   return (
     <AnimatePresence>
       <main className="mx-auto w-full max-w-3xl space-y-10 px-6 py-12 md:px-8">
@@ -320,10 +322,9 @@ export const PublicStatusPage = ({ data }: { data: PublicMode }) => {
             </div>
             <OverallStatus state={data.serviceState} />
           </div>
-          {data.deploy?.lastDeployedAtMs ? (
+          {lastDeployedAtMs !== null ? (
             <p className="text-muted-foreground/60 text-xs">
-              Last deployed{' '}
-              {formatRelativeTime({ ms: data.deploy.lastDeployedAtMs })}
+              Last deployed {formatRelativeTime({ ms: lastDeployedAtMs })}
             </p>
           ) : null}
         </motion.section>

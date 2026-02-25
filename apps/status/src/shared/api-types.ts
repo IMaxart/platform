@@ -1,5 +1,7 @@
 import type { CheckState, EndpointRow, ServiceRow } from '~/server/types'
 
+export type DokployRefType = 'application' | 'compose'
+
 export type PublicPageResponse =
   | {
       checks24hByEndpointId: Record<

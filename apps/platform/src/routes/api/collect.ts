@@ -19,7 +19,7 @@ import { resolveTenant } from '~/lib/tenant'
 
 const getClientIP = (request: Request): string => {
   const forwarded = request.headers.get('x-forwarded-for')
-  if (forwarded) {
+  if (forwarded !== null) {
     return forwarded.split(',')[0]?.trim() ?? '0.0.0.0'
   }
 
@@ -63,14 +63,14 @@ export const Route = createFileRoute('/api/collect')({
             }
           }
 
-          if (!serviceId) {
+          if (serviceId === null) {
             const fallback = await db.query.services.findFirst({
               columns: { id: true },
             })
             serviceId = fallback?.id ?? null
           }
 
-          if (!serviceId) {
+          if (serviceId === null) {
             return Response.json(
               { error: 'Service not found' },
               { headers: corsHeaders, status: 404 },
@@ -88,18 +88,19 @@ export const Route = createFileRoute('/api/collect')({
             where: eq(services.id, serviceId),
           })
 
-          if (!service?.analyticsEnabled) {
+          if (service?.analyticsEnabled !== true) {
             return Response.json(
               { error: 'Service not found or analytics disabled' },
               { headers: corsHeaders, status: 404 },
             )
           }
 
-          const body: unknown = request.headers
-            .get('content-type')
-            ?.includes('application/json')
-            ? ((await request.json()) as unknown)
-            : (JSON.parse(await request.text()) as unknown)
+          const body: unknown =
+            request.headers
+              .get('content-type')
+              ?.includes('application/json') === true
+              ? ((await request.json()) as unknown)
+              : (JSON.parse(await request.text()) as unknown)
 
           const parsed = collectBatchSchema.safeParse(body)
 

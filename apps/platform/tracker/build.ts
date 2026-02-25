@@ -21,5 +21,4 @@ const file = Bun.file('./public/t.js')
 const size = file.size
 const sizeKb = (size / 1024).toFixed(2)
 
-// eslint-disable-next-line no-console
 console.log(`Tracker built: public/t.js (${sizeKb} KB)`)

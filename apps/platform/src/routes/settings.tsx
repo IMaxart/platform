@@ -47,11 +47,11 @@ function PasskeySection() {
     setError(null)
     setLoading(true)
     try {
+      const passkeyName = prompt('Name this passkey (e.g. "MacBook Touch ID")')
       const result = await authClient.passkey.addPasskey({
-        name:
-          prompt('Name this passkey (e.g. "MacBook Touch ID")') ?? undefined,
+        ...(passkeyName !== null ? { name: passkeyName } : {}),
       })
-      if (result?.error) {
+      if (result.error) {
         setError(result.error.message ?? 'Failed to add passkey')
         setLoading(false)
         return
@@ -69,7 +69,7 @@ function PasskeySection() {
       setError(null)
       try {
         const result = await authClient.passkey.deletePasskey({ id })
-        if (result?.error) {
+        if (result.error) {
           setError(result.error.message ?? 'Failed to remove passkey')
           return
         }
@@ -104,10 +104,7 @@ function PasskeySection() {
                   {passkey.name ?? 'Unnamed passkey'}
                 </p>
                 <p className="text-muted-foreground text-xs">
-                  Created{' '}
-                  {passkey.createdAt
-                    ? new Date(passkey.createdAt).toLocaleDateString()
-                    : 'unknown'}
+                  Created {new Date(passkey.createdAt).toLocaleDateString()}
                 </p>
               </div>
               <Button
@@ -143,7 +140,7 @@ function PasskeySection() {
           Add passkey
         </Button>
 
-        {error && (
+        {error !== null && (
           <p className="text-destructive text-sm font-medium">{error}</p>
         )}
       </CardContent>
@@ -157,7 +154,7 @@ function ProfileSection() {
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
 
-  const currentName = session?.user?.name ?? ''
+  const currentName = session?.user.name ?? ''
   const displayName = name ?? currentName
   const hasChanges = name !== null && name !== currentName
 
@@ -238,7 +235,7 @@ function ProfileSection() {
         </div>
         <div className="space-y-2">
           <Label>Email</Label>
-          <Input disabled value={session?.user?.email ?? ''} />
+          <Input disabled value={session?.user.email ?? ''} />
         </div>
       </CardContent>
     </Card>
@@ -258,7 +255,7 @@ function TwoFactorSection() {
   const [error, setError] = useState<null | string>(null)
   const [loading, setLoading] = useState(false)
 
-  const is2FAEnabled = session?.user?.twoFactorEnabled ?? false
+  const is2FAEnabled = session?.user.twoFactorEnabled ?? false
 
   const handleEnable2FA = useCallback(async () => {
     if (!password) return
@@ -271,8 +268,8 @@ function TwoFactorSection() {
         setLoading(false)
         return
       }
-      setTotpUri(result.data?.totpURI ?? null)
-      setBackupCodes(result.data?.backupCodes ?? null)
+      setTotpUri(result.data.totpURI)
+      setBackupCodes(result.data.backupCodes)
       setShowPasswordField(false)
       setPassword('')
       setPendingAction(null)
@@ -349,7 +346,7 @@ function TwoFactorSection() {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {is2FAEnabled && !totpUri ? (
+        {is2FAEnabled && totpUri === null ? (
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Badge variant="default">Enabled</Badge>
@@ -367,7 +364,7 @@ function TwoFactorSection() {
               Disable 2FA
             </Button>
           </div>
-        ) : totpUri ? (
+        ) : totpUri !== null ? (
           <div className="space-y-4">
             <div className="flex flex-col items-center gap-4">
               <p className="text-sm">
@@ -387,7 +384,7 @@ function TwoFactorSection() {
               </code>
             </div>
 
-            {backupCodes && backupCodes.length > 0 && (
+            {backupCodes !== null && backupCodes.length > 0 && (
               <div className="space-y-2">
                 <p className="text-sm font-medium">
                   Save these backup codes in a safe place:
@@ -479,7 +476,7 @@ function TwoFactorSection() {
           </div>
         )}
 
-        {error && (
+        {error !== null && (
           <p className="text-destructive text-sm font-medium">{error}</p>
         )}
       </CardContent>

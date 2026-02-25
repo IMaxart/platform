@@ -20,7 +20,7 @@ import { Skeleton } from '@platform/ui/components/skeleton'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
 import { Activity, Plus, Server } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import { Header } from '~/components/layout/header'
 import {
@@ -118,18 +118,8 @@ const DokploySection = ({
   const queryClient = useQueryClient()
   const [form, setForm] = useState<DokployForm>({
     refId: initial?.refId ?? '',
-    type: (initial?.type as DokployRefType) ?? 'application',
+    type: (initial?.type as DokployRefType | undefined) ?? 'application',
   })
-
-  /* eslint-disable react-hooks/set-state-in-effect -- syncing state with prop changes */
-  useEffect(() => {
-    if (!initial) return
-    setForm({
-      refId: initial.refId,
-      type: initial.type as DokployRefType,
-    })
-  }, [initial])
-  /* eslint-enable react-hooks/set-state-in-effect */
 
   const canSave = form.refId.trim().length > 0
 
@@ -570,7 +560,7 @@ function StatusPage() {
       )
     }
 
-    const services = servicesQuery.data ?? []
+    const services = servicesQuery.data
 
     if (services.length === 0) {
       return (
@@ -603,7 +593,9 @@ function StatusPage() {
                   <CardTitle className="text-lg">{service.name}</CardTitle>
                   <p className="text-muted-foreground text-sm">
                     {service.publicStatusHost}
-                    {service.primaryDomain ? ` · ${service.primaryDomain}` : ''}
+                    {service.primaryDomain !== null
+                      ? ` · ${service.primaryDomain}`
+                      : ''}
                   </p>
                 </div>
                 <Badge variant={service.enabled ? 'success' : 'secondary'}>
@@ -669,6 +661,7 @@ function StatusPage() {
 
               <DokploySection
                 initial={service.dokploy}
+                key={service.dokploy?.refId ?? 'new'}
                 serviceId={service.id}
               />
             </CardContent>

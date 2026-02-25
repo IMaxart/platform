@@ -9,10 +9,8 @@ const send = (config: TrackerConfig) => {
   const batch = queue.splice(0, config.maxBatchSize)
   const body = JSON.stringify(batch)
 
-  if (navigator.sendBeacon) {
-    navigator.sendBeacon(config.endpoint, body)
-    return
-  }
+  const sent = navigator.sendBeacon(config.endpoint, body)
+  if (sent) return
 
   fetch(config.endpoint, {
     body,
