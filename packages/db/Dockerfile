@@ -18,4 +18,4 @@ COPY packages/db/ ./packages/db/
 COPY packages/tsconfig/ ./packages/tsconfig/
 
 WORKDIR /app/packages/db
-CMD ["npx", "drizzle-kit", "push", "--force"]
+CMD ["npx", "drizzle-kit", "migrate"]
