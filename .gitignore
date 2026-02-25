@@ -29,7 +29,8 @@ bun.lock
 .DS_Store
 Thumbs.db
 
-# IDE
+# IDE / Cursor
+.cursor/
 .vscode/
 .idea/
 *.swp

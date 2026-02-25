@@ -1,13 +1,6 @@
 import { authClient } from '@platform/auth/client'
 import { cn } from '@platform/ui'
-import { Button } from '@platform/ui/components/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@platform/ui/components/dropdown-menu'
+import { SearchableSwitcher } from '@platform/ui/components/searchable-switcher'
 import {
   Sidebar,
   SidebarContent,
@@ -27,8 +20,6 @@ import {
   AlertTriangle,
   BarChart3,
   Building2,
-  Check,
-  ChevronsUpDown,
   FileText,
   Flag,
   FolderOpen,
@@ -62,6 +53,7 @@ const parseRouteContext = (pathname: string) => {
 
 export const AppSidebar = () => {
   const location = useLocation()
+  const { data: activeOrg } = authClient.useActiveOrganization()
   const { projectId, serviceId } = parseRouteContext(location.pathname)
 
   return (
@@ -74,6 +66,26 @@ export const AppSidebar = () => {
       </SidebarHeader>
       <SidebarContent className="pt-2">
         <TeamSwitcher />
+
+        {activeOrg ? (
+          <NavSection
+            items={[
+              {
+                icon: FolderOpen,
+                label: m.common_projects(),
+                path: '/projects',
+              },
+              {
+                icon: Users,
+                label: m.common_members(),
+                path: `/teams/${activeOrg.id}/members`,
+              },
+            ]}
+            label={m.sidebar_teamSection()}
+            pathname={location.pathname}
+          />
+        ) : null}
+
         <ProjectSwitcher activeProjectId={projectId} />
 
         {projectId !== null ? (
@@ -113,15 +125,8 @@ export const AppSidebar = () => {
         ) : null}
 
         <NavSection
-          items={[
-            {
-              icon: FolderOpen,
-              label: m.common_projects(),
-              path: '/projects',
-            },
-            { icon: Building2, label: m.common_teams(), path: '/teams' },
-          ]}
-          label={m.common_account()}
+          items={[{ icon: Building2, label: m.common_teams(), path: '/teams' }]}
+          label={null}
           pathname={location.pathname}
         />
       </SidebarContent>
@@ -131,7 +136,7 @@ export const AppSidebar = () => {
 
 type NavSectionProps = {
   items: NavItemDef[]
-  label: string
+  label: null | string
   pathname: string
 }
 
@@ -153,10 +158,12 @@ type ServiceSwitcherProps = {
 function NavSection({ items, label, pathname }: NavSectionProps) {
   return (
     <SidebarGroup>
-      <SidebarGroupLabel className="text-muted-foreground/70 px-3 text-[11px] font-medium tracking-wider uppercase">
-        {label}
-      </SidebarGroupLabel>
-      <SidebarGroupContent className="mt-1">
+      {label !== null ? (
+        <SidebarGroupLabel className="text-muted-foreground/70 px-3 text-[11px] font-medium tracking-wider uppercase">
+          {label}
+        </SidebarGroupLabel>
+      ) : null}
+      <SidebarGroupContent className={label !== null ? 'mt-1' : undefined}>
         <SidebarMenu>
           {items.map((item) => {
             if (item.disabled === true) return null
@@ -205,47 +212,31 @@ function ProjectSwitcher({ activeProjectId }: ProjectSwitcherProps) {
 
   if (!projects || projects.length === 0) return null
 
-  const activeProject = projects.find((p) => p.id === activeProjectId)
+  const items = projects.map((p) => ({ id: p.id, label: p.name }))
 
   return (
     <SidebarGroup>
       <SidebarGroupContent>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button className="w-full justify-between px-3" variant="outline">
-              <div className="flex items-center gap-2 truncate">
-                <FolderOpen className="h-4 w-4 shrink-0" />
-                <span className="truncate text-sm">
-                  {activeProject?.name ?? m.sidebar_selectProject()}
-                </span>
-              </div>
-              <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-56">
-            {projects.map((project) => (
-              <DropdownMenuItem
-                key={project.id}
-                onClick={() => {
-                  void navigate({ to: `/projects/${project.id}` })
-                }}
-              >
-                <FolderOpen className="mr-2 h-4 w-4" />
-                <span className="truncate">{project.name}</span>
-                {activeProjectId === project.id && (
-                  <Check className="ml-auto h-4 w-4" />
-                )}
-              </DropdownMenuItem>
-            ))}
-            <DropdownMenuSeparator />
-            <Link to="/projects">
-              <DropdownMenuItem>
-                <Plus className="mr-2 h-4 w-4" />
-                {m.sidebar_allProjects()}
-              </DropdownMenuItem>
+        <SearchableSwitcher
+          footer={
+            <Link
+              className="hover:bg-accent flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden"
+              to="/projects"
+            >
+              <Plus className="h-4 w-4 shrink-0" />
+              {m.sidebar_allProjects()}
             </Link>
-          </DropdownMenuContent>
-        </DropdownMenu>
+          }
+          items={items}
+          noResultsText={m.sidebar_noResults()}
+          onSelect={(id) => {
+            void navigate({ to: `/projects/${id}` })
+          }}
+          placeholder={m.sidebar_selectProject()}
+          searchPlaceholder={m.common_search()}
+          triggerIcon={<FolderOpen className="h-4 w-4" />}
+          value={activeProjectId}
+        />
       </SidebarGroupContent>
     </SidebarGroup>
   )
@@ -327,42 +318,25 @@ function ServiceSwitcher({ activeServiceId, projectId }: ServiceSwitcherProps) {
 
   if (!services || services.length === 0) return null
 
-  const activeService = services.find((s) => s.id === activeServiceId)
+  const items = services.map((s) => ({ id: s.id, label: s.name }))
 
   return (
     <SidebarGroup>
       <SidebarGroupContent>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button className="w-full justify-between px-3" variant="ghost">
-              <div className="flex items-center gap-2 truncate">
-                <Server className="h-4 w-4 shrink-0" />
-                <span className="truncate text-sm">
-                  {activeService?.name ?? m.sidebar_selectService()}
-                </span>
-              </div>
-              <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-56">
-            {services.map((service) => (
-              <DropdownMenuItem
-                key={service.id}
-                onClick={() => {
-                  void navigate({
-                    to: `/projects/${projectId}/services/${service.id}`,
-                  })
-                }}
-              >
-                <Server className="mr-2 h-4 w-4" />
-                <span className="truncate">{service.name}</span>
-                {activeServiceId === service.id && (
-                  <Check className="ml-auto h-4 w-4" />
-                )}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <SearchableSwitcher
+          items={items}
+          noResultsText={m.sidebar_noResults()}
+          onSelect={(id) => {
+            void navigate({
+              to: `/projects/${projectId}/services/${id}`,
+            })
+          }}
+          placeholder={m.sidebar_selectService()}
+          searchPlaceholder={m.common_search()}
+          triggerIcon={<Server className="h-4 w-4" />}
+          triggerVariant="ghost"
+          value={activeServiceId}
+        />
       </SidebarGroupContent>
     </SidebarGroup>
   )
@@ -378,45 +352,31 @@ function TeamSwitcher() {
 
   if (!orgs || orgs.length === 0) return null
 
+  const items = orgs.map((org) => ({ id: org.id, label: org.name }))
+
   return (
     <SidebarGroup>
       <SidebarGroupContent>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button className="w-full justify-between px-3" variant="outline">
-              <div className="flex items-center gap-2 truncate">
-                <Building2 className="h-4 w-4 shrink-0" />
-                <span className="truncate text-sm">
-                  {activeOrg?.name ?? m.sidebar_selectTeam()}
-                </span>
-              </div>
-              <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="start" className="w-56">
-            {orgs.map((org) => (
-              <DropdownMenuItem
-                key={org.id}
-                onClick={() => {
-                  void handleSetActive(org.id)
-                }}
-              >
-                <Building2 className="mr-2 h-4 w-4" />
-                <span className="truncate">{org.name}</span>
-                {activeOrg?.id === org.id && (
-                  <Check className="ml-auto h-4 w-4" />
-                )}
-              </DropdownMenuItem>
-            ))}
-            <DropdownMenuSeparator />
-            <Link to="/teams">
-              <DropdownMenuItem>
-                <Plus className="mr-2 h-4 w-4" />
-                {m.sidebar_manageTeams()}
-              </DropdownMenuItem>
+        <SearchableSwitcher
+          footer={
+            <Link
+              className="hover:bg-accent flex items-center gap-2 rounded-sm px-2 py-1.5 text-sm outline-hidden"
+              to="/teams"
+            >
+              <Plus className="h-4 w-4 shrink-0" />
+              {m.sidebar_manageTeams()}
             </Link>
-          </DropdownMenuContent>
-        </DropdownMenu>
+          }
+          items={items}
+          noResultsText={m.sidebar_noResults()}
+          onSelect={(id) => {
+            void handleSetActive(id)
+          }}
+          placeholder={m.sidebar_selectTeam()}
+          searchPlaceholder={m.common_search()}
+          triggerIcon={<Building2 className="h-4 w-4" />}
+          value={activeOrg?.id ?? null}
+        />
       </SidebarGroupContent>
     </SidebarGroup>
   )
