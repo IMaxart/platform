@@ -14,6 +14,8 @@ import {
 import { Building2, Check, Loader2 } from 'lucide-react'
 import { useCallback, useState } from 'react'
 
+import * as m from '~/paraglide/messages'
+
 export const Route = createFileRoute('/invite/$token')({
   component: InvitePage,
 })
@@ -36,7 +38,7 @@ function InvitePage() {
       })) as AcceptInvitationResult
 
       if (result.error) {
-        setError(result.error.message || 'Failed to join team')
+        setError(result.error.message || m.invite_failedToJoin())
         setLoading(false)
         return
       }
@@ -46,7 +48,7 @@ function InvitePage() {
         void navigate({ to: '/' })
       }, 2000)
     } catch {
-      setError('Failed to join team')
+      setError(m.invite_failedToJoin())
       setLoading(false)
     }
   }, [token, navigate])
@@ -59,18 +61,18 @@ function InvitePage() {
             <Building2 className="text-background h-5 w-5" />
           </div>
           <h1 className="text-2xl font-semibold tracking-tight">
-            Team Invitation
+            {m.invite_teamInvitation()}
           </h1>
           <p className="text-muted-foreground mt-2 text-sm">
-            You need to sign in or create an account to accept this invitation
+            {m.invite_signInRequired()}
           </p>
           <div className="mt-8 flex flex-col gap-3">
             <Link to="/login">
-              <Button className="w-full">Sign in</Button>
+              <Button className="w-full">{m.invite_signIn()}</Button>
             </Link>
             <Link to="/login">
               <Button className="w-full" variant="outline">
-                Create account
+                {m.invite_createAccount()}
               </Button>
             </Link>
           </div>
@@ -90,12 +92,10 @@ function InvitePage() {
           )}
         </div>
         <h1 className="text-2xl font-semibold tracking-tight">
-          {joined ? 'Welcome to the team!' : 'Team Invitation'}
+          {joined ? m.invite_welcomeToTeam() : m.invite_teamInvitation()}
         </h1>
         <p className="text-muted-foreground mt-2 text-sm">
-          {joined
-            ? 'Redirecting you to the dashboard...'
-            : 'You have been invited to join a team'}
+          {joined ? m.invite_redirecting() : m.invite_invitedToTeam()}
         </p>
 
         {!joined && (
@@ -110,13 +110,13 @@ function InvitePage() {
               {loading ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : null}
-              Accept invitation
+              {m.invite_acceptInvitation()}
             </Button>
             <Link
               className="text-muted-foreground hover:text-foreground block text-sm transition-colors"
               to="/"
             >
-              Decline and go to dashboard
+              {m.invite_declineAndGoToDashboard()}
             </Link>
           </div>
         )}

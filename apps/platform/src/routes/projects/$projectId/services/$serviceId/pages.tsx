@@ -121,8 +121,7 @@ function PagesPage() {
                           {m.common_noData()}
                         </p>
                         <p className="text-muted-foreground mt-1 text-xs">
-                          Page views will appear here once visitors start
-                          browsing your site
+                          {m.pages_noDataDescription()}
                         </p>
                       </TableCell>
                     </TableRow>

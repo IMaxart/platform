@@ -47,35 +47,35 @@ function PasskeySection() {
     setError(null)
     setLoading(true)
     try {
-      const passkeyName = prompt('Name this passkey (e.g. "MacBook Touch ID")')
+      const passkeyName = prompt(m.settings_passkeyPrompt())
       const result = await authClient.passkey.addPasskey({
         ...(passkeyName !== null ? { name: passkeyName } : {}),
       })
       if (result.error) {
-        setError(result.error.message ?? 'Failed to add passkey')
+        setError(result.error.message ?? m.settings_failedToAddPasskey())
         setLoading(false)
         return
       }
       void passkeysQuery.refetch()
     } catch {
-      setError('Failed to add passkey')
+      setError(m.settings_failedToAddPasskey())
     }
     setLoading(false)
   }, [passkeysQuery])
 
   const handleDeletePasskey = useCallback(
     async (id: string) => {
-      if (!confirm('Remove this passkey?')) return
+      if (!confirm(m.settings_removePasskeyConfirm())) return
       setError(null)
       try {
         const result = await authClient.passkey.deletePasskey({ id })
         if (result.error) {
-          setError(result.error.message ?? 'Failed to remove passkey')
+          setError(result.error.message ?? m.settings_failedToRemovePasskey())
           return
         }
         void passkeysQuery.refetch()
       } catch {
-        setError('Failed to remove passkey')
+        setError(m.settings_failedToRemovePasskey())
       }
     },
     [passkeysQuery],
@@ -86,11 +86,9 @@ function PasskeySection() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Fingerprint className="h-5 w-5" />
-          Passkeys
+          {m.settings_passkeys()}
         </CardTitle>
-        <CardDescription>
-          Sign in with biometrics or hardware keys
-        </CardDescription>
+        <CardDescription>{m.settings_passkeysDescription()}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-3">
@@ -101,10 +99,11 @@ function PasskeySection() {
             >
               <div>
                 <p className="text-sm font-medium">
-                  {passkey.name ?? 'Unnamed passkey'}
+                  {passkey.name ?? m.settings_unnamedPasskey()}
                 </p>
                 <p className="text-muted-foreground text-xs">
-                  Created {new Date(passkey.createdAt).toLocaleDateString()}
+                  {m.settings_created()}{' '}
+                  {new Date(passkey.createdAt).toLocaleDateString()}
                 </p>
               </div>
               <Button
@@ -120,7 +119,7 @@ function PasskeySection() {
           ))}
           {passkeysQuery.data?.length === 0 && (
             <p className="text-muted-foreground text-sm">
-              No passkeys registered yet
+              {m.settings_noPasskeysYet()}
             </p>
           )}
         </div>
@@ -137,7 +136,7 @@ function PasskeySection() {
           ) : (
             <Fingerprint className="mr-2 h-4 w-4" />
           )}
-          Add passkey
+          {m.settings_addPasskey()}
         </Button>
 
         {error !== null && (
@@ -180,9 +179,9 @@ function ProfileSection() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <User className="h-5 w-5" />
-          Profile
+          {m.settings_profile()}
         </CardTitle>
-        <CardDescription>Your account information</CardDescription>
+        <CardDescription>{m.settings_profileDescription()}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {session?.user && (
@@ -208,7 +207,7 @@ function ProfileSection() {
           </div>
         )}
         <div className="space-y-2">
-          <Label>Name</Label>
+          <Label>{m.settings_name()}</Label>
           <div className="flex gap-2">
             <Input
               onChange={(e) => {
@@ -228,13 +227,13 @@ function ProfileSection() {
               ) : saved ? (
                 <Check className="h-4 w-4" />
               ) : (
-                'Save'
+                m.common_save()
               )}
             </Button>
           </div>
         </div>
         <div className="space-y-2">
-          <Label>Email</Label>
+          <Label>{m.settings_email()}</Label>
           <Input disabled value={session?.user.email ?? ''} />
         </div>
       </CardContent>
@@ -339,19 +338,17 @@ function TwoFactorSection() {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <ShieldCheck className="h-5 w-5" />
-          Two-Factor Authentication
+          {m.settings_twoFactorAuth()}
         </CardTitle>
-        <CardDescription>
-          Add an extra layer of security with TOTP authenticator
-        </CardDescription>
+        <CardDescription>{m.settings_twoFactorDescription()}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {is2FAEnabled && totpUri === null ? (
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Badge variant="default">Enabled</Badge>
+              <Badge variant="default">{m.common_enabled()}</Badge>
               <span className="text-muted-foreground text-sm">
-                Two-factor authentication is active
+                {m.settings_twoFactorActive()}
               </span>
             </div>
             <Button
@@ -361,16 +358,13 @@ function TwoFactorSection() {
               }}
               variant="destructive"
             >
-              Disable 2FA
+              {m.settings_disable2FA()}
             </Button>
           </div>
         ) : totpUri !== null ? (
           <div className="space-y-4">
             <div className="flex flex-col items-center gap-4">
-              <p className="text-sm">
-                Scan this QR code with your authenticator app (Google
-                Authenticator, Authy, etc.)
-              </p>
+              <p className="text-sm">{m.settings_scanQRCode()}</p>
               <div className="rounded-lg bg-white p-4">
                 <img
                   alt="TOTP QR Code"
@@ -387,7 +381,7 @@ function TwoFactorSection() {
             {backupCodes !== null && backupCodes.length > 0 && (
               <div className="space-y-2">
                 <p className="text-sm font-medium">
-                  Save these backup codes in a safe place:
+                  {m.settings_saveBackupCodes()}
                 </p>
                 <div className="bg-muted grid grid-cols-2 gap-2 rounded-lg p-4">
                   {backupCodes.map((code) => (
@@ -419,7 +413,7 @@ function TwoFactorSection() {
                 {loading ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 ) : null}
-                Verify & Enable
+                {m.settings_verifyAndEnable()}
               </Button>
             </div>
           </div>
@@ -430,15 +424,18 @@ function TwoFactorSection() {
               startAction('enable')
             }}
           >
-            Enable 2FA
+            {m.settings_enable2FA()}
           </Button>
         )}
 
         {showPasswordField && (
           <div className="space-y-2 rounded-lg border p-4">
             <Label className="text-sm">
-              Enter your password to{' '}
-              {pendingAction === 'enable' ? 'enable' : 'disable'} 2FA
+              {m.settings_enterPasswordTo()}{' '}
+              {pendingAction === 'enable'
+                ? m.settings_enable()
+                : m.settings_disable()}{' '}
+              2FA
             </Label>
             <div className="flex items-center gap-2">
               <Input
@@ -451,7 +448,7 @@ function TwoFactorSection() {
                     submitPassword()
                   }
                 }}
-                placeholder="Your password"
+                placeholder={m.settings_yourPassword()}
                 type="password"
                 value={password}
               />
@@ -459,7 +456,7 @@ function TwoFactorSection() {
                 {loading ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 ) : null}
-                Confirm
+                {m.common_confirm()}
               </Button>
               <Button
                 onClick={() => {
@@ -470,7 +467,7 @@ function TwoFactorSection() {
                 }}
                 variant="ghost"
               >
-                Cancel
+                {m.common_cancel()}
               </Button>
             </div>
           </div>
@@ -492,7 +489,7 @@ function UserSettingsPage() {
         <ProfileSection />
 
         <Separator />
-        <h2 className="pt-2 text-lg font-semibold">Security</h2>
+        <h2 className="pt-2 text-lg font-semibold">{m.settings_security()}</h2>
 
         <TwoFactorSection />
         <PasskeySection />

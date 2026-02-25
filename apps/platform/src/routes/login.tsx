@@ -7,6 +7,8 @@ import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { Fingerprint, Loader2, Lock } from 'lucide-react'
 import { useState } from 'react'
 
+import * as m from '~/paraglide/messages'
+
 export const Route = createFileRoute('/login')({
   component: LoginPage,
 })
@@ -31,7 +33,7 @@ function LoginPage() {
         })
 
         if (result.error) {
-          setError(result.error.message ?? 'Invalid credentials')
+          setError(result.error.message ?? m.login_invalidCredentials())
           return
         }
 
@@ -43,7 +45,7 @@ function LoginPage() {
 
         await navigate({ to: '/' })
       } catch {
-        setError('An unexpected error occurred')
+        setError(m.common_unexpectedError())
       }
     },
   })
@@ -56,14 +58,14 @@ function LoginPage() {
       const result = await authClient.signIn.passkey()
 
       if (result.error) {
-        setError(result.error.message ?? 'Passkey authentication failed')
+        setError(result.error.message ?? m.login_passkeyFailed())
         setPasskeyLoading(false)
         return
       }
 
       await navigate({ to: '/' })
     } catch {
-      setError('Passkey authentication failed')
+      setError(m.login_passkeyFailed())
     } finally {
       setPasskeyLoading(false)
     }
@@ -77,10 +79,10 @@ function LoginPage() {
             <Lock className="text-background h-5 w-5" />
           </div>
           <h1 className="text-2xl font-semibold tracking-tight">
-            Sign in to Platform
+            {m.login_title()}
           </h1>
           <p className="text-muted-foreground mt-2 text-sm">
-            Enter your credentials to continue
+            {m.login_description()}
           </p>
         </div>
 
@@ -94,7 +96,7 @@ function LoginPage() {
           <form.Field name="email">
             {(field) => (
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">{m.login_email()}</Label>
                 <Input
                   autoComplete="email"
                   id="email"
@@ -115,12 +117,12 @@ function LoginPage() {
             {(field) => (
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="password">Password</Label>
+                  <Label htmlFor="password">{m.login_password()}</Label>
                   <Link
                     className="text-muted-foreground hover:text-foreground text-xs transition-colors"
                     to="/forgot-password"
                   >
-                    Forgot password?
+                    {m.login_forgotPassword()}
                   </Link>
                 </div>
                 <Input
@@ -151,7 +153,7 @@ function LoginPage() {
                   {isSubmitting ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   ) : null}
-                  Sign in
+                  {m.login_signIn()}
                 </Button>
               )
             }}
@@ -163,7 +165,9 @@ function LoginPage() {
             <div className="border-border w-full border-t" />
           </div>
           <div className="relative flex justify-center text-xs">
-            <span className="bg-background text-muted-foreground px-3">or</span>
+            <span className="bg-background text-muted-foreground px-3">
+              {m.common_or()}
+            </span>
           </div>
         </div>
 
@@ -176,13 +180,13 @@ function LoginPage() {
               variant="outline"
             >
               <Fingerprint className="mr-2 h-4 w-4" />
-              Sign in with passkey
+              {m.login_signInWithPasskey()}
             </Button>
           )}
         </form.Subscribe>
 
         <p className="text-muted-foreground mt-8 text-center text-xs">
-          Access is by invitation only
+          {m.login_invitationOnly()}
         </p>
       </div>
     </div>

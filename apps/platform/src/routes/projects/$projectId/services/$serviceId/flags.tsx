@@ -122,9 +122,7 @@ function FeatureFlagsPage() {
               <Flag className="h-5 w-5" />
               {m.flags_title()}
             </CardTitle>
-            <CardDescription>
-              Manage feature flags for this service
-            </CardDescription>
+            <CardDescription>{m.flags_manageDescription()}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
@@ -133,7 +131,7 @@ function FeatureFlagsPage() {
                   <TableRow>
                     <TableHead>{m.flags_key()}</TableHead>
                     <TableHead>{m.flags_description()}</TableHead>
-                    <TableHead>Status</TableHead>
+                    <TableHead>{m.flags_status()}</TableHead>
                     <TableHead>{m.flags_conditions()}</TableHead>
                     <TableHead className="w-20" />
                   </TableRow>
@@ -179,7 +177,7 @@ function FeatureFlagsPage() {
                           {m.common_noData()}
                         </p>
                         <p className="text-muted-foreground mt-1 text-xs">
-                          Create your first feature flag to start A/B testing
+                          {m.flags_createFirstFlag()}
                         </p>
                       </TableCell>
                     </TableRow>

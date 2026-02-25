@@ -12,6 +12,7 @@ import { Activity, BarChart3, Server } from 'lucide-react'
 
 import { Header } from '~/components/layout/header'
 import { getProjectServices } from '~/lib/server/queries'
+import * as m from '~/paraglide/messages'
 
 type ProjectService = {
   analyticsEnabled: boolean
@@ -39,13 +40,14 @@ function ProjectOverview() {
 
   return (
     <>
-      <Header title="Project Overview" />
+      <Header title={m.projectOverview_title()} />
       <div className="flex-1 space-y-6 p-4 md:p-6">
         <div>
-          <h2 className="text-lg font-semibold">Services</h2>
+          <h2 className="text-lg font-semibold">
+            {m.projectOverview_services()}
+          </h2>
           <p className="text-muted-foreground text-sm">
-            Each service can independently have analytics, status monitoring, or
-            both
+            {m.projectOverview_servicesDescription()}
           </p>
         </div>
 
@@ -69,25 +71,31 @@ function ProjectOverview() {
                   {service.analyticsEnabled && (
                     <Badge variant="default">
                       <BarChart3 className="mr-1 h-3 w-3" />
-                      Analytics
+                      {m.projectOverview_analytics()}
                     </Badge>
                   )}
                   {service.statusEnabled && (
                     <Badge variant="secondary">
                       <Activity className="mr-1 h-3 w-3" />
-                      Status
+                      {m.projectOverview_status()}
                     </Badge>
                   )}
                   {!service.analyticsEnabled && !service.statusEnabled && (
-                    <Badge variant="outline">No features enabled</Badge>
+                    <Badge variant="outline">
+                      {m.projectOverview_noFeaturesEnabled()}
+                    </Badge>
                   )}
                 </div>
                 <div className="text-muted-foreground flex items-center gap-3 text-xs">
                   {service.statusEnabled && service.endpoints.length > 0 && (
-                    <span>{service.endpoints.length} endpoint(s)</span>
+                    <span>
+                      {service.endpoints.length} {m.projectOverview_endpoints()}
+                    </span>
                   )}
                   {!service.enabled && (
-                    <span className="text-destructive">Disabled</span>
+                    <span className="text-destructive">
+                      {m.common_disabled()}
+                    </span>
                   )}
                 </div>
               </CardContent>
@@ -99,10 +107,10 @@ function ProjectOverview() {
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <Server className="text-muted-foreground mb-4 h-10 w-10" />
                 <p className="text-muted-foreground mb-2 text-sm">
-                  No services registered yet
+                  {m.projectOverview_noServicesYet()}
                 </p>
                 <p className="text-muted-foreground text-xs">
-                  Go to Services to add your first service
+                  {m.projectOverview_goToServices()}
                 </p>
               </CardContent>
             </Card>

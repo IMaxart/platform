@@ -41,6 +41,7 @@ import { useCallback, useState } from 'react'
 
 import { Header } from '~/components/layout/header'
 import { usePlatformRole } from '~/hooks/use-platform-role'
+import * as m from '~/paraglide/messages'
 
 export const Route = createFileRoute('/teams/$teamId/members')({
   component: TeamMembersPage,
@@ -68,7 +69,7 @@ function InviteSection({ teamId }: { teamId: string }) {
       })
 
       if (result.error) {
-        setError(result.error.message ?? 'Failed to send invitation')
+        setError(result.error.message ?? m.teamMembers_failedToSendInvitation())
         setLoading(false)
         return
       }
@@ -76,7 +77,7 @@ function InviteSection({ teamId }: { teamId: string }) {
       setSuccess(true)
       setEmail('')
     } catch {
-      setError('Failed to send invitation')
+      setError(m.teamMembers_failedToSendInvitation())
     }
     setLoading(false)
   }, [email, role, teamId])
@@ -93,7 +94,7 @@ function InviteSection({ teamId }: { teamId: string }) {
       })
 
       if (result.error) {
-        setError(result.error.message ?? 'Failed to generate invite link')
+        setError(result.error.message ?? m.teamMembers_failedToGenerateLink())
         setLoading(false)
         return
       }
@@ -101,7 +102,7 @@ function InviteSection({ teamId }: { teamId: string }) {
       const baseUrl = window.location.origin
       setInviteLink(`${baseUrl}/invite/${result.data.id}`)
     } catch {
-      setError('Failed to generate invite link')
+      setError(m.teamMembers_failedToGenerateLink())
     }
     setLoading(false)
   }, [role, teamId])
@@ -120,11 +121,9 @@ function InviteSection({ teamId }: { teamId: string }) {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <UserPlus className="h-5 w-5" />
-          Invite members
+          {m.teamMembers_inviteMembers()}
         </CardTitle>
-        <CardDescription>
-          Invite people by email or share an invite link
-        </CardDescription>
+        <CardDescription>{m.teamMembers_inviteDescription()}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <form
@@ -136,7 +135,9 @@ function InviteSection({ teamId }: { teamId: string }) {
         >
           <div className="grid gap-4 sm:grid-cols-3">
             <div className="space-y-2 sm:col-span-2">
-              <Label htmlFor="invite-email">Email address</Label>
+              <Label htmlFor="invite-email">
+                {m.teamMembers_emailAddress()}
+              </Label>
               <Input
                 id="invite-email"
                 onChange={(e) => {
@@ -149,14 +150,16 @@ function InviteSection({ teamId }: { teamId: string }) {
               />
             </div>
             <div className="space-y-2">
-              <Label>Role</Label>
+              <Label>{m.teamMembers_role()}</Label>
               <Select onValueChange={setRole} value={role}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="member">Member</SelectItem>
-                  <SelectItem value="admin">Admin</SelectItem>
+                  <SelectItem value="member">
+                    {m.teamMembers_member()}
+                  </SelectItem>
+                  <SelectItem value="admin">{m.teamMembers_admin()}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -169,7 +172,7 @@ function InviteSection({ teamId }: { teamId: string }) {
               ) : (
                 <Mail className="mr-2 h-4 w-4" />
               )}
-              Send invitation
+              {m.teamMembers_sendInvitation()}
             </Button>
             <Button
               disabled={loading}
@@ -180,7 +183,7 @@ function InviteSection({ teamId }: { teamId: string }) {
               variant="outline"
             >
               <Link2 className="mr-2 h-4 w-4" />
-              Generate link
+              {m.teamMembers_generateLink()}
             </Button>
           </div>
         </form>
@@ -208,7 +211,7 @@ function InviteSection({ teamId }: { teamId: string }) {
 
         {success && (
           <p className="text-sm font-medium text-green-600">
-            Invitation sent successfully
+            {m.teamMembers_invitationSent()}
           </p>
         )}
 
@@ -241,7 +244,7 @@ function PendingInvitations({ teamId }: { teamId: string }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Pending invitations</CardTitle>
+        <CardTitle>{m.teamMembers_pendingInvitations()}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
@@ -256,7 +259,8 @@ function PendingInvitations({ teamId }: { teamId: string }) {
                   <Badge className="mr-1" variant="outline">
                     {inv.role}
                   </Badge>
-                  Expires {new Date(inv.expiresAt).toLocaleDateString()}
+                  {m.teamMembers_expires()}{' '}
+                  {new Date(inv.expiresAt).toLocaleDateString()}
                 </p>
               </div>
               <Button
@@ -297,29 +301,29 @@ function TeamMembersPage() {
 
   const org = orgQuery.data
 
-  const currentMember = org?.members.find((m) => m.userId === session?.user.id)
+  const currentMember = org?.members.find(
+    (member) => member.userId === session?.user.id,
+  )
   const orgRole = currentMember?.role ?? 'member'
   const canInvite = isSuperAdmin || orgRole === 'owner' || orgRole === 'admin'
   const canRemove = canInvite
 
   return (
     <>
-      <Header title={org?.name ?? 'Team'} />
+      <Header title={org?.name ?? m.teamMembers_title()} />
       <div className="flex-1 space-y-6 p-4 md:p-6">
         <Card>
           <CardHeader>
-            <CardTitle>Members</CardTitle>
-            <CardDescription>
-              People who have access to this team&apos;s projects
-            </CardDescription>
+            <CardTitle>{m.teamMembers_members()}</CardTitle>
+            <CardDescription>{m.teamMembers_description()}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Member</TableHead>
-                    <TableHead>Role</TableHead>
+                    <TableHead>{m.teamMembers_member()}</TableHead>
+                    <TableHead>{m.teamMembers_role()}</TableHead>
                     {canRemove && <TableHead className="w-20" />}
                   </TableRow>
                 </TableHeader>
@@ -383,7 +387,7 @@ function TeamMembersPage() {
                         className="text-center"
                         colSpan={canRemove ? 3 : 2}
                       >
-                        No members yet
+                        {m.teamMembers_noMembersYet()}
                       </TableCell>
                     </TableRow>
                   )}

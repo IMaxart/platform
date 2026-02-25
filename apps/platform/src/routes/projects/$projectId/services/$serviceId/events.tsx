@@ -108,8 +108,7 @@ function EventsPage() {
                           {m.common_noData()}
                         </p>
                         <p className="text-muted-foreground mt-1 text-xs">
-                          Custom events will appear here once tracked via the
-                          SDK
+                          {m.events_noDataDescription()}
                         </p>
                       </TableCell>
                     </TableRow>

@@ -40,6 +40,7 @@ import {
   deleteService,
   getProjectServices,
 } from '~/lib/server/queries'
+import * as m from '~/paraglide/messages'
 
 type ProjectService = {
   analyticsEnabled: boolean
@@ -132,12 +133,12 @@ function CreateEndpointForm({
         void form.handleSubmit()
       }}
     >
-      <p className="mb-3 text-sm font-medium">Add endpoint</p>
+      <p className="mb-3 text-sm font-medium">{m.services_addEndpoint()}</p>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         <form.Field name="displayName">
           {(field) => (
             <div className="space-y-1.5">
-              <Label className="text-xs">Display name</Label>
+              <Label className="text-xs">{m.services_displayName()}</Label>
               <Input
                 onBlur={field.handleBlur}
                 onChange={(e) => {
@@ -153,7 +154,7 @@ function CreateEndpointForm({
         <form.Field name="method">
           {(field) => (
             <div className="space-y-1.5">
-              <Label className="text-xs">HTTP method</Label>
+              <Label className="text-xs">{m.services_httpMethod()}</Label>
               <Input
                 onBlur={field.handleBlur}
                 onChange={(e) => {
@@ -169,7 +170,7 @@ function CreateEndpointForm({
         <form.Field name="internalPath">
           {(field) => (
             <div className="space-y-1.5">
-              <Label className="text-xs">Path</Label>
+              <Label className="text-xs">{m.services_path()}</Label>
               <Input
                 onBlur={field.handleBlur}
                 onChange={(e) => {
@@ -185,7 +186,7 @@ function CreateEndpointForm({
         <form.Field name="intervalSec">
           {(field) => (
             <div className="space-y-1.5">
-              <Label className="text-xs">Interval (sec)</Label>
+              <Label className="text-xs">{m.services_intervalSec()}</Label>
               <Input
                 min={10}
                 onBlur={field.handleBlur}
@@ -202,7 +203,7 @@ function CreateEndpointForm({
         <form.Field name="timeoutMs">
           {(field) => (
             <div className="space-y-1.5">
-              <Label className="text-xs">Timeout (ms)</Label>
+              <Label className="text-xs">{m.services_timeoutMs()}</Label>
               <Input
                 min={100}
                 onBlur={field.handleBlur}
@@ -219,7 +220,7 @@ function CreateEndpointForm({
         <form.Field name="warnMs">
           {(field) => (
             <div className="space-y-1.5">
-              <Label className="text-xs">Warn threshold (ms)</Label>
+              <Label className="text-xs">{m.services_warnThresholdMs()}</Label>
               <Input
                 min={100}
                 onBlur={field.handleBlur}
@@ -242,12 +243,12 @@ function CreateEndpointForm({
               {isSubmitting ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : null}
-              Add endpoint
+              {m.services_addEndpoint()}
             </Button>
           )}
         </form.Subscribe>
         <Button onClick={onCancel} size="sm" type="button" variant="ghost">
-          Cancel
+          {m.common_cancel()}
         </Button>
       </div>
     </form>
@@ -303,11 +304,8 @@ function CreateServiceForm({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Add a new service</CardTitle>
-        <CardDescription>
-          A service represents a deployable unit (frontend, API, mobile app,
-          etc.)
-        </CardDescription>
+        <CardTitle>{m.services_addNewService()}</CardTitle>
+        <CardDescription>{m.services_addServiceDescription()}</CardDescription>
       </CardHeader>
       <CardContent>
         <form
@@ -320,7 +318,7 @@ function CreateServiceForm({
             <form.Field name="name">
               {(field) => (
                 <div className="space-y-2">
-                  <Label>Service name</Label>
+                  <Label>{m.services_serviceName()}</Label>
                   <Input
                     onBlur={field.handleBlur}
                     onChange={(e) => {
@@ -337,7 +335,10 @@ function CreateServiceForm({
               {(field) => (
                 <div className="space-y-2">
                   <Label>
-                    Slug <span className="text-muted-foreground">(auto)</span>
+                    {m.services_slug()}{' '}
+                    <span className="text-muted-foreground">
+                      {m.services_slugAuto()}
+                    </span>
                   </Label>
                   <Input
                     onBlur={field.handleBlur}
@@ -357,9 +358,9 @@ function CreateServiceForm({
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium">Analytics</p>
+                <p className="text-sm font-medium">{m.services_analytics()}</p>
                 <p className="text-muted-foreground text-xs">
-                  Track visitors, page views, events, and errors
+                  {m.services_analyticsDescription()}
                 </p>
               </div>
               <form.Field name="analyticsEnabled">
@@ -380,7 +381,7 @@ function CreateServiceForm({
                   <form.Field name="domain">
                     {(field) => (
                       <div className="space-y-2">
-                        <Label>Domain (for analytics tracking)</Label>
+                        <Label>{m.services_domain()}</Label>
                         <Input
                           onBlur={field.handleBlur}
                           onChange={(e) => {
@@ -400,9 +401,11 @@ function CreateServiceForm({
 
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium">Status monitoring</p>
+                <p className="text-sm font-medium">
+                  {m.services_statusMonitoring()}
+                </p>
                 <p className="text-muted-foreground text-xs">
-                  Uptime checks with public status page
+                  {m.services_statusMonitoringDescription()}
                 </p>
               </div>
               <form.Field name="statusEnabled">
@@ -424,7 +427,7 @@ function CreateServiceForm({
                     <form.Field name="publicStatusHost">
                       {(field) => (
                         <div className="space-y-2">
-                          <Label>Public status hostname</Label>
+                          <Label>{m.services_publicStatusHost()}</Label>
                           <Input
                             onBlur={field.handleBlur}
                             onChange={(e) => {
@@ -439,7 +442,7 @@ function CreateServiceForm({
                     <form.Field name="primaryDomain">
                       {(field) => (
                         <div className="space-y-2">
-                          <Label>Primary domain</Label>
+                          <Label>{m.services_primaryDomain()}</Label>
                           <Input
                             onBlur={field.handleBlur}
                             onChange={(e) => {
@@ -464,12 +467,12 @@ function CreateServiceForm({
                   {isSubmitting ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   ) : null}
-                  Create service
+                  {m.services_createService()}
                 </Button>
               )}
             </form.Subscribe>
             <Button onClick={onCancel} type="button" variant="ghost">
-              Cancel
+              {m.common_cancel()}
             </Button>
           </div>
         </form>
@@ -504,13 +507,13 @@ function ServicesPage() {
 
   return (
     <>
-      <Header title="Services" />
+      <Header title={m.services_title()} />
       <div className="flex-1 space-y-6 p-4 md:p-6">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-semibold">Services</h2>
+            <h2 className="text-lg font-semibold">{m.services_title()}</h2>
             <p className="text-muted-foreground text-sm">
-              Register services with analytics, status monitoring, or both
+              {m.services_description()}
             </p>
           </div>
           <Button
@@ -519,7 +522,7 @@ function ServicesPage() {
             }}
           >
             <Plus className="mr-2 h-4 w-4" />
-            Add service
+            {m.services_addService()}
           </Button>
         </div>
 
@@ -553,17 +556,17 @@ function ServicesPage() {
                     {service.analyticsEnabled && (
                       <Badge variant="default">
                         <BarChart3 className="mr-1 h-3 w-3" />
-                        Analytics
+                        {m.services_analytics()}
                       </Badge>
                     )}
                     {service.statusEnabled && (
                       <Badge variant="secondary">
                         <Activity className="mr-1 h-3 w-3" />
-                        Status
+                        {m.services_status()}
                       </Badge>
                     )}
                     {!service.enabled && (
-                      <Badge variant="outline">Disabled</Badge>
+                      <Badge variant="outline">{m.common_disabled()}</Badge>
                     )}
                   </CardTitle>
                   <CardDescription className="mt-1">
@@ -591,7 +594,7 @@ function ServicesPage() {
                         }}
                       >
                         <Plus className="mr-2 h-4 w-4" />
-                        Add endpoint
+                        {m.services_addEndpoint()}
                       </DropdownMenuItem>
                     )}
                     <DropdownMenuItem
@@ -601,7 +604,7 @@ function ServicesPage() {
                       }}
                     >
                       <Trash2 className="mr-2 h-4 w-4" />
-                      Delete service
+                      {m.services_deleteService()}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -625,7 +628,7 @@ function ServicesPage() {
                         </div>
                         <div className="flex items-center gap-2">
                           <Badge variant="outline">
-                            {endpoint.enabled ? 'On' : 'Off'}
+                            {endpoint.enabled ? m.common_on() : m.common_off()}
                           </Badge>
                           <Button
                             onClick={() => {
@@ -642,7 +645,7 @@ function ServicesPage() {
                   </div>
                 ) : service.statusEnabled ? (
                   <p className="text-muted-foreground text-sm">
-                    No endpoints configured yet
+                    {m.services_noEndpointsYet()}
                   </p>
                 ) : null}
 
@@ -670,7 +673,7 @@ function ServicesPage() {
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <Globe className="text-muted-foreground mb-4 h-10 w-10" />
                 <p className="text-muted-foreground mb-4 text-sm">
-                  No services registered yet
+                  {m.services_noServicesYet()}
                 </p>
                 <Button
                   onClick={() => {
@@ -679,7 +682,7 @@ function ServicesPage() {
                   variant="outline"
                 >
                   <Plus className="mr-2 h-4 w-4" />
-                  Register your first service
+                  {m.services_registerFirstService()}
                 </Button>
               </CardContent>
             </Card>

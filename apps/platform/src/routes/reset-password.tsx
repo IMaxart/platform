@@ -7,6 +7,8 @@ import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { Loader2, Lock } from 'lucide-react'
 import { useState } from 'react'
 
+import * as m from '~/paraglide/messages'
+
 export const Route = createFileRoute('/reset-password')({
   component: ResetPasswordPage,
 })
@@ -26,13 +28,13 @@ function ResetPasswordPage() {
         })
 
         if (result.error) {
-          setError(result.error.message ?? 'Failed to reset password')
+          setError(result.error.message ?? m.resetPassword_failedToReset())
           return
         }
 
         await navigate({ to: '/login' })
       } catch {
-        setError('An unexpected error occurred')
+        setError(m.common_unexpectedError())
       }
     },
   })
@@ -45,10 +47,10 @@ function ResetPasswordPage() {
             <Lock className="text-background h-5 w-5" />
           </div>
           <h1 className="text-2xl font-semibold tracking-tight">
-            Choose a new password
+            {m.resetPassword_title()}
           </h1>
           <p className="text-muted-foreground mt-2 text-sm">
-            Enter your new password below
+            {m.resetPassword_description()}
           </p>
         </div>
 
@@ -62,7 +64,9 @@ function ResetPasswordPage() {
           <form.Field name="password">
             {(field) => (
               <div className="space-y-2">
-                <Label htmlFor="password">New password</Label>
+                <Label htmlFor="password">
+                  {m.resetPassword_newPassword()}
+                </Label>
                 <Input
                   autoComplete="new-password"
                   id="password"
@@ -71,7 +75,7 @@ function ResetPasswordPage() {
                   onChange={(e) => {
                     field.handleChange(e.target.value)
                   }}
-                  placeholder="Min. 8 characters"
+                  placeholder={m.resetPassword_minCharacters()}
                   required
                   type="password"
                   value={field.state.value}
@@ -90,7 +94,7 @@ function ResetPasswordPage() {
                 {isSubmitting ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 ) : null}
-                Reset password
+                {m.resetPassword_resetPassword()}
               </Button>
             )}
           </form.Subscribe>
@@ -99,7 +103,7 @@ function ResetPasswordPage() {
             className="text-muted-foreground hover:text-foreground block text-center text-sm transition-colors"
             to="/login"
           >
-            Back to sign in
+            {m.resetPassword_backToSignIn()}
           </Link>
         </form>
       </div>

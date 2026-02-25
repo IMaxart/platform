@@ -6,6 +6,8 @@ import { createFileRoute, Link } from '@tanstack/react-router'
 import { ArrowLeft, Loader2, Lock } from 'lucide-react'
 import { useState } from 'react'
 
+import * as m from '~/paraglide/messages'
+
 type PasswordResetResponse = {
   message: string
   status: boolean
@@ -27,7 +29,7 @@ const requestPasswordReset = async ({
   if (!res.ok) {
     const body: unknown = await res.json().catch(() => null)
     const parsed = body as null | Partial<PasswordResetResponse>
-    return { error: parsed?.message ?? 'Failed to send reset email' }
+    return { error: parsed?.message ?? m.forgotPassword_failedToSend() }
   }
 
   return { error: null }
@@ -59,7 +61,7 @@ function ForgotPasswordPage() {
 
         setSent(true)
       } catch {
-        setError('An unexpected error occurred')
+        setError(m.common_unexpectedError())
       }
     },
   })
@@ -74,12 +76,12 @@ function ForgotPasswordPage() {
             <Lock className="text-background h-5 w-5" />
           </div>
           <h1 className="text-2xl font-semibold tracking-tight">
-            {sent ? 'Check your email' : 'Reset your password'}
+            {sent ? m.forgotPassword_checkEmail() : m.forgotPassword_title()}
           </h1>
           <p className="text-muted-foreground mt-2 text-sm">
             {sent
-              ? `We sent a reset link to ${getDisplayEmail()}`
-              : "Enter your email and we'll send you a reset link"}
+              ? `${m.forgotPassword_sentResetLink()} ${getDisplayEmail()}`
+              : m.forgotPassword_description()}
           </p>
         </div>
 
@@ -87,7 +89,7 @@ function ForgotPasswordPage() {
           <Link className="block" to="/login">
             <Button className="w-full" variant="outline">
               <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to sign in
+              {m.forgotPassword_backToSignIn()}
             </Button>
           </Link>
         ) : (
@@ -101,7 +103,7 @@ function ForgotPasswordPage() {
             <form.Field name="email">
               {(field) => (
                 <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
+                  <Label htmlFor="email">{m.forgotPassword_email()}</Label>
                   <Input
                     autoComplete="email"
                     id="email"
@@ -132,7 +134,7 @@ function ForgotPasswordPage() {
                   {isSubmitting ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   ) : null}
-                  Send reset link
+                  {m.forgotPassword_sendResetLink()}
                 </Button>
               )}
             </form.Subscribe>
@@ -141,7 +143,7 @@ function ForgotPasswordPage() {
               className="text-muted-foreground hover:text-foreground block text-center text-sm transition-colors"
               to="/login"
             >
-              Back to sign in
+              {m.forgotPassword_backToSignIn()}
             </Link>
           </form>
         )}

@@ -11,6 +11,8 @@ import {
   Zap,
 } from 'lucide-react'
 
+import * as m from '~/paraglide/messages'
+
 export const Route = createFileRoute('/landing')({
   component: LandingPage,
 })
@@ -85,7 +87,7 @@ function LandingPage() {
           <div className="flex items-center gap-2.5">
             <Lock className="h-5 w-5" />
             <span className="text-lg font-semibold tracking-tight">
-              IMaxart Analytics
+              {m.landing_brandName()}
             </span>
           </div>
           <div className="flex items-center gap-3">
@@ -95,10 +97,10 @@ function LandingPage() {
               rel="noopener noreferrer"
               target="_blank"
             >
-              GitHub
+              {m.landing_github()}
             </a>
             <Link to="/">
-              <Button size="sm">Dashboard</Button>
+              <Button size="sm">{m.landing_dashboard()}</Button>
             </Link>
           </div>
         </div>
@@ -106,13 +108,14 @@ function LandingPage() {
 
       <section className="mx-auto max-w-6xl px-6 py-24 text-center md:py-32">
         <h1 className="mx-auto max-w-3xl text-4xl font-bold tracking-tight md:text-5xl lg:text-6xl">
-          Privacy-first analytics
+          {m.landing_heroTitle()}
           <br />
-          <span className="text-muted-foreground">you actually own</span>
+          <span className="text-muted-foreground">
+            {m.landing_heroSubtitle()}
+          </span>
         </h1>
         <p className="text-muted-foreground mx-auto mt-6 max-w-xl text-lg leading-relaxed">
-          A self-hosted, GDPR-compliant alternative to Google Analytics. No
-          cookies, no third-party scripts, no data leaving your servers.
+          {m.landing_heroDescription()}
         </p>
         <div className="mt-10 flex items-center justify-center gap-4">
           <a
@@ -121,7 +124,7 @@ function LandingPage() {
             target="_blank"
           >
             <Button className="h-11 px-6" size="lg">
-              Get started
+              {m.landing_getStarted()}
             </Button>
           </a>
           <a
@@ -130,7 +133,7 @@ function LandingPage() {
             target="_blank"
           >
             <Button className="h-11 px-6" size="lg" variant="outline">
-              Documentation
+              {m.landing_documentation()}
             </Button>
           </a>
         </div>
@@ -139,11 +142,10 @@ function LandingPage() {
       <section className="border-t py-24">
         <div className="mx-auto max-w-6xl px-6">
           <h2 className="mb-4 text-center text-2xl font-semibold tracking-tight md:text-3xl">
-            Everything you need
+            {m.landing_featuresTitle()}
           </h2>
           <p className="text-muted-foreground mx-auto mb-16 max-w-lg text-center">
-            A complete analytics platform that respects your users and gives you
-            full control.
+            {m.landing_featuresDescription()}
           </p>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {FEATURES.map((f) => (
@@ -167,22 +169,26 @@ function LandingPage() {
       <section className="border-t py-24">
         <div className="mx-auto max-w-4xl px-6">
           <h2 className="mb-4 text-center text-2xl font-semibold tracking-tight md:text-3xl">
-            How we compare
+            {m.landing_comparisonTitle()}
           </h2>
           <p className="text-muted-foreground mx-auto mb-12 max-w-md text-center">
-            See how IMaxart Analytics stacks up against alternatives.
+            {m.landing_comparisonDescription()}
           </p>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b">
-                  <th className="py-3 pr-4 text-left font-medium">Feature</th>
-                  <th className="px-4 py-3 text-center font-medium">IMaxart</th>
-                  <th className="px-4 py-3 text-center font-medium">
-                    Google Analytics
+                  <th className="py-3 pr-4 text-left font-medium">
+                    {m.landing_feature()}
                   </th>
                   <th className="px-4 py-3 text-center font-medium">
-                    Plausible
+                    {m.landing_imaxart()}
+                  </th>
+                  <th className="px-4 py-3 text-center font-medium">
+                    {m.landing_googleAnalytics()}
+                  </th>
+                  <th className="px-4 py-3 text-center font-medium">
+                    {m.landing_plausible()}
                   </th>
                 </tr>
               </thead>
@@ -210,10 +216,10 @@ function LandingPage() {
       <section className="border-t py-24">
         <div className="mx-auto max-w-3xl px-6">
           <h2 className="mb-4 text-center text-2xl font-semibold tracking-tight md:text-3xl">
-            Quick start
+            {m.landing_quickStartTitle()}
           </h2>
           <p className="text-muted-foreground mx-auto mb-12 max-w-md text-center">
-            Get up and running in under 5 minutes with Docker Compose.
+            {m.landing_quickStartDescription()}
           </p>
           <div className="space-y-6">
             <div className="bg-muted overflow-x-auto rounded-lg p-6">
@@ -238,7 +244,7 @@ docker compose up -d
       <footer className="border-t py-12">
         <div className="mx-auto max-w-6xl px-6 text-center">
           <p className="text-muted-foreground text-sm">
-            Open source under AGPL-3.0 &middot;{' '}
+            {m.landing_footerLicense()} &middot;{' '}
             <a
               className="hover:text-foreground underline transition-colors duration-200"
               href="https://github.com/IMaxart/analytics"

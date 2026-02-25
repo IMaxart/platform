@@ -74,7 +74,7 @@ function ErrorsPage() {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <Tabs onValueChange={setLevel} value={level}>
             <TabsList>
-              <TabsTrigger value="all">All</TabsTrigger>
+              <TabsTrigger value="all">{m.common_all()}</TabsTrigger>
               <TabsTrigger value="error">
                 <AlertCircle className="mr-1 h-3 w-3" />
                 {m.errors_error()}
@@ -157,7 +157,7 @@ function ErrorsPage() {
                                 </pre>
                                 {error.latestPath !== null ? (
                                   <p className="text-muted-foreground text-sm">
-                                    Page: {error.latestPath}
+                                    {m.errors_page()} {error.latestPath}
                                   </p>
                                 ) : null}
                               </DialogContent>
@@ -174,7 +174,7 @@ function ErrorsPage() {
                           {m.common_noData()}
                         </p>
                         <p className="text-muted-foreground mt-1 text-xs">
-                          No errors captured — your service is running clean
+                          {m.errors_noErrorsClean()}
                         </p>
                       </TableCell>
                     </TableRow>

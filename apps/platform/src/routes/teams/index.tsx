@@ -10,12 +10,13 @@ import {
 import { Input } from '@platform/ui/components/input'
 import { Label } from '@platform/ui/components/label'
 import { useForm } from '@tanstack/react-form'
-import { createFileRoute, Link } from '@tanstack/react-router'
+import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { Building2, ChevronRight, Loader2, Plus, Users } from 'lucide-react'
 import { useState } from 'react'
 
 import { Header } from '~/components/layout/header'
 import { usePlatformRole } from '~/hooks/use-platform-role'
+import * as m from '~/paraglide/messages'
 
 export const Route = createFileRoute('/teams/')({
   component: TeamsPage,
@@ -32,6 +33,7 @@ function TeamsPage() {
   const [showCreate, setShowCreate] = useState(false)
   const [error, setError] = useState<null | string>(null)
   const { isSuperAdmin } = usePlatformRole()
+  const navigate = useNavigate()
 
   const form = useForm({
     defaultValues: { name: '', slug: '' },
@@ -47,28 +49,33 @@ function TeamsPage() {
         })
 
         if (result.error) {
-          setError(result.error.message ?? 'Failed to create team')
+          setError(result.error.message ?? m.teams_failedToCreate())
           return
         }
+
+        await authClient.organization.setActive({
+          organizationId: result.data.id,
+        })
 
         form.reset()
         setShowCreate(false)
         void refetch()
+        await navigate({ to: '/projects' })
       } catch {
-        setError('An unexpected error occurred')
+        setError(m.common_unexpectedError())
       }
     },
   })
 
   return (
     <>
-      <Header title="Teams" />
+      <Header title={m.teams_title()} />
       <div className="flex-1 space-y-6 p-4 md:p-6">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-semibold">Your teams</h2>
+            <h2 className="text-lg font-semibold">{m.teams_yourTeams()}</h2>
             <p className="text-muted-foreground text-sm">
-              Manage teams and their members
+              {m.teams_description()}
             </p>
           </div>
           {isSuperAdmin && (
@@ -78,7 +85,7 @@ function TeamsPage() {
               }}
             >
               <Plus className="mr-2 h-4 w-4" />
-              Create team
+              {m.teams_createTeam()}
             </Button>
           )}
         </div>
@@ -86,10 +93,8 @@ function TeamsPage() {
         {showCreate && isSuperAdmin && (
           <Card>
             <CardHeader>
-              <CardTitle>Create a new team</CardTitle>
-              <CardDescription>
-                Teams let you organize projects and invite collaborators
-              </CardDescription>
+              <CardTitle>{m.teams_createNewTeam()}</CardTitle>
+              <CardDescription>{m.teams_createDescription()}</CardDescription>
             </CardHeader>
             <CardContent>
               <form
@@ -103,7 +108,7 @@ function TeamsPage() {
                   <form.Field name="name">
                     {(field) => (
                       <div className="space-y-2">
-                        <Label htmlFor="team-name">Team name</Label>
+                        <Label htmlFor="team-name">{m.teams_teamName()}</Label>
                         <Input
                           id="team-name"
                           onBlur={field.handleBlur}
@@ -121,9 +126,9 @@ function TeamsPage() {
                     {(field) => (
                       <div className="space-y-2">
                         <Label htmlFor="team-slug">
-                          Slug{' '}
+                          {m.teams_slug()}{' '}
                           <span className="text-muted-foreground">
-                            (optional)
+                            ({m.common_optional()})
                           </span>
                         </Label>
                         <Input
@@ -153,7 +158,7 @@ function TeamsPage() {
                         {isSubmitting ? (
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                         ) : null}
-                        Create
+                        {m.common_create()}
                       </Button>
                     )}
                   </form.Subscribe>
@@ -164,7 +169,7 @@ function TeamsPage() {
                     type="button"
                     variant="ghost"
                   >
-                    Cancel
+                    {m.common_cancel()}
                   </Button>
                 </div>
               </form>
@@ -203,8 +208,8 @@ function TeamsPage() {
                 <Building2 className="text-muted-foreground mb-4 h-10 w-10" />
                 <p className="text-muted-foreground mb-4 text-sm">
                   {isSuperAdmin
-                    ? "You don't have any teams yet"
-                    : 'No teams available. Contact an administrator.'}
+                    ? m.teams_noTeamsYet()
+                    : m.teams_noTeamsContactAdmin()}
                 </p>
                 {isSuperAdmin && (
                   <Button
@@ -214,7 +219,7 @@ function TeamsPage() {
                     variant="outline"
                   >
                     <Plus className="mr-2 h-4 w-4" />
-                    Create your first team
+                    {m.teams_createFirstTeam()}
                   </Button>
                 )}
               </CardContent>

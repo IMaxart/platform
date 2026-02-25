@@ -29,6 +29,7 @@ import {
   searchUsers,
   updateProjectMemberRole,
 } from '~/lib/server/queries'
+import * as m from '~/paraglide/messages'
 
 export const Route = createFileRoute('/projects/$projectId/members')({
   component: ProjectMembersPage,
@@ -76,9 +77,9 @@ function AddMemberForm({ onCancel, onSuccess, projectId }: AddMemberFormProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Add a member</CardTitle>
+        <CardTitle>{m.projectMembers_addMember()}</CardTitle>
         <CardDescription>
-          Search for a user by email to add them to this project
+          {m.projectMembers_addMemberDescription()}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -91,7 +92,7 @@ function AddMemberForm({ onCancel, onSuccess, projectId }: AddMemberFormProps) {
                 onChange={(e) => {
                   setSearchQuery(e.target.value)
                 }}
-                placeholder="Search by email..."
+                placeholder={m.projectMembers_searchByEmail()}
                 value={searchQuery}
               />
             </div>
@@ -118,7 +119,7 @@ function AddMemberForm({ onCancel, onSuccess, projectId }: AddMemberFormProps) {
             )}
             <div className="flex gap-2">
               <Button onClick={onCancel} type="button" variant="ghost">
-                Cancel
+                {m.common_cancel()}
               </Button>
             </div>
           </div>
@@ -144,14 +145,14 @@ function AddMemberForm({ onCancel, onSuccess, projectId }: AddMemberFormProps) {
                 type="button"
                 variant="ghost"
               >
-                Change
+                {m.common_change()}
               </Button>
             </div>
 
             <form.Field name="role">
               {(field) => (
                 <div className="mb-4 space-y-2">
-                  <Label>Role</Label>
+                  <Label>{m.projectMembers_role()}</Label>
                   <Select
                     onValueChange={(value) => {
                       field.handleChange(value)
@@ -182,12 +183,12 @@ function AddMemberForm({ onCancel, onSuccess, projectId }: AddMemberFormProps) {
                     ) : (
                       <Plus className="mr-2 h-4 w-4" />
                     )}
-                    Add member
+                    {m.projectMembers_addMember()}
                   </Button>
                 )}
               </form.Subscribe>
               <Button onClick={onCancel} type="button" variant="ghost">
-                Cancel
+                {m.common_cancel()}
               </Button>
             </div>
           </form>
@@ -223,13 +224,15 @@ function ProjectMembersPage() {
 
   return (
     <>
-      <Header title="Project Members" />
+      <Header title={m.projectMembers_title()} />
       <div className="flex-1 space-y-6 p-4 md:p-6">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-semibold">Members</h2>
+            <h2 className="text-lg font-semibold">
+              {m.projectMembers_members()}
+            </h2>
             <p className="text-muted-foreground text-sm">
-              Manage who has access to this project
+              {m.projectMembers_description()}
             </p>
           </div>
           <Button
@@ -238,7 +241,7 @@ function ProjectMembersPage() {
             }}
           >
             <UserPlus className="mr-2 h-4 w-4" />
-            Add member
+            {m.projectMembers_addMember()}
           </Button>
         </div>
 
@@ -306,7 +309,7 @@ function ProjectMembersPage() {
                 <div className="flex flex-col items-center justify-center py-12">
                   <Users className="text-muted-foreground mb-4 h-8 w-8" />
                   <p className="text-muted-foreground text-sm">
-                    No members assigned to this project yet
+                    {m.projectMembers_noMembersYet()}
                   </p>
                 </div>
               )}

@@ -17,6 +17,7 @@ import { useState } from 'react'
 
 import { Header } from '~/components/layout/header'
 import { createProject, getProjects } from '~/lib/server/queries'
+import * as m from '~/paraglide/messages'
 
 export const Route = createFileRoute('/projects/')({
   component: ProjectsPage,
@@ -51,10 +52,8 @@ function CreateProjectForm({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Create a new project</CardTitle>
-        <CardDescription>
-          Projects group services like frontend, API, mobile app, etc.
-        </CardDescription>
+        <CardTitle>{m.projects_createNewProject()}</CardTitle>
+        <CardDescription>{m.projects_createDescription()}</CardDescription>
       </CardHeader>
       <CardContent>
         <form
@@ -66,7 +65,7 @@ function CreateProjectForm({
           <form.Field name="name">
             {(field) => (
               <div className="space-y-2">
-                <Label htmlFor="project-name">Project name</Label>
+                <Label htmlFor="project-name">{m.projects_projectName()}</Label>
                 <Input
                   id="project-name"
                   onBlur={field.handleBlur}
@@ -88,12 +87,12 @@ function CreateProjectForm({
                   {isSubmitting ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   ) : null}
-                  Create project
+                  {m.projects_createProject()}
                 </Button>
               )}
             </form.Subscribe>
             <Button onClick={onCancel} type="button" variant="ghost">
-              Cancel
+              {m.common_cancel()}
             </Button>
           </div>
         </form>
@@ -118,15 +117,17 @@ function ProjectsPage() {
 
   return (
     <>
-      <Header title="Projects" />
+      <Header title={m.projects_title()} />
       <div className="flex-1 space-y-6 p-4 md:p-6">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-lg font-semibold">
-              {activeOrg ? `${activeOrg.name} Projects` : 'Projects'}
+              {activeOrg
+                ? `${activeOrg.name} ${m.projects_title()}`
+                : m.projects_title()}
             </h2>
             <p className="text-muted-foreground text-sm">
-              Manage projects, analytics, and services
+              {m.projects_description()}
             </p>
           </div>
           <Button
@@ -135,7 +136,7 @@ function ProjectsPage() {
             }}
           >
             <Plus className="mr-2 h-4 w-4" />
-            New project
+            {m.projects_newProject()}
           </Button>
         </div>
 
@@ -157,10 +158,10 @@ function ProjectsPage() {
             <CardContent className="flex flex-col items-center justify-center py-12">
               <FolderOpen className="text-muted-foreground mb-4 h-10 w-10" />
               <p className="text-muted-foreground mb-4 text-sm">
-                Select a team to view projects
+                {m.projects_selectTeamMessage()}
               </p>
               <Link to="/teams">
-                <Button variant="outline">Go to teams</Button>
+                <Button variant="outline">{m.projects_goToTeams()}</Button>
               </Link>
             </CardContent>
           </Card>
@@ -183,7 +184,8 @@ function ProjectsPage() {
                   </div>
                   <p className="mb-1 truncate font-medium">{project.name}</p>
                   <p className="text-muted-foreground text-xs">
-                    Created {new Date(project.createdAt).toLocaleDateString()}
+                    {m.projects_created()}{' '}
+                    {new Date(project.createdAt).toLocaleDateString()}
                   </p>
                 </CardContent>
               </Card>
@@ -195,7 +197,7 @@ function ProjectsPage() {
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <FolderOpen className="text-muted-foreground mb-4 h-10 w-10" />
                 <p className="text-muted-foreground mb-4 text-sm">
-                  No projects yet in this team
+                  {m.projects_noProjectsInTeam()}
                 </p>
                 <Button
                   onClick={() => {
@@ -204,7 +206,7 @@ function ProjectsPage() {
                   variant="outline"
                 >
                   <Plus className="mr-2 h-4 w-4" />
-                  Create your first project
+                  {m.projects_createFirstProject()}
                 </Button>
               </CardContent>
             </Card>

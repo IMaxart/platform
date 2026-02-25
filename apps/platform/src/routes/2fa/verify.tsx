@@ -6,6 +6,8 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router'
 import { Loader2, ShieldCheck } from 'lucide-react'
 import { useCallback, useRef, useState } from 'react'
 
+import * as m from '~/paraglide/messages'
+
 export const Route = createFileRoute('/2fa/verify')({
   component: TwoFactorVerifyPage,
 })
@@ -24,14 +26,14 @@ function TwoFactorVerifyPage() {
         const result = await authClient.twoFactor.verifyTotp({ code })
 
         if (result.error) {
-          setError(result.error.message ?? 'Invalid code')
+          setError(result.error.message ?? m.twoFactor_invalidCode())
           inputRef.current?.focus()
           return
         }
 
         await navigate({ to: '/' })
       } catch {
-        setError('Verification failed')
+        setError(m.twoFactor_verificationFailed())
       }
     },
     [navigate],
@@ -52,12 +54,12 @@ function TwoFactorVerifyPage() {
             <ShieldCheck className="text-background h-5 w-5" />
           </div>
           <h1 className="text-2xl font-semibold tracking-tight">
-            Two-factor authentication
+            {m.twoFactor_title()}
           </h1>
           <p className="text-muted-foreground mt-2 text-sm">
             {useBackupCode
-              ? 'Enter one of your backup codes'
-              : 'Enter the 6-digit code from your authenticator app'}
+              ? m.twoFactor_enterBackupCode()
+              : m.twoFactor_enterCode()}
           </p>
         </div>
 
@@ -86,7 +88,9 @@ function TwoFactorVerifyPage() {
                     void verify(raw)
                   }
                 }}
-                placeholder={useBackupCode ? 'Backup code' : '000000'}
+                placeholder={
+                  useBackupCode ? m.twoFactor_backupCode() : '000000'
+                }
                 ref={inputRef}
                 value={field.state.value}
               />
@@ -105,7 +109,7 @@ function TwoFactorVerifyPage() {
                 {isSubmitting ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 ) : null}
-                Verify
+                {m.twoFactor_verify()}
               </Button>
             )}
           </form.Subscribe>
@@ -121,8 +125,8 @@ function TwoFactorVerifyPage() {
           type="button"
         >
           {useBackupCode
-            ? 'Use authenticator app instead'
-            : 'Use a backup code'}
+            ? m.twoFactor_useAuthenticatorApp()
+            : m.twoFactor_useBackupCode()}
         </button>
       </div>
     </div>

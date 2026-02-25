@@ -1,6 +1,5 @@
-import { authClient, useSession } from '@platform/auth/client'
+import { authClient } from '@platform/auth/client'
 import { cn } from '@platform/ui'
-import { Avatar, AvatarFallback } from '@platform/ui/components/avatar'
 import { Button } from '@platform/ui/components/button'
 import {
   DropdownMenu,
@@ -12,7 +11,6 @@ import {
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -35,7 +33,6 @@ import {
   Flag,
   FolderOpen,
   Layers,
-  LogOut,
   MousePointerClick,
   Plus,
   Server,
@@ -44,6 +41,7 @@ import {
 } from 'lucide-react'
 
 import { getProjects, getProjectServices } from '~/lib/server/queries'
+import * as m from '~/paraglide/messages'
 
 type NavItemDef = {
   disabled?: boolean
@@ -64,7 +62,6 @@ const parseRouteContext = (pathname: string) => {
 
 export const AppSidebar = () => {
   const location = useLocation()
-  const { data: session } = useSession()
   const { projectId, serviceId } = parseRouteContext(location.pathname)
 
   return (
@@ -84,21 +81,21 @@ export const AppSidebar = () => {
             items={[
               {
                 icon: FolderOpen,
-                label: 'Overview',
+                label: m.common_overview(),
                 path: `/projects/${projectId}`,
               },
               {
                 icon: Server,
-                label: 'Services',
+                label: m.common_services(),
                 path: `/projects/${projectId}/services`,
               },
               {
                 icon: Users,
-                label: 'Members',
+                label: m.common_members(),
                 path: `/projects/${projectId}/members`,
               },
             ]}
-            label="Project"
+            label={m.common_project()}
             pathname={location.pathname}
           />
         ) : null}
@@ -116,16 +113,11 @@ export const AppSidebar = () => {
         ) : null}
 
         <NavSection
-          items={[{ icon: Building2, label: 'Teams', path: '/teams' }]}
-          label="Account"
+          items={[{ icon: Building2, label: m.common_teams(), path: '/teams' }]}
+          label={m.common_account()}
           pathname={location.pathname}
         />
       </SidebarContent>
-      <SidebarFooter className="border-t p-3">
-        {session?.user !== undefined ? (
-          <UserMenu email={session.user.email} name={session.user.name} />
-        ) : null}
-      </SidebarFooter>
     </Sidebar>
   )
 }
@@ -217,7 +209,7 @@ function ProjectSwitcher({ activeProjectId }: ProjectSwitcherProps) {
               <div className="flex items-center gap-2 truncate">
                 <FolderOpen className="h-4 w-4 shrink-0" />
                 <span className="truncate text-sm">
-                  {activeProject?.name ?? 'Select project'}
+                  {activeProject?.name ?? m.sidebar_selectProject()}
                 </span>
               </div>
               <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
@@ -242,7 +234,7 @@ function ProjectSwitcher({ activeProjectId }: ProjectSwitcherProps) {
             <Link to="/projects">
               <DropdownMenuItem>
                 <Plus className="mr-2 h-4 w-4" />
-                All projects
+                {m.sidebar_allProjects()}
               </DropdownMenuItem>
             </Link>
           </DropdownMenuContent>
@@ -271,49 +263,51 @@ function ServiceNavSection({
     {
       disabled: !analyticsEnabled,
       icon: BarChart3,
-      label: 'Analytics',
+      label: m.common_analytics(),
       path: base,
     },
     {
       disabled: !analyticsEnabled,
       icon: FileText,
-      label: 'Pages',
+      label: m.common_pages(),
       path: `${base}/pages`,
     },
     {
       disabled: !analyticsEnabled,
       icon: MousePointerClick,
-      label: 'Events',
+      label: m.common_events(),
       path: `${base}/events`,
     },
     {
       disabled: !analyticsEnabled,
       icon: Users,
-      label: 'Sessions',
+      label: m.common_sessions(),
       path: `${base}/sessions`,
     },
     {
       disabled: !analyticsEnabled,
       icon: AlertTriangle,
-      label: 'Errors',
+      label: m.common_errors(),
       path: `${base}/errors`,
     },
     {
       disabled: !analyticsEnabled,
       icon: Flag,
-      label: 'Feature Flags',
+      label: m.common_featureFlags(),
       path: `${base}/flags`,
     },
     {
       disabled: !statusEnabled,
       icon: Activity,
-      label: 'Status',
+      label: m.common_status(),
       path: `${base}/status`,
     },
-    { icon: Settings, label: 'Settings', path: `${base}/settings` },
+    { icon: Settings, label: m.common_settings(), path: `${base}/settings` },
   ]
 
-  return <NavSection items={items} label="Service" pathname={pathname} />
+  return (
+    <NavSection items={items} label={m.common_service()} pathname={pathname} />
+  )
 }
 
 function ServiceSwitcher({ activeServiceId, projectId }: ServiceSwitcherProps) {
@@ -337,7 +331,7 @@ function ServiceSwitcher({ activeServiceId, projectId }: ServiceSwitcherProps) {
               <div className="flex items-center gap-2 truncate">
                 <Server className="h-4 w-4 shrink-0" />
                 <span className="truncate text-sm">
-                  {activeService?.name ?? 'Select service'}
+                  {activeService?.name ?? m.sidebar_selectService()}
                 </span>
               </div>
               <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
@@ -386,7 +380,7 @@ function TeamSwitcher() {
               <div className="flex items-center gap-2 truncate">
                 <Building2 className="h-4 w-4 shrink-0" />
                 <span className="truncate text-sm">
-                  {activeOrg?.name ?? 'Select team'}
+                  {activeOrg?.name ?? m.sidebar_selectTeam()}
                 </span>
               </div>
               <ChevronsUpDown className="h-4 w-4 shrink-0 opacity-50" />
@@ -411,66 +405,12 @@ function TeamSwitcher() {
             <Link to="/teams">
               <DropdownMenuItem>
                 <Plus className="mr-2 h-4 w-4" />
-                Manage teams
+                {m.sidebar_manageTeams()}
               </DropdownMenuItem>
             </Link>
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarGroupContent>
     </SidebarGroup>
-  )
-}
-
-function UserMenu({ email, name }: { email: string; name: string }) {
-  const navigate = useNavigate()
-
-  const handleSignOut = async () => {
-    await authClient.signOut()
-    await navigate({ to: '/login' })
-  }
-
-  const initials = name
-    .split(' ')
-    .map((n) => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2)
-
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          className="h-auto w-full justify-start gap-3 px-2 py-2"
-          variant="ghost"
-        >
-          <Avatar className="h-8 w-8">
-            <AvatarFallback className="text-xs">{initials}</AvatarFallback>
-          </Avatar>
-          <div className="flex flex-col items-start truncate">
-            <span className="truncate text-sm font-medium">{name}</span>
-            <span className="text-muted-foreground truncate text-xs">
-              {email}
-            </span>
-          </div>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-56">
-        <Link to="/settings">
-          <DropdownMenuItem>
-            <Settings className="mr-2 h-4 w-4" />
-            Settings
-          </DropdownMenuItem>
-        </Link>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
-          onClick={() => {
-            void handleSignOut()
-          }}
-        >
-          <LogOut className="mr-2 h-4 w-4" />
-          Sign out
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
   )
 }

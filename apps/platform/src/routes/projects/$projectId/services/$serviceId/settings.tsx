@@ -144,7 +144,7 @@ function ServiceSettingsPage() {
 
   return (
     <>
-      <Header title="Service Settings" />
+      <Header title={m.serviceSettings_title()} />
       <div className="flex-1 space-y-6 p-4 md:p-6">
         <Card>
           <CardHeader>
@@ -208,7 +208,7 @@ function ServiceSettingsPage() {
           <CardHeader>
             <CardTitle>{m.settings_trackingSnippet()}</CardTitle>
             <CardDescription>
-              Add this snippet to your website to start tracking
+              {m.serviceSettings_snippetDescription()}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -237,7 +237,7 @@ function ServiceSettingsPage() {
           <CardHeader>
             <CardTitle>{m.settings_excludedDevices()}</CardTitle>
             <CardDescription>
-              These devices are tracked but hidden from statistics by default
+              {m.serviceSettings_excludedDevicesDescription()}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -258,7 +258,9 @@ function ServiceSettingsPage() {
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <Label className="text-xs">Visitor hash</Label>
+                      <Label className="text-xs">
+                        {m.serviceSettings_visitorHash()}
+                      </Label>
                       <Input
                         onChange={(e) => {
                           setDeviceHash(e.target.value)
@@ -286,7 +288,7 @@ function ServiceSettingsPage() {
                       {addDeviceMutation.isPending ? (
                         <Loader2 className="mr-2 h-3 w-3 animate-spin" />
                       ) : null}
-                      Add
+                      {m.common_add()}
                     </Button>
                     <Button
                       onClick={() => {
@@ -295,7 +297,7 @@ function ServiceSettingsPage() {
                       size="sm"
                       variant="ghost"
                     >
-                      Cancel
+                      {m.common_cancel()}
                     </Button>
                   </div>
                 </div>
