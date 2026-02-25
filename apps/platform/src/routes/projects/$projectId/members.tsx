@@ -31,6 +31,14 @@ import {
 } from '~/lib/server/queries'
 import * as m from '~/paraglide/messages'
 
+const translateRole = (role: string) => {
+  if (role === 'owner') return m.teamMembers_owner()
+  if (role === 'admin') return m.teamMembers_admin()
+  if (role === 'member') return m.teamMembers_member()
+  if (role === 'viewer') return m.teamMembers_viewer()
+  return role
+}
+
 export const Route = createFileRoute('/projects/$projectId/members')({
   component: ProjectMembersPage,
 })
@@ -165,7 +173,7 @@ function AddMemberForm({ onCancel, onSuccess, projectId }: AddMemberFormProps) {
                     <SelectContent>
                       {ROLES.map((role) => (
                         <SelectItem key={role} value={role}>
-                          {role}
+                          {translateRole(role)}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -285,7 +293,7 @@ function ProjectMembersPage() {
                       <SelectContent>
                         {ROLES.map((role) => (
                           <SelectItem key={role} value={role}>
-                            {role}
+                            {translateRole(role)}
                           </SelectItem>
                         ))}
                       </SelectContent>

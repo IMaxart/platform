@@ -372,7 +372,9 @@
   "teamMembers_emailAddress": "Adres email",
   "teamMembers_role": "Rola",
   "teamMembers_member": "Członek",
+  "teamMembers_owner": "Właściciel",
   "teamMembers_admin": "Administrator",
+  "teamMembers_viewer": "Przeglądający",
   "teamMembers_sendInvitation": "Wyślij zaproszenie",
   "teamMembers_generateLink": "Wygeneruj link",
   "teamMembers_invitationSent": "Zaproszenie wysłane pomyślnie",
@@ -399,5 +401,16 @@
   "landing_plausible": "Plausible",
   "landing_quickStartTitle": "Szybki start",
   "landing_quickStartDescription": "Uruchom się w mniej niż 5 minut z Docker Compose.",
-  "landing_footerLicense": "Open source na licencji AGPL-3.0"
+  "landing_footerLicense": "Open source na licencji AGPL-3.0",
+  "placeholder_email": "ty@example.com",
+  "placeholder_teamName": "Mój zespół",
+  "placeholder_teamSlug": "moj-zespol",
+  "placeholder_projectName": "moj-projekt",
+  "placeholder_serviceName": "Frontend",
+  "placeholder_serviceSlug": "frontend",
+  "placeholder_endpointName": "Sprawdzanie stanu",
+  "placeholder_flagKey": "nowa_funkcja",
+  "placeholder_flagDescription": "Opis tej flagi",
+  "placeholder_deviceName": "Mój laptop",
+  "placeholder_visitorHash": "abc123..."
 }

@@ -372,7 +372,9 @@
   "teamMembers_emailAddress": "Email address",
   "teamMembers_role": "Role",
   "teamMembers_member": "Member",
+  "teamMembers_owner": "Owner",
   "teamMembers_admin": "Admin",
+  "teamMembers_viewer": "Viewer",
   "teamMembers_sendInvitation": "Send invitation",
   "teamMembers_generateLink": "Generate link",
   "teamMembers_invitationSent": "Invitation sent successfully",
@@ -399,5 +401,16 @@
   "landing_plausible": "Plausible",
   "landing_quickStartTitle": "Quick start",
   "landing_quickStartDescription": "Get up and running in under 5 minutes with Docker Compose.",
-  "landing_footerLicense": "Open source under AGPL-3.0"
+  "landing_footerLicense": "Open source under AGPL-3.0",
+  "placeholder_email": "you@example.com",
+  "placeholder_teamName": "My Team",
+  "placeholder_teamSlug": "my-team",
+  "placeholder_projectName": "ministry-life",
+  "placeholder_serviceName": "Frontend",
+  "placeholder_serviceSlug": "frontend",
+  "placeholder_endpointName": "Health Check",
+  "placeholder_flagKey": "new_feature",
+  "placeholder_flagDescription": "Description of this flag",
+  "placeholder_deviceName": "My Laptop",
+  "placeholder_visitorHash": "abc123..."
 }

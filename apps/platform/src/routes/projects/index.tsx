@@ -72,7 +72,7 @@ function CreateProjectForm({
                   onChange={(e) => {
                     field.handleChange(e.target.value)
                   }}
-                  placeholder="ministry-life"
+                  placeholder={m.placeholder_projectName()}
                   required
                   value={field.state.value}
                 />

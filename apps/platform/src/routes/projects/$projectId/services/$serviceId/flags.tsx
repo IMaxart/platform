@@ -96,11 +96,11 @@ function FeatureFlagsPage() {
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label>{m.flags_key()}</Label>
-                  <Input placeholder="new_feature" />
+                  <Input placeholder={m.placeholder_flagKey()} />
                 </div>
                 <div className="space-y-2">
                   <Label>{m.flags_description()}</Label>
-                  <Input placeholder="Description of this flag" />
+                  <Input placeholder={m.placeholder_flagDescription()} />
                 </div>
                 <div className="flex items-center gap-2">
                   <Switch />

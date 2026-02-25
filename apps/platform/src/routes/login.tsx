@@ -104,7 +104,7 @@ function LoginPage() {
                   onChange={(e) => {
                     field.handleChange(e.target.value)
                   }}
-                  placeholder="you@example.com"
+                  placeholder={m.placeholder_email()}
                   required
                   type="email"
                   value={field.state.value}

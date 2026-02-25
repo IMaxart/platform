@@ -43,6 +43,13 @@ import { Header } from '~/components/layout/header'
 import { usePlatformRole } from '~/hooks/use-platform-role'
 import * as m from '~/paraglide/messages'
 
+const translateRole = (role: string) => {
+  if (role === 'owner') return m.teamMembers_owner()
+  if (role === 'admin') return m.teamMembers_admin()
+  if (role === 'member') return m.teamMembers_member()
+  return role
+}
+
 export const Route = createFileRoute('/teams/$teamId/members')({
   component: TeamMembersPage,
 })
@@ -143,7 +150,7 @@ function InviteSection({ teamId }: { teamId: string }) {
                 onChange={(e) => {
                   setEmail(e.target.value)
                 }}
-                placeholder="colleague@example.com"
+                placeholder={m.placeholder_email()}
                 required
                 type="email"
                 value={email}
@@ -257,7 +264,7 @@ function PendingInvitations({ teamId }: { teamId: string }) {
                 <p className="text-sm font-medium">{inv.email}</p>
                 <p className="text-muted-foreground text-xs">
                   <Badge className="mr-1" variant="outline">
-                    {inv.role}
+                    {translateRole(inv.role)}
                   </Badge>
                   {m.teamMembers_expires()}{' '}
                   {new Date(inv.expiresAt).toLocaleDateString()}
@@ -357,7 +364,9 @@ function TeamMembersPage() {
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge variant="outline">{member.role}</Badge>
+                          <Badge variant="outline">
+                            {translateRole(member.role)}
+                          </Badge>
                         </TableCell>
                         {canRemove && (
                           <TableCell>

@@ -115,7 +115,7 @@ function TeamsPage() {
                           onChange={(e) => {
                             field.handleChange(e.target.value)
                           }}
-                          placeholder="My Team"
+                          placeholder={m.placeholder_teamName()}
                           required
                           value={field.state.value}
                         />
@@ -137,7 +137,7 @@ function TeamsPage() {
                           onChange={(e) => {
                             field.handleChange(e.target.value)
                           }}
-                          placeholder="my-team"
+                          placeholder={m.placeholder_teamSlug()}
                           value={field.state.value}
                         />
                       </div>

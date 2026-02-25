@@ -144,7 +144,7 @@ function CreateEndpointForm({
                 onChange={(e) => {
                   field.handleChange(e.target.value)
                 }}
-                placeholder="Health Check"
+                placeholder={m.placeholder_endpointName()}
                 required
                 value={field.state.value}
               />
@@ -324,7 +324,7 @@ function CreateServiceForm({
                     onChange={(e) => {
                       field.handleChange(e.target.value)
                     }}
-                    placeholder="Frontend"
+                    placeholder={m.placeholder_serviceName()}
                     required
                     value={field.state.value}
                   />
@@ -345,7 +345,7 @@ function CreateServiceForm({
                     onChange={(e) => {
                       field.handleChange(e.target.value)
                     }}
-                    placeholder="frontend"
+                    placeholder={m.placeholder_serviceSlug()}
                     value={field.state.value}
                   />
                 </div>

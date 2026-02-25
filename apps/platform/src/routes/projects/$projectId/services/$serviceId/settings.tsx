@@ -253,7 +253,7 @@ function ServiceSettingsPage() {
                         onChange={(e) => {
                           setDeviceName(e.target.value)
                         }}
-                        placeholder="My Laptop"
+                        placeholder={m.placeholder_deviceName()}
                         value={deviceName}
                       />
                     </div>
@@ -265,7 +265,7 @@ function ServiceSettingsPage() {
                         onChange={(e) => {
                           setDeviceHash(e.target.value)
                         }}
-                        placeholder="abc123..."
+                        placeholder={m.placeholder_visitorHash()}
                         value={deviceHash}
                       />
                     </div>
