@@ -17,10 +17,11 @@ import {
 } from '@platform/ui/components/select'
 import { Separator } from '@platform/ui/components/separator'
 import { Skeleton } from '@platform/ui/components/skeleton'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useForm } from '@tanstack/react-form'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { createFileRoute } from '@tanstack/react-router'
-import { Activity, Plus, Server } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { Activity, Loader2, Plus, Server } from 'lucide-react'
+import { useState } from 'react'
 
 import { Header } from '~/components/layout/header'
 import {
@@ -50,56 +51,11 @@ const getStatusBadgeVariant = ({
   return 'secondary'
 }
 
-const getStatusLabel = ({ status }: { status: EndpointStatus }) => {
-  if (status === 'UP') return 'Up'
-  if (status === 'DEGRADED') return 'Degraded'
-  if (status === 'DOWN') return 'Down'
-  return 'Unknown'
-}
-
-type NewServiceForm = {
-  name: string
-  primaryDomain: string
-  publicStatusHost: string
-  slug: string
-}
-
-const EMPTY_SERVICE_FORM: NewServiceForm = {
-  name: '',
-  primaryDomain: '',
-  publicStatusHost: '',
-  slug: '',
-}
-
-type NewEndpointForm = {
-  degradedMs: string
-  displayName: string
-  internalHost: string
-  internalMode: 'directUrl' | 'traefikHost'
-  internalPath: string
-  internalUrl: string
-  intervalSec: string
-  key: string
-  publicUrl: string
-  timeoutMs: string
-}
-
-const EMPTY_ENDPOINT_FORM: NewEndpointForm = {
-  degradedMs: '2000',
-  displayName: '',
-  internalHost: '',
-  internalMode: 'traefikHost',
-  internalPath: '/',
-  internalUrl: '',
-  intervalSec: '60',
-  key: '',
-  publicUrl: '',
-  timeoutMs: '5000',
-}
-
-type DokployForm = {
-  refId: string
-  type: DokployRefType
+const translateStatus = (status: EndpointStatus) => {
+  if (status === 'UP') return m.status_up()
+  if (status === 'DEGRADED') return m.status_degraded()
+  if (status === 'DOWN') return m.status_down()
+  return m.common_unknown()
 }
 
 const DokploySection = ({
@@ -116,24 +72,20 @@ const DokploySection = ({
   serviceId: string
 }) => {
   const queryClient = useQueryClient()
-  const [form, setForm] = useState<DokployForm>({
-    refId: initial?.refId ?? '',
-    type: (initial?.type as DokployRefType | undefined) ?? 'application',
-  })
 
-  const canSave = form.refId.trim().length > 0
-
-  const mutation = useMutation({
-    mutationFn: async () => {
+  const form = useForm({
+    defaultValues: {
+      refId: initial?.refId ?? '',
+      type: (initial?.type as DokployRefType | undefined) ?? 'application',
+    },
+    onSubmit: async ({ value }) => {
       await upsertStatusDokploy({
         data: {
-          refId: form.refId.trim(),
+          refId: value.refId.trim(),
           serviceId,
-          type: form.type,
+          type: value.type,
         },
       })
-    },
-    onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['status-services'] })
     },
   })
@@ -151,52 +103,65 @@ const DokploySection = ({
         {m.status_dokploy()}
       </h4>
       <div className="grid gap-3 sm:grid-cols-2">
-        <div className="space-y-1.5">
-          <Label className="text-xs">{m.status_dokployType()}</Label>
-          <Select
-            onValueChange={(value: string) => {
-              setForm({
-                ...form,
-                type: value as DokployRefType,
-              })
-            }}
-            value={form.type}
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="application">application</SelectItem>
-              <SelectItem value="compose">compose</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-1.5">
-          <Label className="text-xs">{m.status_dokployRefId()}</Label>
-          <Input
-            onChange={(e) => {
-              setForm({ ...form, refId: e.target.value })
-            }}
-            placeholder="applicationId / composeId"
-            value={form.refId}
-          />
-        </div>
+        <form.Field name="type">
+          {(field) => (
+            <div className="space-y-1.5">
+              <Label className="text-xs">{m.status_dokployType()}</Label>
+              <Select
+                onValueChange={(value: string) => {
+                  field.handleChange(value as DokployRefType)
+                }}
+                value={field.state.value}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="application">application</SelectItem>
+                  <SelectItem value="compose">compose</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+        </form.Field>
+        <form.Field name="refId">
+          {(field) => (
+            <div className="space-y-1.5">
+              <Label className="text-xs">{m.status_dokployRefId()}</Label>
+              <Input
+                onBlur={field.handleBlur}
+                onChange={(e) => {
+                  field.handleChange(e.target.value)
+                }}
+                placeholder="applicationId / composeId"
+                value={field.state.value}
+              />
+            </div>
+          )}
+        </form.Field>
       </div>
       <div className="text-muted-foreground flex items-center justify-between text-xs">
         <span>
           {m.status_lastDeployed()}: {lastDeployed} · {m.status_lastSync()}:{' '}
           {lastSync}
         </span>
-        <Button
-          disabled={!canSave || mutation.isPending}
-          onClick={() => {
-            mutation.mutate()
-          }}
-          size="sm"
-          variant="outline"
-        >
-          {m.status_saveDokploy()}
-        </Button>
+        <form.Subscribe selector={(s) => s.isSubmitting}>
+          {(isSubmitting) => (
+            <Button
+              disabled={isSubmitting}
+              onClick={() => {
+                void form.handleSubmit()
+              }}
+              size="sm"
+              variant="outline"
+            >
+              {isSubmitting ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : null}
+              {m.status_saveDokploy()}
+            </Button>
+          )}
+        </form.Subscribe>
       </div>
     </div>
   )
@@ -204,47 +169,50 @@ const DokploySection = ({
 
 const AddEndpointSection = ({ serviceId }: { serviceId: string }) => {
   const queryClient = useQueryClient()
-  const [form, setForm] = useState<NewEndpointForm>(EMPTY_ENDPOINT_FORM)
   const [isOpen, setIsOpen] = useState(false)
 
-  const canSubmit = useMemo(() => {
-    if (form.key.trim().length === 0) return false
-    if (form.displayName.trim().length === 0) return false
-    if (form.internalPath.trim().length === 0) return false
-    if (form.internalMode === 'directUrl')
-      return form.internalUrl.trim().length > 0
-    return form.internalHost.trim().length > 0
-  }, [form])
-
-  const mutation = useMutation({
-    mutationFn: async () => {
-      const intervalSec = Number.parseInt(form.intervalSec, 10)
-      const timeoutMs = Number.parseInt(form.timeoutMs, 10)
-      const degradedMs = Number.parseInt(form.degradedMs, 10)
+  const form = useForm({
+    defaultValues: {
+      degradedMs: '2000',
+      displayName: '',
+      internalHost: '',
+      internalMode: 'traefikHost' as 'directUrl' | 'traefikHost',
+      internalPath: '/',
+      internalUrl: '',
+      intervalSec: '60',
+      key: '',
+      publicUrl: '',
+      timeoutMs: '5000',
+    },
+    onSubmit: async ({ value }) => {
+      const intervalSec = Number.parseInt(value.intervalSec, 10)
+      const timeoutMs = Number.parseInt(value.timeoutMs, 10)
+      const degradedMs = Number.parseInt(value.degradedMs, 10)
 
       await createStatusEndpoint({
         data: {
           degradedMs: Number.isFinite(degradedMs) ? degradedMs : 2000,
-          displayName: form.displayName.trim(),
+          displayName: value.displayName.trim(),
           internalHost:
-            form.internalHost.trim().length > 0
-              ? form.internalHost.trim()
+            value.internalHost.trim().length > 0
+              ? value.internalHost.trim()
               : null,
-          internalMode: form.internalMode,
-          internalPath: form.internalPath.trim(),
+          internalMode: value.internalMode,
+          internalPath: value.internalPath.trim(),
           internalUrl:
-            form.internalUrl.trim().length > 0 ? form.internalUrl.trim() : null,
+            value.internalUrl.trim().length > 0
+              ? value.internalUrl.trim()
+              : null,
           intervalSec: Number.isFinite(intervalSec) ? intervalSec : 60,
-          key: form.key.trim(),
+          key: value.key.trim(),
           publicUrl:
-            form.publicUrl.trim().length > 0 ? form.publicUrl.trim() : null,
+            value.publicUrl.trim().length > 0 ? value.publicUrl.trim() : null,
           serviceId,
           timeoutMs: Number.isFinite(timeoutMs) ? timeoutMs : 5000,
         },
       })
-    },
-    onSuccess: async () => {
-      setForm(EMPTY_ENDPOINT_FORM)
+
+      form.reset()
       setIsOpen(false)
       await queryClient.invalidateQueries({ queryKey: ['status-services'] })
     },
@@ -269,170 +237,232 @@ const AddEndpointSection = ({ serviceId }: { serviceId: string }) => {
   return (
     <div className="bg-muted/30 space-y-4 rounded-lg border p-4">
       <h4 className="text-sm font-medium">{m.status_addEndpoint()}</h4>
-      <div className="grid gap-3 sm:grid-cols-2">
-        <div className="space-y-1.5">
-          <Label className="text-xs">{m.status_endpointKey()}</Label>
-          <Input
-            onChange={(e) => {
-              setForm({ ...form, key: e.target.value })
-            }}
-            placeholder="frontend"
-            value={form.key}
-          />
+      <form
+        className="space-y-4"
+        onSubmit={(e) => {
+          e.preventDefault()
+          void form.handleSubmit()
+        }}
+      >
+        <div className="grid gap-3 sm:grid-cols-2">
+          <form.Field name="key">
+            {(field) => (
+              <div className="space-y-1.5">
+                <Label className="text-xs">{m.status_endpointKey()}</Label>
+                <Input
+                  onBlur={field.handleBlur}
+                  onChange={(e) => {
+                    field.handleChange(e.target.value)
+                  }}
+                  placeholder={m.placeholder_serviceSlug()}
+                  value={field.state.value}
+                />
+              </div>
+            )}
+          </form.Field>
+          <form.Field name="displayName">
+            {(field) => (
+              <div className="space-y-1.5">
+                <Label className="text-xs">{m.status_displayName()}</Label>
+                <Input
+                  onBlur={field.handleBlur}
+                  onChange={(e) => {
+                    field.handleChange(e.target.value)
+                  }}
+                  placeholder={m.placeholder_serviceName()}
+                  value={field.state.value}
+                />
+              </div>
+            )}
+          </form.Field>
+          <form.Field name="internalMode">
+            {(field) => (
+              <div className="space-y-1.5">
+                <Label className="text-xs">{m.status_internalMode()}</Label>
+                <Select
+                  onValueChange={(value: string) => {
+                    field.handleChange(value as 'directUrl' | 'traefikHost')
+                  }}
+                  value={field.state.value}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="traefikHost">traefikHost</SelectItem>
+                    <SelectItem value="directUrl">directUrl</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </form.Field>
+          <form.Field name="internalPath">
+            {(field) => (
+              <div className="space-y-1.5">
+                <Label className="text-xs">{m.status_internalPath()}</Label>
+                <Input
+                  onBlur={field.handleBlur}
+                  onChange={(e) => {
+                    field.handleChange(e.target.value)
+                  }}
+                  placeholder="/health"
+                  value={field.state.value}
+                />
+              </div>
+            )}
+          </form.Field>
+          <form.Field name="internalMode">
+            {(field) =>
+              field.state.value === 'directUrl' ? (
+                <form.Field name="internalUrl">
+                  {(urlField) => (
+                    <div className="space-y-1.5 sm:col-span-2">
+                      <Label className="text-xs">
+                        {m.status_internalUrl()}
+                      </Label>
+                      <Input
+                        onBlur={urlField.handleBlur}
+                        onChange={(e) => {
+                          urlField.handleChange(e.target.value)
+                        }}
+                        placeholder="http://service:3000/health"
+                        value={urlField.state.value}
+                      />
+                    </div>
+                  )}
+                </form.Field>
+              ) : (
+                <form.Field name="internalHost">
+                  {(hostField) => (
+                    <div className="space-y-1.5 sm:col-span-2">
+                      <Label className="text-xs">
+                        {m.status_internalHost()}
+                      </Label>
+                      <Input
+                        onBlur={hostField.handleBlur}
+                        onChange={(e) => {
+                          hostField.handleChange(e.target.value)
+                        }}
+                        placeholder="example.com"
+                        value={hostField.state.value}
+                      />
+                    </div>
+                  )}
+                </form.Field>
+              )
+            }
+          </form.Field>
+          <form.Field name="publicUrl">
+            {(field) => (
+              <div className="space-y-1.5 sm:col-span-2">
+                <Label className="text-xs">{m.status_publicUrl()}</Label>
+                <Input
+                  onBlur={field.handleBlur}
+                  onChange={(e) => {
+                    field.handleChange(e.target.value)
+                  }}
+                  placeholder="https://example.com"
+                  value={field.state.value}
+                />
+              </div>
+            )}
+          </form.Field>
+          <form.Field name="intervalSec">
+            {(field) => (
+              <div className="space-y-1.5">
+                <Label className="text-xs">{m.status_intervalSec()}</Label>
+                <Input
+                  onBlur={field.handleBlur}
+                  onChange={(e) => {
+                    field.handleChange(e.target.value)
+                  }}
+                  value={field.state.value}
+                />
+              </div>
+            )}
+          </form.Field>
+          <form.Field name="timeoutMs">
+            {(field) => (
+              <div className="space-y-1.5">
+                <Label className="text-xs">{m.status_timeoutMs()}</Label>
+                <Input
+                  onBlur={field.handleBlur}
+                  onChange={(e) => {
+                    field.handleChange(e.target.value)
+                  }}
+                  value={field.state.value}
+                />
+              </div>
+            )}
+          </form.Field>
+          <form.Field name="degradedMs">
+            {(field) => (
+              <div className="space-y-1.5">
+                <Label className="text-xs">{m.status_degradedMs()}</Label>
+                <Input
+                  onBlur={field.handleBlur}
+                  onChange={(e) => {
+                    field.handleChange(e.target.value)
+                  }}
+                  value={field.state.value}
+                />
+              </div>
+            )}
+          </form.Field>
         </div>
-        <div className="space-y-1.5">
-          <Label className="text-xs">{m.status_displayName()}</Label>
-          <Input
-            onChange={(e) => {
-              setForm({ ...form, displayName: e.target.value })
+        <div className="flex justify-end gap-2">
+          <Button
+            onClick={() => {
+              setIsOpen(false)
+              form.reset()
             }}
-            placeholder="Frontend"
-            value={form.displayName}
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label className="text-xs">{m.status_internalMode()}</Label>
-          <Select
-            onValueChange={(value: string) => {
-              setForm({
-                ...form,
-                internalMode: value as 'directUrl' | 'traefikHost',
-              })
-            }}
-            value={form.internalMode}
+            size="sm"
+            type="button"
+            variant="ghost"
           >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="traefikHost">traefikHost</SelectItem>
-              <SelectItem value="directUrl">directUrl</SelectItem>
-            </SelectContent>
-          </Select>
+            {m.common_cancel()}
+          </Button>
+          <form.Subscribe selector={(s) => s.isSubmitting}>
+            {(isSubmitting) => (
+              <Button disabled={isSubmitting} size="sm" type="submit">
+                {isSubmitting ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : null}
+                {m.status_createEndpoint()}
+              </Button>
+            )}
+          </form.Subscribe>
         </div>
-        <div className="space-y-1.5">
-          <Label className="text-xs">{m.status_internalPath()}</Label>
-          <Input
-            onChange={(e) => {
-              setForm({ ...form, internalPath: e.target.value })
-            }}
-            placeholder="/health"
-            value={form.internalPath}
-          />
-        </div>
-        {form.internalMode === 'directUrl' ? (
-          <div className="space-y-1.5 sm:col-span-2">
-            <Label className="text-xs">{m.status_internalUrl()}</Label>
-            <Input
-              onChange={(e) => {
-                setForm({ ...form, internalUrl: e.target.value })
-              }}
-              placeholder="http://service:3000/health"
-              value={form.internalUrl}
-            />
-          </div>
-        ) : (
-          <div className="space-y-1.5 sm:col-span-2">
-            <Label className="text-xs">{m.status_internalHost()}</Label>
-            <Input
-              onChange={(e) => {
-                setForm({ ...form, internalHost: e.target.value })
-              }}
-              placeholder="example.com"
-              value={form.internalHost}
-            />
-          </div>
-        )}
-        <div className="space-y-1.5 sm:col-span-2">
-          <Label className="text-xs">{m.status_publicUrl()}</Label>
-          <Input
-            onChange={(e) => {
-              setForm({ ...form, publicUrl: e.target.value })
-            }}
-            placeholder="https://example.com"
-            value={form.publicUrl}
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label className="text-xs">{m.status_intervalSec()}</Label>
-          <Input
-            onChange={(e) => {
-              setForm({ ...form, intervalSec: e.target.value })
-            }}
-            value={form.intervalSec}
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label className="text-xs">{m.status_timeoutMs()}</Label>
-          <Input
-            onChange={(e) => {
-              setForm({ ...form, timeoutMs: e.target.value })
-            }}
-            value={form.timeoutMs}
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label className="text-xs">{m.status_degradedMs()}</Label>
-          <Input
-            onChange={(e) => {
-              setForm({ ...form, degradedMs: e.target.value })
-            }}
-            value={form.degradedMs}
-          />
-        </div>
-      </div>
-      <div className="flex justify-end gap-2">
-        <Button
-          onClick={() => {
-            setIsOpen(false)
-            setForm(EMPTY_ENDPOINT_FORM)
-          }}
-          size="sm"
-          variant="ghost"
-        >
-          {m.common_cancel()}
-        </Button>
-        <Button
-          disabled={!canSubmit || mutation.isPending}
-          onClick={() => {
-            mutation.mutate()
-          }}
-          size="sm"
-        >
-          {m.status_createEndpoint()}
-        </Button>
-      </div>
+      </form>
     </div>
   )
 }
 
 const AddServiceSection = () => {
   const queryClient = useQueryClient()
-  const [form, setForm] = useState<NewServiceForm>(EMPTY_SERVICE_FORM)
   const [isOpen, setIsOpen] = useState(false)
 
-  const canSubmit = useMemo(() => {
-    if (form.slug.trim().length === 0) return false
-    if (form.name.trim().length === 0) return false
-    return form.publicStatusHost.trim().length > 0
-  }, [form])
-
-  const mutation = useMutation({
-    mutationFn: async () => {
+  const form = useForm({
+    defaultValues: {
+      name: '',
+      primaryDomain: '',
+      publicStatusHost: '',
+      slug: '',
+    },
+    onSubmit: async ({ value }) => {
       await createStatusService({
         data: {
-          name: form.name.trim(),
+          name: value.name.trim(),
           primaryDomain:
-            form.primaryDomain.trim().length > 0
-              ? form.primaryDomain.trim()
+            value.primaryDomain.trim().length > 0
+              ? value.primaryDomain.trim()
               : null,
-          publicStatusHost: form.publicStatusHost.trim(),
-          slug: form.slug.trim(),
+          publicStatusHost: value.publicStatusHost.trim(),
+          slug: value.slug.trim(),
         },
       })
-    },
-    onSuccess: async () => {
-      setForm(EMPTY_SERVICE_FORM)
+
+      form.reset()
       setIsOpen(false)
       await queryClient.invalidateQueries({ queryKey: ['status-services'] })
     },
@@ -457,70 +487,105 @@ const AddServiceSection = () => {
       <CardHeader className="pb-4">
         <CardTitle className="text-base">{m.status_addService()}</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div className="space-y-1.5">
-            <Label className="text-xs">{m.status_slug()}</Label>
-            <Input
-              onChange={(e) => {
-                setForm({ ...form, slug: e.target.value })
-              }}
-              placeholder="my-service"
-              value={form.slug}
-            />
+      <CardContent>
+        <form
+          className="space-y-4"
+          onSubmit={(e) => {
+            e.preventDefault()
+            void form.handleSubmit()
+          }}
+        >
+          <div className="grid gap-3 sm:grid-cols-2">
+            <form.Field name="slug">
+              {(field) => (
+                <div className="space-y-1.5">
+                  <Label className="text-xs">{m.status_slug()}</Label>
+                  <Input
+                    onBlur={field.handleBlur}
+                    onChange={(e) => {
+                      field.handleChange(e.target.value)
+                    }}
+                    placeholder={m.placeholder_serviceSlug()}
+                    required
+                    value={field.state.value}
+                  />
+                </div>
+              )}
+            </form.Field>
+            <form.Field name="name">
+              {(field) => (
+                <div className="space-y-1.5">
+                  <Label className="text-xs">{m.status_serviceName()}</Label>
+                  <Input
+                    onBlur={field.handleBlur}
+                    onChange={(e) => {
+                      field.handleChange(e.target.value)
+                    }}
+                    placeholder={m.placeholder_serviceName()}
+                    required
+                    value={field.state.value}
+                  />
+                </div>
+              )}
+            </form.Field>
+            <form.Field name="publicStatusHost">
+              {(field) => (
+                <div className="space-y-1.5">
+                  <Label className="text-xs">
+                    {m.status_publicStatusHost()}
+                  </Label>
+                  <Input
+                    onBlur={field.handleBlur}
+                    onChange={(e) => {
+                      field.handleChange(e.target.value)
+                    }}
+                    placeholder="status.example.com"
+                    required
+                    value={field.state.value}
+                  />
+                </div>
+              )}
+            </form.Field>
+            <form.Field name="primaryDomain">
+              {(field) => (
+                <div className="space-y-1.5">
+                  <Label className="text-xs">{m.status_primaryDomain()}</Label>
+                  <Input
+                    onBlur={field.handleBlur}
+                    onChange={(e) => {
+                      field.handleChange(e.target.value)
+                    }}
+                    placeholder="example.com"
+                    value={field.state.value}
+                  />
+                </div>
+              )}
+            </form.Field>
           </div>
-          <div className="space-y-1.5">
-            <Label className="text-xs">{m.status_serviceName()}</Label>
-            <Input
-              onChange={(e) => {
-                setForm({ ...form, name: e.target.value })
+          <div className="flex justify-end gap-2">
+            <Button
+              onClick={() => {
+                setIsOpen(false)
+                form.reset()
               }}
-              placeholder="My Service"
-              value={form.name}
-            />
+              size="sm"
+              type="button"
+              variant="ghost"
+            >
+              {m.common_cancel()}
+            </Button>
+            <form.Subscribe selector={(s) => s.isSubmitting}>
+              {(isSubmitting) => (
+                <Button disabled={isSubmitting} size="sm" type="submit">
+                  {isSubmitting ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : null}
+                  {m.status_createService()}
+                </Button>
+              )}
+            </form.Subscribe>
           </div>
-          <div className="space-y-1.5">
-            <Label className="text-xs">{m.status_publicStatusHost()}</Label>
-            <Input
-              onChange={(e) => {
-                setForm({ ...form, publicStatusHost: e.target.value })
-              }}
-              placeholder="status.example.com"
-              value={form.publicStatusHost}
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label className="text-xs">{m.status_primaryDomain()}</Label>
-            <Input
-              onChange={(e) => {
-                setForm({ ...form, primaryDomain: e.target.value })
-              }}
-              placeholder="example.com"
-              value={form.primaryDomain}
-            />
-          </div>
-        </div>
-        <div className="flex justify-end gap-2">
-          <Button
-            onClick={() => {
-              setIsOpen(false)
-              setForm(EMPTY_SERVICE_FORM)
-            }}
-            size="sm"
-            variant="ghost"
-          >
-            {m.common_cancel()}
-          </Button>
-          <Button
-            disabled={!canSubmit || mutation.isPending}
-            onClick={() => {
-              mutation.mutate()
-            }}
-            size="sm"
-          >
-            {m.status_createService()}
-          </Button>
-        </div>
+        </form>
       </CardContent>
     </Card>
   )
@@ -554,7 +619,7 @@ function StatusPage() {
       return (
         <Card>
           <CardContent className="text-muted-foreground p-8 text-center text-sm">
-            Failed to load services. Please try again.
+            {m.status_failedToLoad()}
           </CardContent>
         </Card>
       )
@@ -599,7 +664,7 @@ function StatusPage() {
                   </p>
                 </div>
                 <Badge variant={service.enabled ? 'success' : 'secondary'}>
-                  {service.enabled ? 'Active' : 'Disabled'}
+                  {service.enabled ? m.status_active() : m.common_disabled()}
                 </Badge>
               </div>
             </CardHeader>
@@ -645,9 +710,7 @@ function StatusPage() {
                               status: endpoint.status as EndpointStatus,
                             })}
                           >
-                            {getStatusLabel({
-                              status: endpoint.status as EndpointStatus,
-                            })}
+                            {translateStatus(endpoint.status as EndpointStatus)}
                           </Badge>
                         </div>
                       )
