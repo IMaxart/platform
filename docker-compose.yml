@@ -30,8 +30,6 @@ services:
   mailpit:
     image: axllent/mailpit
     restart: unless-stopped
-    ports:
-      - '${PORT_MAILPIT:-8025}:8025'
     environment:
       MP_SMTP_AUTH_ACCEPT_ANY: 1
       MP_SMTP_AUTH_ALLOW_INSECURE: 1
@@ -46,8 +44,6 @@ services:
     depends_on:
       migrate:
         condition: service_completed_successfully
-    ports:
-      - '${PORT_PLATFORM:-3000}:3000'
     environment:
       NODE_ENV: ${NODE_ENV:-production}
       PORT: 3000
@@ -76,8 +72,6 @@ services:
     depends_on:
       migrate:
         condition: service_completed_successfully
-    ports:
-      - '${PORT_STATUS:-3001}:3000'
     environment:
       NODE_ENV: ${NODE_ENV:-production}
       PORT: 3000

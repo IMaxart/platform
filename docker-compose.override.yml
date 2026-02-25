@@ -1,0 +1,12 @@
+services:
+  mailpit:
+    ports:
+      - '${PORT_MAILPIT:-8025}:8025'
+
+  platform:
+    ports:
+      - '${PORT_PLATFORM:-3000}:3000'
+
+  status:
+    ports:
+      - '${PORT_STATUS:-3001}:3000'
