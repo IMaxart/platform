@@ -562,8 +562,7 @@ export const createProjectInvitation = createServerFn({ method: 'POST' })
     })
 
     if (invitation) {
-      const baseUrl =
-        process.env['BETTER_AUTH_URL'] ?? 'http://localhost:3000'
+      const baseUrl = process.env['BETTER_AUTH_URL'] ?? 'http://localhost:3000'
 
       await sendMail({
         subject: `You've been invited to project ${project?.name ?? data.projectId}`,
@@ -745,8 +744,7 @@ export const createServiceInvitation = createServerFn({ method: 'POST' })
     })
 
     if (invitation) {
-      const baseUrl =
-        process.env['BETTER_AUTH_URL'] ?? 'http://localhost:3000'
+      const baseUrl = process.env['BETTER_AUTH_URL'] ?? 'http://localhost:3000'
 
       await sendMail({
         subject: `You've been invited to service ${service?.name ?? data.serviceId}`,

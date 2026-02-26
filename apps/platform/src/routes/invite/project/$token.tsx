@@ -54,7 +54,10 @@ function ProjectInvitePage() {
       setJoined(true)
       setTimeout(() => {
         if ('projectId' in result && result.projectId) {
-          void navigate({ to: '/projects/$projectId/members', params: { projectId: result.projectId } })
+          void navigate({
+            to: '/projects/$projectId/members',
+            params: { projectId: result.projectId },
+          })
         } else {
           void navigate({ to: '/' })
         }

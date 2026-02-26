@@ -491,9 +491,7 @@ function ServiceMembersPage() {
         <Card>
           <CardHeader>
             <CardTitle>{m.serviceMembers_members()}</CardTitle>
-            <CardDescription>
-              {m.serviceMembers_description()}
-            </CardDescription>
+            <CardDescription>{m.serviceMembers_description()}</CardDescription>
           </CardHeader>
           <CardContent className="p-0">
             <div className="divide-y">
