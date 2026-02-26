@@ -66,10 +66,250 @@ export const Route = createFileRoute(
   component: ServiceMembersPage,
 })
 
+type InviteByEmailFormProps = {
+  onSuccess: () => void
+  serviceId: string
+}
+
+type InviteSectionProps = {
+  serviceId: string
+}
+
 type SearchAddFormProps = {
   onCancel: () => void
   onSuccess: () => void
   serviceId: string
+}
+
+function InviteByEmailForm({ onSuccess, serviceId }: InviteByEmailFormProps) {
+  const { data: session } = useSession()
+  const [error, setError] = useState<null | string>(null)
+
+  const form = useForm({
+    defaultValues: {
+      email: '',
+      role: 'viewer' as string,
+    },
+    onSubmit: async ({ value }) => {
+      setError(null)
+      if (session?.user.id === undefined) return
+
+      try {
+        await createServiceInvitation({
+          data: {
+            email: value.email,
+            inviterId: session.user.id,
+            role: value.role,
+            serviceId,
+          },
+        })
+        onSuccess()
+      } catch {
+        setError(m.serviceInvite_failedToSend())
+      }
+    },
+  })
+
+  return (
+    <form
+      className="space-y-4"
+      onSubmit={(e) => {
+        e.preventDefault()
+        void form.handleSubmit()
+      }}
+    >
+      <div className="grid gap-4 sm:grid-cols-3">
+        <form.Field name="email">
+          {(field) => (
+            <div className="space-y-2 sm:col-span-2">
+              <Label htmlFor="invite-email">
+                {m.teamMembers_emailAddress()}
+              </Label>
+              <Input
+                id="invite-email"
+                onChange={(e) => {
+                  field.handleChange(e.target.value)
+                }}
+                placeholder={m.placeholder_email()}
+                required
+                type="email"
+                value={field.state.value}
+              />
+            </div>
+          )}
+        </form.Field>
+        <form.Field name="role">
+          {(field) => (
+            <div className="space-y-2">
+              <Label>{m.serviceInvite_role()}</Label>
+              <Select
+                onValueChange={(value) => {
+                  field.handleChange(value)
+                }}
+                value={field.state.value}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {ROLES.map((role) => (
+                    <SelectItem key={role} value={role}>
+                      {translateRole(role)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+        </form.Field>
+      </div>
+
+      <form.Subscribe selector={(s) => s.isSubmitting}>
+        {(isSubmitting) => (
+          <Button disabled={isSubmitting} type="submit">
+            {isSubmitting ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Mail className="mr-2 h-4 w-4" />
+            )}
+            {m.serviceInvite_sendInvitation()}
+          </Button>
+        )}
+      </form.Subscribe>
+
+      {error !== null && (
+        <p className="text-destructive text-sm font-medium">{error}</p>
+      )}
+    </form>
+  )
+}
+
+function InviteSection({ serviceId }: InviteSectionProps) {
+  const queryClient = useQueryClient()
+  const [showSearch, setShowSearch] = useState(false)
+  const [inviteSuccess, setInviteSuccess] = useState(false)
+
+  const invitationsQuery = useQuery({
+    queryFn: () => getServiceInvitations({ data: serviceId }),
+    queryKey: ['service-invitations', serviceId],
+  })
+
+  const handleInviteSuccess = () => {
+    setInviteSuccess(true)
+    void queryClient.invalidateQueries({
+      queryKey: ['service-invitations', serviceId],
+    })
+    setTimeout(() => {
+      setInviteSuccess(false)
+    }, 3000)
+  }
+
+  return (
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <UserPlus className="h-5 w-5" />
+            {m.serviceInvite_inviteMembers()}
+          </CardTitle>
+          <CardDescription>
+            {m.serviceInvite_inviteDescription()}
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <Tabs defaultValue="email">
+            <TabsList>
+              <TabsTrigger value="email">
+                {m.serviceInvite_byEmail()}
+              </TabsTrigger>
+              <TabsTrigger value="search">
+                {m.serviceInvite_existingUser()}
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent className="mt-4" value="email">
+              <InviteByEmailForm
+                onSuccess={handleInviteSuccess}
+                serviceId={serviceId}
+              />
+            </TabsContent>
+            <TabsContent className="mt-4" value="search">
+              {showSearch ? (
+                <SearchAddForm
+                  onCancel={() => {
+                    setShowSearch(false)
+                  }}
+                  onSuccess={() => {
+                    setShowSearch(false)
+                    void queryClient.invalidateQueries({
+                      queryKey: ['service-members', serviceId],
+                    })
+                  }}
+                  serviceId={serviceId}
+                />
+              ) : (
+                <Button
+                  onClick={() => {
+                    setShowSearch(true)
+                  }}
+                  variant="outline"
+                >
+                  <Search className="mr-2 h-4 w-4" />
+                  {m.serviceInvite_searchByEmail()}
+                </Button>
+              )}
+            </TabsContent>
+          </Tabs>
+
+          {inviteSuccess && (
+            <p className="text-sm font-medium text-green-600">
+              {m.serviceInvite_invitationSent()}
+            </p>
+          )}
+        </CardContent>
+      </Card>
+
+      {invitationsQuery.data && invitationsQuery.data.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>{m.serviceInvite_pendingInvitations()}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {invitationsQuery.data.map((inv) => (
+                <div
+                  className="flex items-center justify-between rounded-lg border p-3"
+                  key={inv.id}
+                >
+                  <div>
+                    <p className="text-sm font-medium">{inv.email}</p>
+                    <p className="text-muted-foreground text-xs">
+                      <Badge className="mr-1" variant="outline">
+                        {translateRole(inv.role)}
+                      </Badge>
+                      {m.teamMembers_expires()}{' '}
+                      {new Date(inv.expiresAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <Button
+                    onClick={() => {
+                      void cancelServiceInvitation({
+                        data: { invitationId: inv.id },
+                      })
+                      void invitationsQuery.refetch()
+                    }}
+                    size="icon"
+                    variant="ghost"
+                  >
+                    <Trash2 className="text-destructive h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+    </>
+  )
 }
 
 function SearchAddForm({ onCancel, onSuccess, serviceId }: SearchAddFormProps) {
@@ -216,246 +456,6 @@ function SearchAddForm({ onCancel, onSuccess, serviceId }: SearchAddFormProps) {
         </form>
       )}
     </div>
-  )
-}
-
-type InviteByEmailFormProps = {
-  onSuccess: () => void
-  serviceId: string
-}
-
-function InviteByEmailForm({ onSuccess, serviceId }: InviteByEmailFormProps) {
-  const { data: session } = useSession()
-  const [error, setError] = useState<null | string>(null)
-
-  const form = useForm({
-    defaultValues: {
-      email: '',
-      role: 'viewer' as string,
-    },
-    onSubmit: async ({ value }) => {
-      setError(null)
-      if (!session?.user.id) return
-
-      try {
-        await createServiceInvitation({
-          data: {
-            email: value.email,
-            inviterId: session.user.id,
-            role: value.role,
-            serviceId,
-          },
-        })
-        onSuccess()
-      } catch {
-        setError(m.serviceInvite_failedToSend())
-      }
-    },
-  })
-
-  return (
-    <form
-      className="space-y-4"
-      onSubmit={(e) => {
-        e.preventDefault()
-        void form.handleSubmit()
-      }}
-    >
-      <div className="grid gap-4 sm:grid-cols-3">
-        <form.Field name="email">
-          {(field) => (
-            <div className="space-y-2 sm:col-span-2">
-              <Label htmlFor="invite-email">
-                {m.teamMembers_emailAddress()}
-              </Label>
-              <Input
-                id="invite-email"
-                onChange={(e) => {
-                  field.handleChange(e.target.value)
-                }}
-                placeholder={m.placeholder_email()}
-                required
-                type="email"
-                value={field.state.value}
-              />
-            </div>
-          )}
-        </form.Field>
-        <form.Field name="role">
-          {(field) => (
-            <div className="space-y-2">
-              <Label>{m.serviceInvite_role()}</Label>
-              <Select
-                onValueChange={(value) => {
-                  field.handleChange(value)
-                }}
-                value={field.state.value}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {ROLES.map((role) => (
-                    <SelectItem key={role} value={role}>
-                      {translateRole(role)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-        </form.Field>
-      </div>
-
-      <form.Subscribe selector={(s) => s.isSubmitting}>
-        {(isSubmitting) => (
-          <Button disabled={isSubmitting} type="submit">
-            {isSubmitting ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <Mail className="mr-2 h-4 w-4" />
-            )}
-            {m.serviceInvite_sendInvitation()}
-          </Button>
-        )}
-      </form.Subscribe>
-
-      {error !== null && (
-        <p className="text-destructive text-sm font-medium">{error}</p>
-      )}
-    </form>
-  )
-}
-
-type InviteSectionProps = {
-  serviceId: string
-}
-
-function InviteSection({ serviceId }: InviteSectionProps) {
-  const queryClient = useQueryClient()
-  const [showSearch, setShowSearch] = useState(false)
-  const [inviteSuccess, setInviteSuccess] = useState(false)
-
-  const invitationsQuery = useQuery({
-    queryFn: () => getServiceInvitations({ data: serviceId }),
-    queryKey: ['service-invitations', serviceId],
-  })
-
-  const handleInviteSuccess = () => {
-    setInviteSuccess(true)
-    void queryClient.invalidateQueries({
-      queryKey: ['service-invitations', serviceId],
-    })
-    setTimeout(() => {
-      setInviteSuccess(false)
-    }, 3000)
-  }
-
-  return (
-    <>
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <UserPlus className="h-5 w-5" />
-            {m.serviceInvite_inviteMembers()}
-          </CardTitle>
-          <CardDescription>
-            {m.serviceInvite_inviteDescription()}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <Tabs defaultValue="email">
-            <TabsList>
-              <TabsTrigger value="email">
-                {m.serviceInvite_byEmail()}
-              </TabsTrigger>
-              <TabsTrigger value="search">
-                {m.serviceInvite_existingUser()}
-              </TabsTrigger>
-            </TabsList>
-            <TabsContent className="mt-4" value="email">
-              <InviteByEmailForm
-                onSuccess={handleInviteSuccess}
-                serviceId={serviceId}
-              />
-            </TabsContent>
-            <TabsContent className="mt-4" value="search">
-              {showSearch ? (
-                <SearchAddForm
-                  onCancel={() => {
-                    setShowSearch(false)
-                  }}
-                  onSuccess={() => {
-                    setShowSearch(false)
-                    void queryClient.invalidateQueries({
-                      queryKey: ['service-members', serviceId],
-                    })
-                  }}
-                  serviceId={serviceId}
-                />
-              ) : (
-                <Button
-                  onClick={() => {
-                    setShowSearch(true)
-                  }}
-                  variant="outline"
-                >
-                  <Search className="mr-2 h-4 w-4" />
-                  {m.serviceInvite_searchByEmail()}
-                </Button>
-              )}
-            </TabsContent>
-          </Tabs>
-
-          {inviteSuccess && (
-            <p className="text-sm font-medium text-green-600">
-              {m.serviceInvite_invitationSent()}
-            </p>
-          )}
-        </CardContent>
-      </Card>
-
-      {invitationsQuery.data && invitationsQuery.data.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>{m.serviceInvite_pendingInvitations()}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {invitationsQuery.data.map((inv) => (
-                <div
-                  className="flex items-center justify-between rounded-lg border p-3"
-                  key={inv.id}
-                >
-                  <div>
-                    <p className="text-sm font-medium">{inv.email}</p>
-                    <p className="text-muted-foreground text-xs">
-                      <Badge className="mr-1" variant="outline">
-                        {translateRole(inv.role)}
-                      </Badge>
-                      {m.teamMembers_expires()}{' '}
-                      {new Date(inv.expiresAt).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <Button
-                    onClick={() => {
-                      void cancelServiceInvitation({
-                        data: { invitationId: inv.id },
-                      })
-                      void invitationsQuery.refetch()
-                    }}
-                    size="icon"
-                    variant="ghost"
-                  >
-                    <Trash2 className="text-destructive h-4 w-4" />
-                  </Button>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-    </>
   )
 }
 

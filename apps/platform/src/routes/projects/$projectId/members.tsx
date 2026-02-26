@@ -64,160 +64,17 @@ export const Route = createFileRoute('/projects/$projectId/members')({
   component: ProjectMembersPage,
 })
 
-type SearchAddFormProps = {
-  onCancel: () => void
+type InviteByEmailFormProps = {
   onSuccess: () => void
   projectId: string
 }
 
-function SearchAddForm({ onCancel, onSuccess, projectId }: SearchAddFormProps) {
-  const [searchQuery, setSearchQuery] = useState('')
-  const [selectedUser, setSelectedUser] = useState<null | {
-    email: string
-    id: string
-    name: string
-  }>(null)
-
-  const usersQuery = useQuery({
-    enabled: searchQuery.length >= 2,
-    queryFn: () => searchUsers({ data: { query: searchQuery } }),
-    queryKey: ['search-users', searchQuery],
-  })
-
-  const form = useForm({
-    defaultValues: {
-      role: 'viewer' as string,
-    },
-    onSubmit: async ({ value }) => {
-      if (!selectedUser) return
-      await addProjectMember({
-        data: {
-          projectId,
-          role: value.role,
-          userId: selectedUser.id,
-        },
-      })
-      onSuccess()
-    },
-  })
-
-  return (
-    <div className="space-y-3">
-      {!selectedUser ? (
-        <>
-          <div className="relative">
-            <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-            <Input
-              className="pl-9"
-              onChange={(e) => {
-                setSearchQuery(e.target.value)
-              }}
-              placeholder={m.projectMembers_searchByEmail()}
-              value={searchQuery}
-            />
-          </div>
-          {usersQuery.data && usersQuery.data.length > 0 && (
-            <div className="space-y-1 rounded-md border p-2">
-              {usersQuery.data.map((user) => (
-                <button
-                  className="hover:bg-accent flex w-full items-center gap-3 rounded-md p-2 text-left text-sm transition-colors"
-                  key={user.id}
-                  onClick={() => {
-                    setSelectedUser(user)
-                  }}
-                  type="button"
-                >
-                  <div>
-                    <p className="font-medium">{user.name}</p>
-                    <p className="text-muted-foreground text-xs">
-                      {user.email}
-                    </p>
-                  </div>
-                </button>
-              ))}
-            </div>
-          )}
-          <div className="flex gap-2">
-            <Button onClick={onCancel} type="button" variant="ghost">
-              {m.common_cancel()}
-            </Button>
-          </div>
-        </>
-      ) : (
-        <form
-          onSubmit={(e) => {
-            e.preventDefault()
-            void form.handleSubmit()
-          }}
-        >
-          <div className="mb-4 flex items-center gap-3 rounded-md border p-3">
-            <div className="flex-1">
-              <p className="text-sm font-medium">{selectedUser.name}</p>
-              <p className="text-muted-foreground text-xs">
-                {selectedUser.email}
-              </p>
-            </div>
-            <Button
-              onClick={() => {
-                setSelectedUser(null)
-              }}
-              size="sm"
-              type="button"
-              variant="ghost"
-            >
-              {m.common_change()}
-            </Button>
-          </div>
-
-          <form.Field name="role">
-            {(field) => (
-              <div className="mb-4 space-y-2">
-                <Label>{m.projectMembers_role()}</Label>
-                <Select
-                  onValueChange={(value) => {
-                    field.handleChange(value)
-                  }}
-                  value={field.state.value}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {ROLES.map((role) => (
-                      <SelectItem key={role} value={role}>
-                        {translateRole(role)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-          </form.Field>
-
-          <div className="flex gap-2">
-            <form.Subscribe selector={(s) => s.isSubmitting}>
-              {(isSubmitting) => (
-                <Button disabled={isSubmitting} type="submit">
-                  {isSubmitting ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    <Plus className="mr-2 h-4 w-4" />
-                  )}
-                  {m.projectMembers_addMember()}
-                </Button>
-              )}
-            </form.Subscribe>
-            <Button onClick={onCancel} type="button" variant="ghost">
-              {m.common_cancel()}
-            </Button>
-          </div>
-        </form>
-      )}
-    </div>
-  )
+type InviteSectionProps = {
+  projectId: string
 }
 
-type InviteByEmailFormProps = {
+type SearchAddFormProps = {
+  onCancel: () => void
   onSuccess: () => void
   projectId: string
 }
@@ -233,7 +90,7 @@ function InviteByEmailForm({ onSuccess, projectId }: InviteByEmailFormProps) {
     },
     onSubmit: async ({ value }) => {
       setError(null)
-      if (!session?.user.id) return
+      if (session?.user.id === undefined) return
 
       try {
         await createProjectInvitation({
@@ -323,10 +180,6 @@ function InviteByEmailForm({ onSuccess, projectId }: InviteByEmailFormProps) {
       )}
     </form>
   )
-}
-
-type InviteSectionProps = {
-  projectId: string
 }
 
 function InviteSection({ projectId }: InviteSectionProps) {
@@ -550,5 +403,152 @@ function ProjectMembersPage() {
         <InviteSection projectId={projectId} />
       </div>
     </>
+  )
+}
+
+function SearchAddForm({ onCancel, onSuccess, projectId }: SearchAddFormProps) {
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedUser, setSelectedUser] = useState<null | {
+    email: string
+    id: string
+    name: string
+  }>(null)
+
+  const usersQuery = useQuery({
+    enabled: searchQuery.length >= 2,
+    queryFn: () => searchUsers({ data: { query: searchQuery } }),
+    queryKey: ['search-users', searchQuery],
+  })
+
+  const form = useForm({
+    defaultValues: {
+      role: 'viewer' as string,
+    },
+    onSubmit: async ({ value }) => {
+      if (!selectedUser) return
+      await addProjectMember({
+        data: {
+          projectId,
+          role: value.role,
+          userId: selectedUser.id,
+        },
+      })
+      onSuccess()
+    },
+  })
+
+  return (
+    <div className="space-y-3">
+      {!selectedUser ? (
+        <>
+          <div className="relative">
+            <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+            <Input
+              className="pl-9"
+              onChange={(e) => {
+                setSearchQuery(e.target.value)
+              }}
+              placeholder={m.projectMembers_searchByEmail()}
+              value={searchQuery}
+            />
+          </div>
+          {usersQuery.data && usersQuery.data.length > 0 && (
+            <div className="space-y-1 rounded-md border p-2">
+              {usersQuery.data.map((user) => (
+                <button
+                  className="hover:bg-accent flex w-full items-center gap-3 rounded-md p-2 text-left text-sm transition-colors"
+                  key={user.id}
+                  onClick={() => {
+                    setSelectedUser(user)
+                  }}
+                  type="button"
+                >
+                  <div>
+                    <p className="font-medium">{user.name}</p>
+                    <p className="text-muted-foreground text-xs">
+                      {user.email}
+                    </p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+          <div className="flex gap-2">
+            <Button onClick={onCancel} type="button" variant="ghost">
+              {m.common_cancel()}
+            </Button>
+          </div>
+        </>
+      ) : (
+        <form
+          onSubmit={(e) => {
+            e.preventDefault()
+            void form.handleSubmit()
+          }}
+        >
+          <div className="mb-4 flex items-center gap-3 rounded-md border p-3">
+            <div className="flex-1">
+              <p className="text-sm font-medium">{selectedUser.name}</p>
+              <p className="text-muted-foreground text-xs">
+                {selectedUser.email}
+              </p>
+            </div>
+            <Button
+              onClick={() => {
+                setSelectedUser(null)
+              }}
+              size="sm"
+              type="button"
+              variant="ghost"
+            >
+              {m.common_change()}
+            </Button>
+          </div>
+
+          <form.Field name="role">
+            {(field) => (
+              <div className="mb-4 space-y-2">
+                <Label>{m.projectMembers_role()}</Label>
+                <Select
+                  onValueChange={(value) => {
+                    field.handleChange(value)
+                  }}
+                  value={field.state.value}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {ROLES.map((role) => (
+                      <SelectItem key={role} value={role}>
+                        {translateRole(role)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </form.Field>
+
+          <div className="flex gap-2">
+            <form.Subscribe selector={(s) => s.isSubmitting}>
+              {(isSubmitting) => (
+                <Button disabled={isSubmitting} type="submit">
+                  {isSubmitting ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Plus className="mr-2 h-4 w-4" />
+                  )}
+                  {m.projectMembers_addMember()}
+                </Button>
+              )}
+            </form.Subscribe>
+            <Button onClick={onCancel} type="button" variant="ghost">
+              {m.common_cancel()}
+            </Button>
+          </div>
+        </form>
+      )}
+    </div>
   )
 }
