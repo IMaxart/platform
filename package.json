@@ -25,6 +25,9 @@
     "db:studio": "turbo db:studio --filter=@platform/db"
   },
   "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ],
     "overrides": {
       "kysely": "0.28.11"
     }
