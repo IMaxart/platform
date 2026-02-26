@@ -29,7 +29,7 @@ import { useState } from 'react'
 
 import { TimeRangeSelect } from '~/components/dashboard/time-range-select'
 import { Header } from '~/components/layout/header'
-import { getSessions } from '~/lib/server/queries'
+import { getSessions } from '~/lib/server/analytics-queries'
 import * as m from '~/paraglide/messages'
 
 type SessionData = {

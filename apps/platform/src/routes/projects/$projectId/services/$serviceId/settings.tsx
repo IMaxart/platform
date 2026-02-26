@@ -31,7 +31,7 @@ import {
   getExcludedDevicesList,
   getProjectServices,
   updateServiceConfig,
-} from '~/lib/server/queries'
+} from '~/lib/server/service-queries'
 import * as m from '~/paraglide/messages'
 
 export const Route = createFileRoute(

@@ -13,7 +13,7 @@ import { useCallback, useState } from 'react'
 import {
   acceptProjectInvitation,
   getProjectInvitationById,
-} from '~/lib/server/queries'
+} from '~/lib/server/project-queries'
 import * as m from '~/paraglide/messages'
 
 export const Route = createFileRoute('/invite/project/$token')({

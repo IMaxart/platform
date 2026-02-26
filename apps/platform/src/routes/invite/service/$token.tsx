@@ -13,7 +13,7 @@ import { useCallback, useState } from 'react'
 import {
   acceptServiceInvitation,
   getServiceInvitationById,
-} from '~/lib/server/queries'
+} from '~/lib/server/service-queries'
 import * as m from '~/paraglide/messages'
 
 export const Route = createFileRoute('/invite/service/$token')({

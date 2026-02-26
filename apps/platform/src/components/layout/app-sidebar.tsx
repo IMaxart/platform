@@ -31,7 +31,8 @@ import {
   Users,
 } from 'lucide-react'
 
-import { getProjects, getProjectServices } from '~/lib/server/queries'
+import { getProjects } from '~/lib/server/project-queries'
+import { getProjectServices } from '~/lib/server/service-queries'
 import * as m from '~/paraglide/messages'
 
 type NavItemDef = {

@@ -45,9 +45,9 @@ import {
   getServiceInvitations,
   getServiceMembers,
   removeServiceMember,
-  searchUsers,
   updateServiceMemberRole,
-} from '~/lib/server/queries'
+} from '~/lib/server/service-queries'
+import { searchUsers } from '~/lib/server/user-queries'
 import * as m from '~/paraglide/messages'
 
 const ROLES = ['owner', 'admin', 'member', 'viewer'] as const
