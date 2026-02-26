@@ -5,13 +5,18 @@ import {
   excludedDevices,
   featureFlags,
   pageViews,
+  projectInvitations,
   projectMembers,
   projects,
+  serviceInvitations,
+  serviceMembers,
   services,
   statusEndpoints,
   users,
   visitorSessions,
 } from '@platform/db/schema'
+import { sendMail } from '@platform/email'
+import { ProjectInvite, ServiceInvite } from '@platform/email/templates'
 import { createServerFn } from '@tanstack/react-start'
 import {
   and,
@@ -518,6 +523,317 @@ export const updateProjectMemberRole = createServerFn({ method: 'POST' })
       .where(eq(projectMembers.id, data.memberId))
 
     return { ok: true }
+  })
+
+// --- Project Invitations ---
+
+const INVITATION_EXPIRY_DAYS = 7
+
+export const createProjectInvitation = createServerFn({ method: 'POST' })
+  .inputValidator(
+    (d: {
+      email: string
+      inviterId: string
+      projectId: string
+      role?: string
+    }) => d,
+  )
+  .handler(async ({ data }) => {
+    const expiresAt = new Date()
+    expiresAt.setDate(expiresAt.getDate() + INVITATION_EXPIRY_DAYS)
+
+    const [invitation] = await db
+      .insert(projectInvitations)
+      .values({
+        email: data.email,
+        expiresAt,
+        inviterId: data.inviterId,
+        projectId: data.projectId,
+        role: data.role ?? 'viewer',
+      })
+      .returning()
+
+    const project = await db.query.projects.findFirst({
+      where: eq(projects.id, data.projectId),
+    })
+
+    const inviter = await db.query.users.findFirst({
+      where: eq(users.id, data.inviterId),
+    })
+
+    if (invitation) {
+      const baseUrl =
+        process.env['BETTER_AUTH_URL'] ?? 'http://localhost:3000'
+
+      await sendMail({
+        subject: `You've been invited to project ${project?.name ?? data.projectId}`,
+        template: ProjectInvite({
+          inviterName: inviter?.name,
+          projectName: project?.name ?? data.projectId,
+          role: invitation.role,
+          url: `${baseUrl}/invite/project/${invitation.id}`,
+        }),
+        to: data.email,
+      })
+    }
+
+    return invitation
+  })
+
+export const getProjectInvitations = createServerFn({ method: 'GET' })
+  .inputValidator((projectId: string) => projectId)
+  .handler(async ({ data: projectId }) => {
+    return db
+      .select({
+        createdAt: projectInvitations.createdAt,
+        email: projectInvitations.email,
+        expiresAt: projectInvitations.expiresAt,
+        id: projectInvitations.id,
+        role: projectInvitations.role,
+        status: projectInvitations.status,
+      })
+      .from(projectInvitations)
+      .where(
+        and(
+          eq(projectInvitations.projectId, projectId),
+          eq(projectInvitations.status, 'pending'),
+        ),
+      )
+      .orderBy(desc(projectInvitations.createdAt))
+  })
+
+export const cancelProjectInvitation = createServerFn({ method: 'POST' })
+  .inputValidator((d: { invitationId: string }) => d)
+  .handler(async ({ data }) => {
+    await db
+      .update(projectInvitations)
+      .set({ status: 'cancelled' })
+      .where(eq(projectInvitations.id, data.invitationId))
+
+    return { ok: true }
+  })
+
+export const acceptProjectInvitation = createServerFn({ method: 'POST' })
+  .inputValidator((d: { invitationId: string; userId: string }) => d)
+  .handler(async ({ data }) => {
+    const invitation = await db.query.projectInvitations.findFirst({
+      where: eq(projectInvitations.id, data.invitationId),
+    })
+
+    if (!invitation) return { error: 'Invitation not found' }
+    if (invitation.status !== 'pending') return { error: 'Invitation expired' }
+    if (new Date() > invitation.expiresAt)
+      return { error: 'Invitation expired' }
+
+    await db
+      .insert(projectMembers)
+      .values({
+        projectId: invitation.projectId,
+        role: invitation.role,
+        userId: data.userId,
+      })
+      .onConflictDoNothing()
+
+    await db
+      .update(projectInvitations)
+      .set({ status: 'accepted' })
+      .where(eq(projectInvitations.id, data.invitationId))
+
+    return { ok: true, projectId: invitation.projectId }
+  })
+
+export const getProjectInvitationById = createServerFn({ method: 'GET' })
+  .inputValidator((invitationId: string) => invitationId)
+  .handler(async ({ data: invitationId }) => {
+    const invitation = await db.query.projectInvitations.findFirst({
+      where: eq(projectInvitations.id, invitationId),
+      with: { project: true },
+    })
+
+    return invitation ?? null
+  })
+
+// --- Service Members ---
+
+export const getServiceMembers = createServerFn({ method: 'GET' })
+  .inputValidator((serviceId: string) => serviceId)
+  .handler(async ({ data: serviceId }) => {
+    return db
+      .select({
+        createdAt: serviceMembers.createdAt,
+        email: users.email,
+        id: serviceMembers.id,
+        name: users.name,
+        role: serviceMembers.role,
+        userId: serviceMembers.userId,
+      })
+      .from(serviceMembers)
+      .innerJoin(users, eq(serviceMembers.userId, users.id))
+      .where(eq(serviceMembers.serviceId, serviceId))
+      .orderBy(desc(serviceMembers.createdAt))
+  })
+
+export const addServiceMember = createServerFn({ method: 'POST' })
+  .inputValidator(
+    (d: { role?: string; serviceId: string; userId: string }) => d,
+  )
+  .handler(async ({ data }) => {
+    const [member] = await db
+      .insert(serviceMembers)
+      .values({
+        role: data.role ?? 'viewer',
+        serviceId: data.serviceId,
+        userId: data.userId,
+      })
+      .onConflictDoNothing()
+      .returning()
+
+    return member ?? null
+  })
+
+export const removeServiceMember = createServerFn({ method: 'POST' })
+  .inputValidator((d: { memberId: string }) => d)
+  .handler(async ({ data }) => {
+    await db.delete(serviceMembers).where(eq(serviceMembers.id, data.memberId))
+
+    return { ok: true }
+  })
+
+export const updateServiceMemberRole = createServerFn({ method: 'POST' })
+  .inputValidator((d: { memberId: string; role: string }) => d)
+  .handler(async ({ data }) => {
+    await db
+      .update(serviceMembers)
+      .set({ role: data.role })
+      .where(eq(serviceMembers.id, data.memberId))
+
+    return { ok: true }
+  })
+
+// --- Service Invitations ---
+
+export const createServiceInvitation = createServerFn({ method: 'POST' })
+  .inputValidator(
+    (d: {
+      email: string
+      inviterId: string
+      role?: string
+      serviceId: string
+    }) => d,
+  )
+  .handler(async ({ data }) => {
+    const expiresAt = new Date()
+    expiresAt.setDate(expiresAt.getDate() + INVITATION_EXPIRY_DAYS)
+
+    const [invitation] = await db
+      .insert(serviceInvitations)
+      .values({
+        email: data.email,
+        expiresAt,
+        inviterId: data.inviterId,
+        role: data.role ?? 'viewer',
+        serviceId: data.serviceId,
+      })
+      .returning()
+
+    const service = await db.query.services.findFirst({
+      where: eq(services.id, data.serviceId),
+    })
+
+    const inviter = await db.query.users.findFirst({
+      where: eq(users.id, data.inviterId),
+    })
+
+    if (invitation) {
+      const baseUrl =
+        process.env['BETTER_AUTH_URL'] ?? 'http://localhost:3000'
+
+      await sendMail({
+        subject: `You've been invited to service ${service?.name ?? data.serviceId}`,
+        template: ServiceInvite({
+          inviterName: inviter?.name,
+          role: invitation.role,
+          serviceName: service?.name ?? data.serviceId,
+          url: `${baseUrl}/invite/service/${invitation.id}`,
+        }),
+        to: data.email,
+      })
+    }
+
+    return invitation
+  })
+
+export const getServiceInvitations = createServerFn({ method: 'GET' })
+  .inputValidator((serviceId: string) => serviceId)
+  .handler(async ({ data: serviceId }) => {
+    return db
+      .select({
+        createdAt: serviceInvitations.createdAt,
+        email: serviceInvitations.email,
+        expiresAt: serviceInvitations.expiresAt,
+        id: serviceInvitations.id,
+        role: serviceInvitations.role,
+        status: serviceInvitations.status,
+      })
+      .from(serviceInvitations)
+      .where(
+        and(
+          eq(serviceInvitations.serviceId, serviceId),
+          eq(serviceInvitations.status, 'pending'),
+        ),
+      )
+      .orderBy(desc(serviceInvitations.createdAt))
+  })
+
+export const cancelServiceInvitation = createServerFn({ method: 'POST' })
+  .inputValidator((d: { invitationId: string }) => d)
+  .handler(async ({ data }) => {
+    await db
+      .update(serviceInvitations)
+      .set({ status: 'cancelled' })
+      .where(eq(serviceInvitations.id, data.invitationId))
+
+    return { ok: true }
+  })
+
+export const acceptServiceInvitation = createServerFn({ method: 'POST' })
+  .inputValidator((d: { invitationId: string; userId: string }) => d)
+  .handler(async ({ data }) => {
+    const invitation = await db.query.serviceInvitations.findFirst({
+      where: eq(serviceInvitations.id, data.invitationId),
+    })
+
+    if (!invitation) return { error: 'Invitation not found' }
+    if (invitation.status !== 'pending') return { error: 'Invitation expired' }
+    if (new Date() > invitation.expiresAt)
+      return { error: 'Invitation expired' }
+
+    await db
+      .insert(serviceMembers)
+      .values({
+        role: invitation.role,
+        serviceId: invitation.serviceId,
+        userId: data.userId,
+      })
+      .onConflictDoNothing()
+
+    await db
+      .update(serviceInvitations)
+      .set({ status: 'accepted' })
+      .where(eq(serviceInvitations.id, data.invitationId))
+
+    return { ok: true, serviceId: invitation.serviceId }
+  })
+
+export const getServiceInvitationById = createServerFn({ method: 'GET' })
+  .inputValidator((invitationId: string) => invitationId)
+  .handler(async ({ data: invitationId }) => {
+    const invitation = await db.query.serviceInvitations.findFirst({
+      where: eq(serviceInvitations.id, invitationId),
+      with: { service: true },
+    })
+
+    return invitation ?? null
   })
 
 // --- Services ---

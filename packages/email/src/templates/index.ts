@@ -1,4 +1,6 @@
 export { PasswordReset } from './password-reset'
+export { ProjectInvite } from './project-invite'
+export { ServiceInvite } from './service-invite'
 export { TeamInvite } from './team-invite'
 export { TwoFactorEnabled } from './two-factor-enabled'
 export { VerifyEmail } from './verify-email'
