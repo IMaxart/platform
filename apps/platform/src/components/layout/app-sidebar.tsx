@@ -107,6 +107,11 @@ export const AppSidebar = () => {
                 label: m.common_members(),
                 path: `/projects/${projectId}/members`,
               },
+              {
+                icon: Settings,
+                label: m.common_settings(),
+                path: `/projects/${projectId}/settings`,
+              },
             ]}
             label={m.common_project()}
             pathname={location.pathname}
