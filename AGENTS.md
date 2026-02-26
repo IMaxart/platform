@@ -2,8 +2,6 @@
 
 ## Git
 
-Author for all commits: `Ingram Kalina <ingram.kalina@imaxart.com>`
-
 Branch naming: conventional, English, kebab-case. Examples: `feat/user-invitation`, `fix/session-timezone-offset`, `chore/bump-drizzle`.
 
 ## Forms
