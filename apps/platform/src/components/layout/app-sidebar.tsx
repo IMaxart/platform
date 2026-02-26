@@ -300,6 +300,7 @@ function ServiceNavSection({
       label: m.common_status(),
       path: `${base}/status`,
     },
+    { icon: Users, label: m.common_members(), path: `${base}/members` },
     { icon: Settings, label: m.common_settings(), path: `${base}/settings` },
   ]
 
