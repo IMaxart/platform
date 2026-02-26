@@ -1,4 +1,5 @@
 import { Button, Text } from '@react-email/components'
+import type { CSSProperties } from 'react'
 
 import { Layout } from './layout'
 
@@ -20,28 +21,28 @@ export const Welcome = ({ name, url }: WelcomeProps) => (
   </Layout>
 )
 
-const heading = {
+const heading: CSSProperties = {
   color: '#0f172a',
   fontSize: '22px',
-  fontWeight: '600' as const,
+  fontWeight: 600,
   lineHeight: '28px',
   margin: '0 0 16px',
 }
 
-const paragraph = {
+const paragraph: CSSProperties = {
   color: '#475569',
   fontSize: '15px',
   lineHeight: '24px',
   margin: '0 0 24px',
 }
 
-const button = {
+const button: CSSProperties = {
   backgroundColor: '#0f172a',
   borderRadius: '8px',
   color: '#ffffff',
-  display: 'inline-block' as const,
+  display: 'inline-block',
   fontSize: '14px',
-  fontWeight: '500' as const,
+  fontWeight: 500,
   lineHeight: '100%',
   padding: '12px 24px',
   textDecoration: 'none',
