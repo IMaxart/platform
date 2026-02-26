@@ -65,6 +65,9 @@ importers:
       '@platform/db':
         specifier: workspace:*
         version: link:../../packages/db
+      '@platform/email':
+        specifier: workspace:*
+        version: link:../../packages/email
       '@platform/shared':
         specifier: workspace:*
         version: link:../../packages/shared

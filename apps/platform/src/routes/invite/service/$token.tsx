@@ -1,12 +1,12 @@
 import { useSession } from '@platform/auth/client'
 import { Button } from '@platform/ui/components/button'
+import { useQuery } from '@tanstack/react-query'
 import {
   createFileRoute,
   Link,
   useNavigate,
   useParams,
 } from '@tanstack/react-router'
-import { useQuery } from '@tanstack/react-query'
 import { Check, Loader2, Server } from 'lucide-react'
 import { useCallback, useState } from 'react'
 
@@ -33,10 +33,10 @@ function ServiceInvitePage() {
     queryKey: ['service-invitation', token],
   })
 
-  const serviceName = invitationQuery.data?.service?.name
+  const serviceName = invitationQuery.data?.service?.name ?? ''
 
   const handleAccept = useCallback(async () => {
-    if (!session?.user.id) return
+    if (session?.user.id === undefined) return
     setError(null)
     setLoading(true)
 
@@ -45,7 +45,7 @@ function ServiceInvitePage() {
         data: { invitationId: token, userId: session.user.id },
       })
 
-      if ('error' in result && result.error) {
+      if ('error' in result && typeof result.error === 'string') {
         setError(result.error)
         setLoading(false)
         return
@@ -107,7 +107,7 @@ function ServiceInvitePage() {
         <p className="text-muted-foreground mt-2 text-sm">
           {joined
             ? m.invite_redirecting()
-            : m.serviceInvite_invitedToService({ name: serviceName ?? '' })}
+            : m.serviceInvite_invitedToService({ name: serviceName })}
         </p>
 
         {!joined && (

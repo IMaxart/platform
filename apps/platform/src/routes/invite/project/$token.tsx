@@ -1,12 +1,12 @@
 import { useSession } from '@platform/auth/client'
 import { Button } from '@platform/ui/components/button'
+import { useQuery } from '@tanstack/react-query'
 import {
   createFileRoute,
   Link,
   useNavigate,
   useParams,
 } from '@tanstack/react-router'
-import { useQuery } from '@tanstack/react-query'
 import { Check, FolderKanban, Loader2 } from 'lucide-react'
 import { useCallback, useState } from 'react'
 
@@ -33,10 +33,10 @@ function ProjectInvitePage() {
     queryKey: ['project-invitation', token],
   })
 
-  const projectName = invitationQuery.data?.project?.name
+  const projectName = invitationQuery.data?.project?.name ?? ''
 
   const handleAccept = useCallback(async () => {
-    if (!session?.user.id) return
+    if (session?.user.id === undefined) return
     setError(null)
     setLoading(true)
 
@@ -45,7 +45,7 @@ function ProjectInvitePage() {
         data: { invitationId: token, userId: session.user.id },
       })
 
-      if ('error' in result && result.error) {
+      if ('error' in result && typeof result.error === 'string') {
         setError(result.error)
         setLoading(false)
         return
@@ -53,10 +53,10 @@ function ProjectInvitePage() {
 
       setJoined(true)
       setTimeout(() => {
-        if ('projectId' in result && result.projectId) {
+        if ('projectId' in result && typeof result.projectId === 'string') {
           void navigate({
-            to: '/projects/$projectId/members',
             params: { projectId: result.projectId },
+            to: '/projects/$projectId/members',
           })
         } else {
           void navigate({ to: '/' })
@@ -114,7 +114,7 @@ function ProjectInvitePage() {
         <p className="text-muted-foreground mt-2 text-sm">
           {joined
             ? m.invite_redirecting()
-            : m.projectInvite_invitedToProject({ name: projectName ?? '' })}
+            : m.projectInvite_invitedToProject({ name: projectName })}
         </p>
 
         {!joined && (
