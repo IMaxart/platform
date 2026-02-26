@@ -33,7 +33,7 @@ function ServiceInvitePage() {
     queryKey: ['service-invitation', token],
   })
 
-  const serviceName = invitationQuery.data?.service?.name ?? ''
+  const serviceName = invitationQuery.data?.service.name ?? ''
 
   const handleAccept = useCallback(async () => {
     if (session?.user.id === undefined) return

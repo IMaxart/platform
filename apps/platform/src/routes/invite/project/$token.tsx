@@ -33,7 +33,7 @@ function ProjectInvitePage() {
     queryKey: ['project-invitation', token],
   })
 
-  const projectName = invitationQuery.data?.project?.name ?? ''
+  const projectName = invitationQuery.data?.project.name ?? ''
 
   const handleAccept = useCallback(async () => {
     if (session?.user.id === undefined) return
