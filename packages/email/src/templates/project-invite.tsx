@@ -3,7 +3,7 @@ import { Button, Text } from '@react-email/components'
 import { Layout } from './layout'
 
 type ProjectInviteProps = {
-  inviterName?: string
+  inviterName?: string | undefined
   projectName: string
   role: string
   url: string
