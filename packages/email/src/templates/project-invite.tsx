@@ -3,24 +3,34 @@ import type { CSSProperties } from 'react'
 
 import { Layout } from './layout'
 
-type PasswordResetProps = {
-  name: string
+type ProjectInviteProps = {
+  inviterName?: string | undefined
+  projectName: string
+  role: string
   url: string
 }
 
-export const PasswordReset = ({ name, url }: PasswordResetProps) => (
-  <Layout preview="Reset your password">
-    <Text style={heading}>Reset your password</Text>
+export const ProjectInvite = ({
+  inviterName,
+  projectName,
+  role,
+  url,
+}: ProjectInviteProps) => (
+  <Layout preview={`You've been invited to project ${projectName}`}>
+    <Text style={heading}>Project Invitation</Text>
     <Text style={paragraph}>
-      Hi {name}, we received a request to reset your password. Click the button
-      below to choose a new one.
+      {inviterName !== undefined
+        ? `${inviterName} has invited you`
+        : 'You have been invited'}{' '}
+      to join project <strong>{projectName}</strong> as a{' '}
+      <strong>{role}</strong>.
     </Text>
     <Button href={url} style={button}>
-      Reset Password
+      Join Project
     </Button>
     <Text style={hint}>
-      This link expires in 1 hour. If you didn&apos;t request a password reset,
-      you can safely ignore this email.
+      If you don&apos;t recognize this invitation, you can safely ignore this
+      email.
     </Text>
   </Layout>
 )

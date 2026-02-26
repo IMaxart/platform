@@ -1,4 +1,5 @@
 import { Text } from '@react-email/components'
+import type { CSSProperties } from 'react'
 
 import { Layout } from './layout'
 
@@ -20,22 +21,22 @@ export const TwoFactorEnabled = ({ name }: TwoFactorEnabledProps) => (
   </Layout>
 )
 
-const heading = {
+const heading: CSSProperties = {
   color: '#0f172a',
   fontSize: '22px',
-  fontWeight: '600' as const,
+  fontWeight: 600,
   lineHeight: '28px',
   margin: '0 0 16px',
 }
 
-const paragraph = {
+const paragraph: CSSProperties = {
   color: '#475569',
   fontSize: '15px',
   lineHeight: '24px',
   margin: '0 0 16px',
 }
 
-const warning = {
+const warning: CSSProperties = {
   backgroundColor: '#fef3c7',
   borderRadius: '8px',
   color: '#92400e',

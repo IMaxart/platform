@@ -3,24 +3,34 @@ import type { CSSProperties } from 'react'
 
 import { Layout } from './layout'
 
-type PasswordResetProps = {
-  name: string
+type ServiceInviteProps = {
+  inviterName?: string | undefined
+  role: string
+  serviceName: string
   url: string
 }
 
-export const PasswordReset = ({ name, url }: PasswordResetProps) => (
-  <Layout preview="Reset your password">
-    <Text style={heading}>Reset your password</Text>
+export const ServiceInvite = ({
+  inviterName,
+  role,
+  serviceName,
+  url,
+}: ServiceInviteProps) => (
+  <Layout preview={`You've been invited to service ${serviceName}`}>
+    <Text style={heading}>Service Invitation</Text>
     <Text style={paragraph}>
-      Hi {name}, we received a request to reset your password. Click the button
-      below to choose a new one.
+      {inviterName !== undefined
+        ? `${inviterName} has invited you`
+        : 'You have been invited'}{' '}
+      to join service <strong>{serviceName}</strong> as a{' '}
+      <strong>{role}</strong>.
     </Text>
     <Button href={url} style={button}>
-      Reset Password
+      Join Service
     </Button>
     <Text style={hint}>
-      This link expires in 1 hour. If you didn&apos;t request a password reset,
-      you can safely ignore this email.
+      If you don&apos;t recognize this invitation, you can safely ignore this
+      email.
     </Text>
   </Layout>
 )

@@ -198,6 +198,32 @@ export const projectMembers = pgTable(
   ],
 )
 
+// ── Project invitations ──
+
+export const projectInvitations = pgTable(
+  'project_invitations',
+  {
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    email: text('email').notNull(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    id: uuid('id').primaryKey().defaultRandom(),
+    inviterId: text('inviter_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    projectId: uuid('project_id')
+      .notNull()
+      .references(() => projects.id, { onDelete: 'cascade' }),
+    role: text('role').notNull().default('viewer'),
+    status: text('status').notNull().default('pending'),
+  },
+  (table) => [
+    index('project_invitations_project_idx').on(table.projectId),
+    index('project_invitations_email_idx').on(table.email),
+  ],
+)
+
 // ── Services (the atomic unit: can have analytics, status, or both) ──
 
 export const services = pgTable('services', {
@@ -229,6 +255,58 @@ export const services = pgTable('services', {
     .defaultNow()
     .$onUpdate(() => new Date()),
 })
+
+// ── Service members ──
+
+export const serviceMembers = pgTable(
+  'service_members',
+  {
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    id: uuid('id').primaryKey().defaultRandom(),
+    role: text('role').notNull().default('viewer'),
+    serviceId: uuid('service_id')
+      .notNull()
+      .references(() => services.id, { onDelete: 'cascade' }),
+    userId: text('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+  },
+  (table) => [
+    uniqueIndex('service_members_service_user_idx').on(
+      table.serviceId,
+      table.userId,
+    ),
+    index('service_members_user_idx').on(table.userId),
+  ],
+)
+
+// ── Service invitations ──
+
+export const serviceInvitations = pgTable(
+  'service_invitations',
+  {
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    email: text('email').notNull(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    id: uuid('id').primaryKey().defaultRandom(),
+    inviterId: text('inviter_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    role: text('role').notNull().default('viewer'),
+    serviceId: uuid('service_id')
+      .notNull()
+      .references(() => services.id, { onDelete: 'cascade' }),
+    status: text('status').notNull().default('pending'),
+  },
+  (table) => [
+    index('service_invitations_service_idx').on(table.serviceId),
+    index('service_invitations_email_idx').on(table.email),
+  ],
+)
 
 // ── Analytics tables (linked to services) ──
 
@@ -523,6 +601,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   members: many(members),
   passkeys: many(passkeys),
   projectMembers: many(projectMembers),
+  serviceMembers: many(serviceMembers),
   sessions: many(sessions),
   twoFactors: many(twoFactors),
 }))
@@ -584,6 +663,7 @@ export const invitationsRelations = relations(invitations, ({ one }) => ({
 }))
 
 export const projectsRelations = relations(projects, ({ many, one }) => ({
+  invitations: many(projectInvitations),
   members: many(projectMembers),
   services: many(services),
   team: one(organizations, {
@@ -603,6 +683,45 @@ export const projectMembersRelations = relations(projectMembers, ({ one }) => ({
   }),
 }))
 
+export const projectInvitationsRelations = relations(
+  projectInvitations,
+  ({ one }) => ({
+    inviter: one(users, {
+      fields: [projectInvitations.inviterId],
+      references: [users.id],
+    }),
+    project: one(projects, {
+      fields: [projectInvitations.projectId],
+      references: [projects.id],
+    }),
+  }),
+)
+
+export const serviceMembersRelations = relations(serviceMembers, ({ one }) => ({
+  service: one(services, {
+    fields: [serviceMembers.serviceId],
+    references: [services.id],
+  }),
+  user: one(users, {
+    fields: [serviceMembers.userId],
+    references: [users.id],
+  }),
+}))
+
+export const serviceInvitationsRelations = relations(
+  serviceInvitations,
+  ({ one }) => ({
+    inviter: one(users, {
+      fields: [serviceInvitations.inviterId],
+      references: [users.id],
+    }),
+    service: one(services, {
+      fields: [serviceInvitations.serviceId],
+      references: [services.id],
+    }),
+  }),
+)
+
 export const servicesRelations = relations(services, ({ many, one }) => ({
   consoleErrors: many(consoleErrors),
   dokploy: one(statusServiceDokploy),
@@ -610,6 +729,8 @@ export const servicesRelations = relations(services, ({ many, one }) => ({
   events: many(events),
   excludedDevices: many(excludedDevices),
   featureFlags: many(featureFlags),
+  invitations: many(serviceInvitations),
+  members: many(serviceMembers),
   pageViews: many(pageViews),
   project: one(projects, {
     fields: [services.projectId],

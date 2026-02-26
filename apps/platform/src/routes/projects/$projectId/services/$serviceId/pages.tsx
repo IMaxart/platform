@@ -19,7 +19,7 @@ import { useState } from 'react'
 
 import { TimeRangeSelect } from '~/components/dashboard/time-range-select'
 import { Header } from '~/components/layout/header'
-import { getTopPages } from '~/lib/server/queries'
+import { getTopPages } from '~/lib/server/analytics-queries'
 import * as m from '~/paraglide/messages'
 
 export const Route = createFileRoute(

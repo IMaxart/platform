@@ -16,7 +16,7 @@ import { ChevronRight, FolderOpen, Loader2, Plus } from 'lucide-react'
 import { useState } from 'react'
 
 import { Header } from '~/components/layout/header'
-import { createProject, getProjects } from '~/lib/server/queries'
+import { createProject, getProjects } from '~/lib/server/project-queries'
 import * as m from '~/paraglide/messages'
 
 export const Route = createFileRoute('/projects/')({

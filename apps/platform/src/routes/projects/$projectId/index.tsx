@@ -11,7 +11,7 @@ import { createFileRoute, useParams } from '@tanstack/react-router'
 import { Activity, BarChart3, Server } from 'lucide-react'
 
 import { Header } from '~/components/layout/header'
-import { getProjectServices } from '~/lib/server/queries'
+import { getProjectServices } from '~/lib/server/service-queries'
 import * as m from '~/paraglide/messages'
 
 type ProjectService = {

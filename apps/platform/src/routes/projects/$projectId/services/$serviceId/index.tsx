@@ -24,12 +24,12 @@ import { useState } from 'react'
 import { Header } from '~/components/layout/header'
 import {
   getBotStats,
-  getProjectServices,
   getTopCountries,
   getTopPages,
   getTopReferrers,
   getVisitorStats,
-} from '~/lib/server/queries'
+} from '~/lib/server/analytics-queries'
+import { getProjectServices } from '~/lib/server/service-queries'
 import * as m from '~/paraglide/messages'
 
 type BotStats = {

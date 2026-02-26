@@ -39,14 +39,14 @@ import { useState } from 'react'
 
 import { Header } from '~/components/layout/header'
 import {
-  addProjectMember,
-  cancelProjectInvitation,
-  createProjectInvitation,
-  getProjectInvitations,
-  getProjectMembers,
-  removeProjectMember,
-  updateProjectMemberRole,
-} from '~/lib/server/project-queries'
+  addServiceMember,
+  cancelServiceInvitation,
+  createServiceInvitation,
+  getServiceInvitations,
+  getServiceMembers,
+  removeServiceMember,
+  updateServiceMemberRole,
+} from '~/lib/server/service-queries'
 import { searchUsers } from '~/lib/server/user-queries'
 import * as m from '~/paraglide/messages'
 
@@ -60,26 +60,28 @@ const translateRole = (role: string) => {
   return role
 }
 
-export const Route = createFileRoute('/projects/$projectId/members')({
-  component: ProjectMembersPage,
+export const Route = createFileRoute(
+  '/projects/$projectId/services/$serviceId/members',
+)({
+  component: ServiceMembersPage,
 })
 
 type InviteByEmailFormProps = {
   onSuccess: () => void
-  projectId: string
+  serviceId: string
 }
 
 type InviteSectionProps = {
-  projectId: string
+  serviceId: string
 }
 
 type SearchAddFormProps = {
   onCancel: () => void
   onSuccess: () => void
-  projectId: string
+  serviceId: string
 }
 
-function InviteByEmailForm({ onSuccess, projectId }: InviteByEmailFormProps) {
+function InviteByEmailForm({ onSuccess, serviceId }: InviteByEmailFormProps) {
   const { data: session } = useSession()
   const [error, setError] = useState<null | string>(null)
 
@@ -93,17 +95,17 @@ function InviteByEmailForm({ onSuccess, projectId }: InviteByEmailFormProps) {
       if (session?.user.id === undefined) return
 
       try {
-        await createProjectInvitation({
+        await createServiceInvitation({
           data: {
             email: value.email,
             inviterId: session.user.id,
-            projectId,
             role: value.role,
+            serviceId,
           },
         })
         onSuccess()
       } catch {
-        setError(m.projectInvite_failedToSend())
+        setError(m.serviceInvite_failedToSend())
       }
     },
   })
@@ -139,7 +141,7 @@ function InviteByEmailForm({ onSuccess, projectId }: InviteByEmailFormProps) {
         <form.Field name="role">
           {(field) => (
             <div className="space-y-2">
-              <Label>{m.projectMembers_role()}</Label>
+              <Label>{m.serviceInvite_role()}</Label>
               <Select
                 onValueChange={(value) => {
                   field.handleChange(value)
@@ -170,7 +172,7 @@ function InviteByEmailForm({ onSuccess, projectId }: InviteByEmailFormProps) {
             ) : (
               <Mail className="mr-2 h-4 w-4" />
             )}
-            {m.projectInvite_sendInvitation()}
+            {m.serviceInvite_sendInvitation()}
           </Button>
         )}
       </form.Subscribe>
@@ -182,20 +184,20 @@ function InviteByEmailForm({ onSuccess, projectId }: InviteByEmailFormProps) {
   )
 }
 
-function InviteSection({ projectId }: InviteSectionProps) {
+function InviteSection({ serviceId }: InviteSectionProps) {
   const queryClient = useQueryClient()
   const [showSearch, setShowSearch] = useState(false)
   const [inviteSuccess, setInviteSuccess] = useState(false)
 
   const invitationsQuery = useQuery({
-    queryFn: () => getProjectInvitations({ data: projectId }),
-    queryKey: ['project-invitations', projectId],
+    queryFn: () => getServiceInvitations({ data: serviceId }),
+    queryKey: ['service-invitations', serviceId],
   })
 
   const handleInviteSuccess = () => {
     setInviteSuccess(true)
     void queryClient.invalidateQueries({
-      queryKey: ['project-invitations', projectId],
+      queryKey: ['service-invitations', serviceId],
     })
     setTimeout(() => {
       setInviteSuccess(false)
@@ -208,26 +210,26 @@ function InviteSection({ projectId }: InviteSectionProps) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <UserPlus className="h-5 w-5" />
-            {m.projectInvite_inviteMembers()}
+            {m.serviceInvite_inviteMembers()}
           </CardTitle>
           <CardDescription>
-            {m.projectInvite_inviteDescription()}
+            {m.serviceInvite_inviteDescription()}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <Tabs defaultValue="email">
             <TabsList>
               <TabsTrigger value="email">
-                {m.projectInvite_byEmail()}
+                {m.serviceInvite_byEmail()}
               </TabsTrigger>
               <TabsTrigger value="search">
-                {m.projectInvite_existingUser()}
+                {m.serviceInvite_existingUser()}
               </TabsTrigger>
             </TabsList>
             <TabsContent className="mt-4" value="email">
               <InviteByEmailForm
                 onSuccess={handleInviteSuccess}
-                projectId={projectId}
+                serviceId={serviceId}
               />
             </TabsContent>
             <TabsContent className="mt-4" value="search">
@@ -239,10 +241,10 @@ function InviteSection({ projectId }: InviteSectionProps) {
                   onSuccess={() => {
                     setShowSearch(false)
                     void queryClient.invalidateQueries({
-                      queryKey: ['project-members', projectId],
+                      queryKey: ['service-members', serviceId],
                     })
                   }}
-                  projectId={projectId}
+                  serviceId={serviceId}
                 />
               ) : (
                 <Button
@@ -252,7 +254,7 @@ function InviteSection({ projectId }: InviteSectionProps) {
                   variant="outline"
                 >
                   <Search className="mr-2 h-4 w-4" />
-                  {m.projectMembers_searchByEmail()}
+                  {m.serviceInvite_searchByEmail()}
                 </Button>
               )}
             </TabsContent>
@@ -260,7 +262,7 @@ function InviteSection({ projectId }: InviteSectionProps) {
 
           {inviteSuccess && (
             <p className="text-sm font-medium text-green-600">
-              {m.projectInvite_invitationSent()}
+              {m.serviceInvite_invitationSent()}
             </p>
           )}
         </CardContent>
@@ -269,7 +271,7 @@ function InviteSection({ projectId }: InviteSectionProps) {
       {invitationsQuery.data && invitationsQuery.data.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>{m.projectInvite_pendingInvitations()}</CardTitle>
+            <CardTitle>{m.serviceInvite_pendingInvitations()}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
@@ -290,7 +292,7 @@ function InviteSection({ projectId }: InviteSectionProps) {
                   </div>
                   <Button
                     onClick={() => {
-                      void cancelProjectInvitation({
+                      void cancelServiceInvitation({
                         data: { invitationId: inv.id },
                       })
                       void invitationsQuery.refetch()
@@ -310,103 +312,7 @@ function InviteSection({ projectId }: InviteSectionProps) {
   )
 }
 
-function ProjectMembersPage() {
-  const { projectId } = useParams({ from: '/projects/$projectId/members' })
-  const queryClient = useQueryClient()
-
-  const membersQuery = useQuery({
-    queryFn: () => getProjectMembers({ data: projectId }),
-    queryKey: ['project-members', projectId],
-  })
-
-  const handleRemove = async (memberId: string) => {
-    await removeProjectMember({ data: { memberId } })
-    void queryClient.invalidateQueries({
-      queryKey: ['project-members', projectId],
-    })
-  }
-
-  const handleRoleChange = async (memberId: string, role: string) => {
-    await updateProjectMemberRole({ data: { memberId, role } })
-    void queryClient.invalidateQueries({
-      queryKey: ['project-members', projectId],
-    })
-  }
-
-  return (
-    <>
-      <Header title={m.projectMembers_title()} />
-      <div className="flex-1 space-y-6 p-4 md:p-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>{m.projectMembers_members()}</CardTitle>
-            <CardDescription>{m.projectMembers_description()}</CardDescription>
-          </CardHeader>
-          <CardContent className="p-0">
-            <div className="divide-y">
-              {membersQuery.data?.map((member) => (
-                <div
-                  className="flex items-center justify-between px-5 py-3"
-                  key={member.id}
-                >
-                  <div>
-                    <p className="text-sm font-medium">{member.name}</p>
-                    <p className="text-muted-foreground text-xs">
-                      {member.email}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Select
-                      onValueChange={(value) => {
-                        void handleRoleChange(member.id, value)
-                      }}
-                      value={member.role}
-                    >
-                      <SelectTrigger className="w-28">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {ROLES.map((role) => (
-                          <SelectItem key={role} value={role}>
-                            {translateRole(role)}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    {member.role !== 'owner' && (
-                      <Button
-                        onClick={() => {
-                          void handleRemove(member.id)
-                        }}
-                        size="icon"
-                        variant="ghost"
-                      >
-                        <Trash2 className="text-destructive h-4 w-4" />
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              ))}
-
-              {membersQuery.data?.length === 0 && (
-                <div className="flex flex-col items-center justify-center py-12">
-                  <Users className="text-muted-foreground mb-4 h-8 w-8" />
-                  <p className="text-muted-foreground text-sm">
-                    {m.projectMembers_noMembersYet()}
-                  </p>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        <InviteSection projectId={projectId} />
-      </div>
-    </>
-  )
-}
-
-function SearchAddForm({ onCancel, onSuccess, projectId }: SearchAddFormProps) {
+function SearchAddForm({ onCancel, onSuccess, serviceId }: SearchAddFormProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedUser, setSelectedUser] = useState<null | {
     email: string
@@ -426,10 +332,10 @@ function SearchAddForm({ onCancel, onSuccess, projectId }: SearchAddFormProps) {
     },
     onSubmit: async ({ value }) => {
       if (!selectedUser) return
-      await addProjectMember({
+      await addServiceMember({
         data: {
-          projectId,
           role: value.role,
+          serviceId,
           userId: selectedUser.id,
         },
       })
@@ -448,7 +354,7 @@ function SearchAddForm({ onCancel, onSuccess, projectId }: SearchAddFormProps) {
               onChange={(e) => {
                 setSearchQuery(e.target.value)
               }}
-              placeholder={m.projectMembers_searchByEmail()}
+              placeholder={m.serviceInvite_searchByEmail()}
               value={searchQuery}
             />
           </div>
@@ -508,7 +414,7 @@ function SearchAddForm({ onCancel, onSuccess, projectId }: SearchAddFormProps) {
           <form.Field name="role">
             {(field) => (
               <div className="mb-4 space-y-2">
-                <Label>{m.projectMembers_role()}</Label>
+                <Label>{m.serviceInvite_role()}</Label>
                 <Select
                   onValueChange={(value) => {
                     field.handleChange(value)
@@ -539,7 +445,7 @@ function SearchAddForm({ onCancel, onSuccess, projectId }: SearchAddFormProps) {
                   ) : (
                     <Plus className="mr-2 h-4 w-4" />
                   )}
-                  {m.projectMembers_addMember()}
+                  {m.serviceInvite_addMember()}
                 </Button>
               )}
             </form.Subscribe>
@@ -550,5 +456,103 @@ function SearchAddForm({ onCancel, onSuccess, projectId }: SearchAddFormProps) {
         </form>
       )}
     </div>
+  )
+}
+
+function ServiceMembersPage() {
+  const { serviceId } = useParams({
+    from: '/projects/$projectId/services/$serviceId/members',
+  })
+  const queryClient = useQueryClient()
+
+  const membersQuery = useQuery({
+    queryFn: () => getServiceMembers({ data: serviceId }),
+    queryKey: ['service-members', serviceId],
+  })
+
+  const handleRemove = async (memberId: string) => {
+    await removeServiceMember({ data: { memberId } })
+    void queryClient.invalidateQueries({
+      queryKey: ['service-members', serviceId],
+    })
+  }
+
+  const handleRoleChange = async (memberId: string, role: string) => {
+    await updateServiceMemberRole({ data: { memberId, role } })
+    void queryClient.invalidateQueries({
+      queryKey: ['service-members', serviceId],
+    })
+  }
+
+  return (
+    <>
+      <Header title={m.serviceMembers_title()} />
+      <div className="flex-1 space-y-6 p-4 md:p-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>{m.serviceMembers_members()}</CardTitle>
+            <CardDescription>{m.serviceMembers_description()}</CardDescription>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="divide-y">
+              {membersQuery.data?.map((member) => (
+                <div
+                  className="flex items-center justify-between px-5 py-3"
+                  key={member.id}
+                >
+                  <div>
+                    <p className="text-sm font-medium">{member.name}</p>
+                    <p className="text-muted-foreground text-xs">
+                      {member.email}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Select
+                      onValueChange={(value) => {
+                        void handleRoleChange(member.id, value)
+                      }}
+                      value={member.role}
+                    >
+                      <SelectTrigger className="w-28">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {ROLES.map((role) => (
+                          <SelectItem key={role} value={role}>
+                            {translateRole(role)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {member.role !== 'owner' && (
+                      <Button
+                        onClick={() => {
+                          void handleRemove(member.id)
+                        }}
+                        size="icon"
+                        variant="ghost"
+                      >
+                        <Trash2 className="text-destructive h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ))}
+
+              {membersQuery.data?.length === 0 && (
+                <div className="flex flex-col items-center justify-center py-12">
+                  <Users className="text-muted-foreground mb-4 h-8 w-8" />
+                  <p className="text-muted-foreground text-sm">
+                    {m.serviceMembers_noMembersYet()}
+                  </p>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        <InviteSection serviceId={serviceId} />
+      </div>
+    </>
   )
 }

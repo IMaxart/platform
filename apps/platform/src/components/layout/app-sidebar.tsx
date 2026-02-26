@@ -31,7 +31,8 @@ import {
   Users,
 } from 'lucide-react'
 
-import { getProjects, getProjectServices } from '~/lib/server/queries'
+import { getProjects } from '~/lib/server/project-queries'
+import { getProjectServices } from '~/lib/server/service-queries'
 import * as m from '~/paraglide/messages'
 
 type NavItemDef = {
@@ -300,6 +301,7 @@ function ServiceNavSection({
       label: m.common_status(),
       path: `${base}/status`,
     },
+    { icon: Users, label: m.common_members(), path: `${base}/members` },
     { icon: Settings, label: m.common_settings(), path: `${base}/settings` },
   ]
 

@@ -32,7 +32,7 @@ import { Flag, Loader2, Plus } from 'lucide-react'
 import { useState } from 'react'
 
 import { Header } from '~/components/layout/header'
-import { getFeatureFlags } from '~/lib/server/queries'
+import { getFeatureFlags } from '~/lib/server/service-queries'
 import * as m from '~/paraglide/messages'
 
 export const Route = createFileRoute(

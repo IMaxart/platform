@@ -21,6 +21,7 @@
   "dependencies": {
     "@platform/auth": "workspace:*",
     "@platform/db": "workspace:*",
+    "@platform/email": "workspace:*",
     "@platform/shared": "workspace:*",
     "@platform/ui": "workspace:*",
     "@tailwindcss/vite": "^4.2.0",

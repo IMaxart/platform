@@ -39,7 +39,7 @@ import {
   deleteEndpoint,
   deleteService,
   getProjectServices,
-} from '~/lib/server/queries'
+} from '~/lib/server/service-queries'
 import * as m from '~/paraglide/messages'
 
 type ProjectService = {
