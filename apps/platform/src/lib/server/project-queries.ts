@@ -46,6 +46,31 @@ export const createProject = createServerFn({ method: 'POST' })
     return project
   })
 
+export const getProjectDeletionInfo = createServerFn({ method: 'GET' })
+  .inputValidator((projectId: string) => projectId)
+  .handler(async ({ data: projectId }) => {
+    const project = await db.query.projects.findFirst({
+      where: eq(projects.id, projectId),
+      with: {
+        members: {
+          columns: { id: true, userId: true },
+          with: { user: { columns: { name: true } } },
+        },
+        services: { columns: { id: true, name: true } },
+      },
+    })
+
+    return project ?? null
+  })
+
+export const deleteProject = createServerFn({ method: 'POST' })
+  .inputValidator((d: { projectId: string }) => d)
+  .handler(async ({ data }) => {
+    await db.delete(projects).where(eq(projects.id, data.projectId))
+
+    return { ok: true }
+  })
+
 // ── Project Members ──
 
 export const getProjectMembers = createServerFn({ method: 'GET' })
