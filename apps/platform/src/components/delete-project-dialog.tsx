@@ -9,29 +9,31 @@ import {
 } from '@platform/ui/components/dialog'
 import { Input } from '@platform/ui/components/input'
 import { Label } from '@platform/ui/components/label'
-import { useQuery } from '@tanstack/react-query'
+import { useForm } from '@tanstack/react-form'
+import { useMutation, useQuery } from '@tanstack/react-query'
 import { AlertTriangle, Check, Clipboard, Loader2 } from 'lucide-react'
 import { useState } from 'react'
 
-import { getProjectDeletionInfo } from '~/lib/server/project-queries'
+import {
+  deleteProject,
+  getProjectDeletionInfo,
+} from '~/lib/server/project-queries'
 import * as m from '~/paraglide/messages'
 
 type DeleteProjectDialogProps = {
-  onConfirm: () => Promise<void>
   onOpenChange: (open: boolean) => void
+  onSuccess: () => void
   open: boolean
   projectId: string
 }
 
 export const DeleteProjectDialog = ({
-  onConfirm,
   onOpenChange,
+  onSuccess,
   open,
   projectId,
 }: DeleteProjectDialogProps) => {
-  const [confirmValue, setConfirmValue] = useState('')
   const [copied, setCopied] = useState(false)
-  const [isDeleting, setIsDeleting] = useState(false)
 
   const { data: project } = useQuery({
     enabled: open,
@@ -39,12 +41,23 @@ export const DeleteProjectDialog = ({
     queryKey: ['project-deletion-info', projectId],
   })
 
+  const deleteMutation = useMutation({
+    mutationFn: () => deleteProject({ data: { projectId } }),
+    onSuccess,
+  })
+
   const projectName = project?.name ?? ''
   const serviceNames = project?.services.map((s) => s.name) ?? []
   const memberCount = project?.members.length ?? 0
   const hasServices = serviceNames.length > 0
   const hasMembers = memberCount > 0
-  const isConfirmed = confirmValue === projectName && projectName.length > 0
+
+  const form = useForm({
+    defaultValues: { confirmName: '' },
+    onSubmit: async () => {
+      await deleteMutation.mutateAsync()
+    },
+  })
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(projectName)
@@ -54,19 +67,9 @@ export const DeleteProjectDialog = ({
     }, 2000)
   }
 
-  const handleDelete = async () => {
-    if (!isConfirmed) return
-    setIsDeleting(true)
-    try {
-      await onConfirm()
-    } finally {
-      setIsDeleting(false)
-    }
-  }
-
   const handleOpenChange = (nextOpen: boolean) => {
     if (!nextOpen) {
-      setConfirmValue('')
+      form.reset()
       setCopied(false)
     }
     onOpenChange(nextOpen)
@@ -83,7 +86,13 @@ export const DeleteProjectDialog = ({
           <DialogDescription>{m.deleteProject_description()}</DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-3">
+        <form
+          className="space-y-3"
+          onSubmit={(e) => {
+            e.preventDefault()
+            void form.handleSubmit()
+          }}
+        >
           <div className="bg-destructive/10 border-destructive/20 space-y-2 rounded-md border p-3 text-sm">
             <p className="text-destructive font-medium">
               {m.deleteProject_irreversible()}
@@ -136,38 +145,54 @@ export const DeleteProjectDialog = ({
                 )}
               </Button>
             </div>
-            <Input
-              onChange={(e) => {
-                setConfirmValue(e.target.value)
-              }}
-              placeholder={m.deleteProject_inputPlaceholder()}
-              value={confirmValue}
-            />
+            <form.Field name="confirmName">
+              {(field) => (
+                <Input
+                  onChange={(e) => {
+                    field.handleChange(e.target.value)
+                  }}
+                  placeholder={m.deleteProject_inputPlaceholder()}
+                  value={field.state.value}
+                />
+              )}
+            </form.Field>
           </div>
-        </div>
 
-        <DialogFooter>
-          <Button
-            onClick={() => {
-              handleOpenChange(false)
-            }}
-            type="button"
-            variant="outline"
-          >
-            {m.common_cancel()}
-          </Button>
-          <Button
-            disabled={!isConfirmed || isDeleting}
-            onClick={() => {
-              void handleDelete()
-            }}
-            type="button"
-            variant="destructive"
-          >
-            {isDeleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {m.deleteProject_deleteButton()}
-          </Button>
-        </DialogFooter>
+          <DialogFooter>
+            <Button
+              onClick={() => {
+                handleOpenChange(false)
+              }}
+              type="button"
+              variant="outline"
+            >
+              {m.common_cancel()}
+            </Button>
+            <form.Subscribe
+              selector={(s) => ({
+                confirmName: s.values.confirmName,
+              })}
+            >
+              {({ confirmName }) => {
+                const isConfirmed =
+                  confirmName === projectName && projectName.length > 0
+
+                return (
+                  <Button
+                    disabled={!isConfirmed || deleteMutation.isPending}
+                    type="submit"
+                    variant="destructive"
+                  >
+                    {deleteMutation.isPending && (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    )}
+                    {m.deleteProject_deleteButton()}
+                  </Button>
+                )
+              }}
+            </form.Subscribe>
+          </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   )

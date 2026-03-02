@@ -13,7 +13,6 @@ import { useState } from 'react'
 
 import { DeleteProjectDialog } from '~/components/delete-project-dialog'
 import { Header } from '~/components/layout/header'
-import { deleteProject } from '~/lib/server/project-queries'
 import * as m from '~/paraglide/messages'
 
 export const Route = createFileRoute('/projects/$projectId/settings')({
@@ -26,10 +25,9 @@ function ProjectSettingsPage() {
   const queryClient = useQueryClient()
   const [deleteOpen, setDeleteOpen] = useState(false)
 
-  const handleDelete = async () => {
-    await deleteProject({ data: { projectId } })
+  const handleDeleteSuccess = () => {
     void queryClient.invalidateQueries({ queryKey: ['projects'] })
-    await navigate({ to: '/projects' })
+    void navigate({ to: '/projects' })
   }
 
   return (
@@ -60,8 +58,8 @@ function ProjectSettingsPage() {
       </div>
 
       <DeleteProjectDialog
-        onConfirm={handleDelete}
         onOpenChange={setDeleteOpen}
+        onSuccess={handleDeleteSuccess}
         open={deleteOpen}
         projectId={projectId}
       />
