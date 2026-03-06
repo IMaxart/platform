@@ -93,6 +93,68 @@ export const getStatusServices = createServerFn({ method: 'GET' }).handler(
   },
 )
 
+export const getServiceStatusDetail = createServerFn({ method: 'GET' })
+  .inputValidator((serviceId: string) => serviceId)
+  .handler(async ({ data: serviceId }) => {
+    const service = await db.query.services.findFirst({
+      where: eq(services.id, serviceId),
+    })
+    if (!service) return null
+
+    const endpointRows = await db
+      .select()
+      .from(statusEndpoints)
+      .where(eq(statusEndpoints.serviceId, serviceId))
+
+    const endpointIds = endpointRows.map((e) => e.id)
+    const checksRows =
+      endpointIds.length === 0
+        ? []
+        : await db
+            .select()
+            .from(statusChecks)
+            .where(
+              and(
+                inArray(statusChecks.endpointId, endpointIds),
+                eq(statusChecks.probe, 'internal'),
+              ),
+            )
+            .orderBy(desc(statusChecks.checkedAt))
+
+    const latestCheckByEndpoint = new Map<
+      string,
+      { degraded: boolean; latencyMs: null | number; ok: boolean }
+    >()
+    for (const row of checksRows) {
+      if (!latestCheckByEndpoint.has(row.endpointId)) {
+        latestCheckByEndpoint.set(row.endpointId, {
+          degraded: row.degraded,
+          latencyMs: row.latencyMs,
+          ok: row.ok,
+        })
+      }
+    }
+
+    const dokployRows = await db
+      .select()
+      .from(statusServiceDokploy)
+      .where(eq(statusServiceDokploy.serviceId, serviceId))
+      .limit(1)
+
+    return {
+      ...service,
+      dokploy: dokployRows[0] ?? null,
+      endpoints: endpointRows.map((ep) => {
+        const latestCheck = latestCheckByEndpoint.get(ep.id) ?? null
+        return {
+          ...ep,
+          latestCheck,
+          status: getEndpointStatus(latestCheck),
+        }
+      }),
+    }
+  })
+
 const createStatusServiceSchema = z.object({
   name: z.string(),
   primaryDomain: z.string().nullable().optional(),

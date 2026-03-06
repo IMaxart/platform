@@ -132,7 +132,8 @@ function ServiceSettingsPage() {
     },
   })
 
-  const snippet = `<script defer src="https://analytics.yourdomain.com/t.js"></script>`
+  const domain = service?.domain ?? 'yourdomain.com'
+  const snippet = `<script defer src="https://${domain}/t.js"></script>`
 
   const copySnippet = async () => {
     await navigator.clipboard.writeText(snippet)
