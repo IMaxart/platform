@@ -211,6 +211,11 @@ const EndpointCard = ({
               <h3 className="text-base font-semibold tracking-tight">
                 {endpoint.displayName}
               </h3>
+              {endpoint.publicUrl !== null ? (
+                <p className="text-muted-foreground mt-0.5 truncate text-xs">
+                  {endpoint.publicUrl}
+                </p>
+              ) : null}
               <div className="text-muted-foreground mt-1 flex items-center gap-3 text-xs">
                 {lastChecked !== null ? (
                   <span>{m.checked_ago({ time: lastChecked })}</span>
