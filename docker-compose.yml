@@ -61,9 +61,6 @@ services:
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-AdminPassword123!}
     labels:
       - traefik.enable=true
-      - traefik.http.routers.platform.rule=Host(`platform.${ADMIN_DOMAIN:-localhost}`)
-      - traefik.http.routers.platform.priority=100
-      - traefik.http.services.platform.loadbalancer.server.port=3000
 
   status:
     build:
@@ -79,9 +76,6 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-imaxart}:${POSTGRES_PASSWORD:-imaxart}@postgres:5432/${POSTGRES_DB:-imaxart}
     labels:
       - traefik.enable=true
-      - traefik.http.routers.status.rule=HostRegexp(`.+`)
-      - traefik.http.routers.status.priority=1
-      - traefik.http.services.status.loadbalancer.server.port=3000
 
 volumes:
   pgdata:
