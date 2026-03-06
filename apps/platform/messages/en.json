@@ -452,6 +452,8 @@
   "serviceStatus_expectedStatus": "Expected status range",
   "serviceStatus_key": "Key",
   "serviceStatus_displayName": "Display name",
+  "serviceStatus_publicLabel": "Status page label",
+  "serviceStatus_publicLabelHint": "Shown on public status page, e.g. ingramkalina.pl/api",
   "serviceStatus_enabled": "Enabled",
   "serviceSettings_title": "Service Settings",
   "serviceSettings_snippetDescription": "Add this snippet to your website to start tracking",

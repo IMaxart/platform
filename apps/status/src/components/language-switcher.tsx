@@ -7,10 +7,14 @@ import {
 } from '@platform/ui/components/dropdown-menu'
 import { Languages } from 'lucide-react'
 
-const LOCALES = [
-  { code: 'en', label: 'English' },
-  { code: 'pl', label: 'Polski' },
-] as const
+import * as m from '~/paraglide/messages'
+
+const LOCALE_LABELS: Record<string, () => string> = {
+  en: m.locale_en,
+  pl: m.locale_pl,
+}
+
+const LOCALE_CODES = ['en', 'pl'] as const
 
 const getLocale = () => {
   if (typeof document === 'undefined') return 'en'
@@ -31,19 +35,19 @@ const LanguageSwitcher = () => {
       <DropdownMenuTrigger asChild>
         <Button size="icon" variant="ghost">
           <Languages className="h-4 w-4" />
-          <span className="sr-only">Switch language</span>
+          <span className="sr-only">{m.switchLanguage()}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        {LOCALES.map((locale) => (
+        {LOCALE_CODES.map((code) => (
           <DropdownMenuItem
-            className={current === locale.code ? 'font-medium' : ''}
-            key={locale.code}
+            className={current === code ? 'font-medium' : ''}
+            key={code}
             onClick={() => {
-              setLocale(locale.code)
+              setLocale(code)
             }}
           >
-            {locale.label}
+            {LOCALE_LABELS[code]?.() ?? code}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>

@@ -230,6 +230,7 @@ const createStatusEndpointSchema = z.object({
   intervalSec: z.number().optional(),
   key: z.string(),
   method: z.enum(['GET', 'HEAD']).optional(),
+  publicLabel: z.string().nullable().optional(),
   publicUrl: z.string().nullable().optional(),
   serviceId: z.uuid(),
   timeoutMs: z.number().optional(),
@@ -262,6 +263,7 @@ export const createStatusEndpoint = createServerFn({ method: 'POST' })
         intervalSec: data.intervalSec ?? defaults.intervalSec,
         key: data.key,
         method: data.method ?? defaults.method,
+        publicLabel: data.publicLabel ?? null,
         publicUrl: data.publicUrl ?? null,
         serviceId: data.serviceId,
         timeoutMs: data.timeoutMs ?? defaults.timeoutMs,
@@ -288,6 +290,7 @@ const updateStatusEndpointSchema = z.object({
     intervalSec: z.number().optional(),
     key: z.string().optional(),
     method: z.string().optional(),
+    publicLabel: z.string().nullable().optional(),
     publicUrl: z.string().nullable().optional(),
     serviceId: z.uuid().optional(),
     timeoutMs: z.number().optional(),
@@ -309,6 +312,7 @@ export const updateStatusEndpoint = createServerFn({ method: 'POST' })
     if (patch.internalHost !== undefined)
       set['internalHost'] = patch.internalHost
     if (patch.internalUrl !== undefined) set['internalUrl'] = patch.internalUrl
+    if (patch.publicLabel !== undefined) set['publicLabel'] = patch.publicLabel
     if (patch.publicUrl !== undefined) set['publicUrl'] = patch.publicUrl
     if (patch.method !== undefined) set['method'] = patch.method
     if (patch.intervalSec !== undefined) set['intervalSec'] = patch.intervalSec

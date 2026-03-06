@@ -21,5 +21,16 @@
   "noEndpoints": "Brak skonfigurowanych endpointów",
   "allOperational": "Wszystkie systemy operacyjne",
   "someIssues": "Niektóre systemy mają problemy",
-  "majorOutage": "Trwa poważna awaria"
+  "majorOutage": "Trwa poważna awaria",
+  "time_justNow": "przed chwilą",
+  "time_minutesAgo": "{count} min temu",
+  "time_hoursAgo": "{count} godz. temu",
+  "time_daysAgo": "{count} dn. temu",
+  "time_24hAgo": "24h temu",
+  "time_now": "Teraz",
+  "checked_ago": "Sprawdzono {time}",
+  "lastDeployed_ago": "Ostatnie wdrożenie {time}",
+  "failedToLoadPage": "Nie udało się załadować strony statusu. Spróbuj ponownie później.",
+  "noServiceForHost": "Brak skonfigurowanej usługi dla hosta: {host}",
+  "switchLanguage": "Zmień język"
 }

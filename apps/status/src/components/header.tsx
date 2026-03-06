@@ -3,6 +3,7 @@ import { Link } from '@tanstack/react-router'
 import { Activity } from 'lucide-react'
 
 import LanguageSwitcher from '~/components/language-switcher'
+import * as m from '~/paraglide/messages'
 
 const Header = () => {
   return (
@@ -13,7 +14,9 @@ const Header = () => {
           to="/"
         >
           <Activity aria-hidden className="text-primary h-4.5 w-4.5" />
-          <span className="text-sm font-semibold tracking-tight">Status</span>
+          <span className="text-sm font-semibold tracking-tight">
+            {m.header_status()}
+          </span>
         </Link>
 
         <div className="flex items-center gap-1">
