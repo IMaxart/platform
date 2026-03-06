@@ -123,11 +123,17 @@ export const getServiceStatusDetail = createServerFn({ method: 'GET' })
 
     const latestCheckByEndpoint = new Map<
       string,
-      { degraded: boolean; latencyMs: null | number; ok: boolean }
+      {
+        checkedAt: Date
+        degraded: boolean
+        latencyMs: null | number
+        ok: boolean
+      }
     >()
     for (const row of checksRows) {
       if (!latestCheckByEndpoint.has(row.endpointId)) {
         latestCheckByEndpoint.set(row.endpointId, {
+          checkedAt: row.checkedAt,
           degraded: row.degraded,
           latencyMs: row.latencyMs,
           ok: row.ok,
@@ -323,6 +329,16 @@ const upsertStatusDokploySchema = z.object({
   serviceId: z.uuid(),
   type: z.enum(['application', 'compose']),
 })
+
+export const deleteStatusEndpoint = createServerFn({ method: 'POST' })
+  .inputValidator((d: { endpointId: string }) => d)
+  .handler(async ({ data }) => {
+    await db
+      .delete(statusEndpoints)
+      .where(eq(statusEndpoints.id, data.endpointId))
+
+    return { ok: true }
+  })
 
 export const upsertStatusDokploy = createServerFn({ method: 'POST' })
   .inputValidator((data: unknown) => upsertStatusDokploySchema.parse(data))
