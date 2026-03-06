@@ -20,14 +20,18 @@ import type {
 const resolveConfig = (config: AnalyticsConfig): ResolvedConfig => {
   const protocol = config.domain.startsWith('http') ? '' : 'https://'
   const baseUrl = `${protocol}${config.domain}`
+  const domainParam = encodeURIComponent(
+    config.domain.replace(/^https?:\/\//, ''),
+  )
 
   return {
-    endpoint: `${baseUrl}/api/collect`,
+    endpoint: `${baseUrl}/api/collect?domain=${domainParam}`,
     environment: config.environment ?? 'production',
     flagsEndpoint: `${baseUrl}/api/flags`,
     flushInterval: config.flushInterval ?? 5000,
     maxBatchSize: config.maxBatchSize ?? 10,
     respectDNT: config.respectDNT ?? true,
+    siteDomain: domainParam,
     trackErrors: config.trackErrors ?? true,
     trackPageViews: config.trackPageViews ?? true,
   }
@@ -187,6 +191,7 @@ export class Analytics {
     this.flagClient = createFlagClient({
       flagsEndpoint: resolved.flagsEndpoint,
       sessionId: session.id,
+      siteDomain: resolved.siteDomain,
     })
 
     this.pageTracker = createPageTracker({

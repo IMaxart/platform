@@ -12,6 +12,7 @@ const createTestConfig = (
   flushInterval: 1000,
   maxBatchSize: 3,
   respectDNT: false,
+  siteDomain: 'analytics.test',
   trackErrors: true,
   trackPageViews: true,
   ...overrides,

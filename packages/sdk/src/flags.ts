@@ -12,9 +12,11 @@ export type FlagClient = {
 export const createFlagClient = ({
   flagsEndpoint,
   sessionId,
+  siteDomain,
 }: {
   flagsEndpoint: string
   sessionId: string
+  siteDomain: string
 }): FlagClient => {
   const cache = new Map<string, { expiresAt: number; value: FlagValue }>()
 
@@ -26,7 +28,12 @@ export const createFlagClient = ({
     }
 
     try {
-      const url = `${flagsEndpoint}?key=${encodeURIComponent(key)}&sid=${encodeURIComponent(sessionId)}`
+      const params = new URLSearchParams({
+        domain: siteDomain,
+        key,
+        sid: sessionId,
+      })
+      const url = `${flagsEndpoint}?${params.toString()}`
       const response = await fetch(url)
 
       if (response.status === 404) {

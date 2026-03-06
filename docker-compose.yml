@@ -62,6 +62,7 @@ services:
     labels:
       - traefik.enable=true
       - traefik.http.routers.platform.rule=Host(`platform.${ADMIN_DOMAIN:-localhost}`)
+      - traefik.http.routers.platform.priority=100
       - traefik.http.services.platform.loadbalancer.server.port=3000
 
   status:

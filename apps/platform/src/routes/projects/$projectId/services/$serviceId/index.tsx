@@ -78,7 +78,6 @@ function OnboardingGuide({
   serviceId: string
 }) {
   const [copied, setCopied] = useState(false)
-  const snippet = `<script defer src="https://analytics.yourdomain.com/t.js"></script>`
 
   const { data: services } = useQuery({
     queryFn: () => getProjectServices({ data: projectId }),
@@ -86,6 +85,9 @@ function OnboardingGuide({
   })
 
   const service = services?.find((s) => s.id === serviceId)
+  const serviceDomain = service?.domain ?? 'yourdomain.com'
+  const platformHost = window.location.host
+  const snippet = `<script defer data-domain="${serviceDomain}" src="https://${platformHost}/t.js"></script>`
 
   const copySnippet = async () => {
     await navigator.clipboard.writeText(snippet)

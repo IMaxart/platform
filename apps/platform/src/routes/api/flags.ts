@@ -1,6 +1,6 @@
 import { db } from '@platform/db'
 import type { FeatureFlagConditions } from '@platform/db/schema'
-import { featureFlags, visitorSessions } from '@platform/db/schema'
+import { featureFlags, services, visitorSessions } from '@platform/db/schema'
 import { createFileRoute } from '@tanstack/react-router'
 import { and, eq } from 'drizzle-orm'
 
@@ -20,6 +20,7 @@ export const Route = createFileRoute('/api/flags')({
           const url = new URL(request.url)
           const key = url.searchParams.get('key')
           const sessionId = url.searchParams.get('sid')
+          const domainParam = url.searchParams.get('domain')
 
           if (key === null) {
             return Response.json(
@@ -28,14 +29,22 @@ export const Route = createFileRoute('/api/flags')({
             )
           }
 
-          const host = request.headers.get('host') ?? 'localhost'
-          const tenant = await resolveTenant(host)
+          let serviceId: null | string = null
 
-          if (tenant.serviceId === null && !tenant.isAdmin) {
-            return Response.json({ enabled: false }, { headers: corsHeaders })
+          if (domainParam !== null) {
+            const service = await db.query.services.findFirst({
+              columns: { id: true },
+              where: eq(services.domain, domainParam),
+            })
+            serviceId = service?.id ?? null
           }
 
-          const serviceId = tenant.serviceId
+          if (serviceId === null) {
+            const host = request.headers.get('host') ?? 'localhost'
+            const tenant = await resolveTenant(host)
+            serviceId = tenant.serviceId
+          }
+
           if (serviceId === null) {
             return Response.json({ enabled: false }, { headers: corsHeaders })
           }

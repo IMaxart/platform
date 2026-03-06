@@ -22,6 +22,7 @@ describe('createFlagClient', () => {
     const client = createFlagClient({
       flagsEndpoint: 'https://analytics.test/api/flags',
       sessionId: 'sess-123',
+      siteDomain: 'analytics.test',
     })
 
     const result = await client.getFlag('feature-x')
@@ -46,6 +47,7 @@ describe('createFlagClient', () => {
     const client = createFlagClient({
       flagsEndpoint: 'https://analytics.test/api/flags',
       sessionId: 'sess-123',
+      siteDomain: 'analytics.test',
     })
 
     await client.getFlag('feature-x')
@@ -69,6 +71,7 @@ describe('createFlagClient', () => {
     const client = createFlagClient({
       flagsEndpoint: 'https://analytics.test/api/flags',
       sessionId: 'sess-123',
+      siteDomain: 'analytics.test',
     })
 
     await client.getFlag('feature-x')
@@ -102,6 +105,7 @@ describe('createFlagClient', () => {
     const client = createFlagClient({
       flagsEndpoint: 'https://analytics.test/api/flags',
       sessionId: 'sess-123',
+      siteDomain: 'analytics.test',
     })
 
     const result = await client.getFlag('nonexistent-flag')
@@ -123,6 +127,7 @@ describe('createFlagClient', () => {
     const client = createFlagClient({
       flagsEndpoint: 'https://analytics.test/api/flags',
       sessionId: 'sess-123',
+      siteDomain: 'analytics.test',
     })
 
     const result = await client.getFlag('feature-x')
@@ -140,6 +145,7 @@ describe('createFlagClient', () => {
     const client = createFlagClient({
       flagsEndpoint: 'https://analytics.test/api/flags',
       sessionId: 'sess-123',
+      siteDomain: 'analytics.test',
     })
 
     const result = await client.getFlag('feature-x')
@@ -159,6 +165,7 @@ describe('createFlagClient', () => {
     const client = createFlagClient({
       flagsEndpoint: 'https://analytics.test/api/flags',
       sessionId: 'sess-123',
+      siteDomain: 'analytics.test',
     })
 
     await client.getFlag('feature-x')
@@ -167,6 +174,7 @@ describe('createFlagClient', () => {
     const newClient = createFlagClient({
       flagsEndpoint: 'https://analytics.test/api/flags',
       sessionId: 'sess-123',
+      siteDomain: 'analytics.test',
     })
 
     await newClient.getFlag('feature-x')

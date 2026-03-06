@@ -1,11 +1,12 @@
 type SnippetParams = {
   domain: string
+  platformHost?: string
 }
 
 export const getInstallCommand = () => 'pnpm add @imaxart/analytics'
 
-export const getVanillaJsSnippet = ({ domain }: SnippetParams) =>
-  `<script defer src="https://${domain}/t.js"></script>`
+export const getVanillaJsSnippet = ({ domain, platformHost }: SnippetParams) =>
+  `<script defer data-domain="${domain}" src="https://${platformHost ?? domain}/t.js"></script>`
 
 export const getTanStackStartSnippet = ({ domain }: SnippetParams) =>
   `import { analytics } from '@imaxart/analytics'

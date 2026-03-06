@@ -3,16 +3,22 @@ import type { CollectPayload, TrackerConfig } from './types'
 const queue: CollectPayload[] = []
 let timer: null | ReturnType<typeof setTimeout> = null
 
+const buildUrl = (config: TrackerConfig): string => {
+  if (config.dataDomain === null) return config.endpoint
+  return `${config.endpoint}?domain=${encodeURIComponent(config.dataDomain)}`
+}
+
 const send = (config: TrackerConfig) => {
   if (queue.length === 0) return
 
   const batch = queue.splice(0, config.maxBatchSize)
   const body = JSON.stringify(batch)
+  const url = buildUrl(config)
 
-  const sent = navigator.sendBeacon(config.endpoint, body)
+  const sent = navigator.sendBeacon(url, body)
   if (sent) return
 
-  fetch(config.endpoint, {
+  fetch(url, {
     body,
     headers: { 'Content-Type': 'application/json' },
     keepalive: true,
