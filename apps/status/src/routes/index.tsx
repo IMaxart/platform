@@ -8,6 +8,7 @@ import {
   PublicStatusPageSkeleton,
 } from '~/components/public/public-status-page'
 import { fetchJson } from '~/lib/api-client'
+import * as m from '~/paraglide/messages'
 import type { PublicPageResponse } from '~/shared/api-types'
 
 export const Route = createFileRoute('/')({
@@ -33,7 +34,7 @@ function IndexRoute() {
           <CardContent className="flex flex-col items-center gap-3 p-8 text-center">
             <AlertCircle className="text-muted-foreground h-8 w-8" />
             <p className="text-muted-foreground text-sm">
-              Failed to load status page. Please try again later.
+              {m.failedToLoadPage()}
             </p>
           </CardContent>
         </Card>
@@ -50,7 +51,7 @@ function IndexRoute() {
         <CardContent className="flex flex-col items-center gap-3 p-8 text-center">
           <AlertCircle className="text-muted-foreground h-8 w-8" />
           <p className="text-muted-foreground text-sm">
-            No service configured for host: {data.host}
+            {m.noServiceForHost({ host: data.host })}
           </p>
         </CardContent>
       </Card>

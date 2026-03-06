@@ -9,6 +9,7 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
 
 import { bucketChecks } from '~/components/status/timeline'
+import * as m from '~/paraglide/messages'
 import type { CheckState } from '~/server/types'
 import type { PublicPageResponse } from '~/shared/api-types'
 
@@ -27,10 +28,10 @@ const stateColor = ({ state }: { state: CheckState }) => {
 }
 
 const stateLabel = ({ state }: { state: CheckState }) => {
-  if (state === 'UP') return 'Operational'
-  if (state === 'DEGRADED') return 'Degraded'
-  if (state === 'DOWN') return 'Down'
-  return 'Unknown'
+  if (state === 'UP') return m.state_operational()
+  if (state === 'DEGRADED') return m.state_degraded()
+  if (state === 'DOWN') return m.state_down()
+  return m.state_unknown()
 }
 
 const stateTextColor = ({ state }: { state: CheckState }) => {
@@ -42,13 +43,13 @@ const stateTextColor = ({ state }: { state: CheckState }) => {
 
 const formatRelativeTime = ({ ms }: { ms: number }) => {
   const seconds = Math.floor((Date.now() - ms) / 1000)
-  if (seconds < 60) return 'just now'
+  if (seconds < 60) return m.time_justNow()
   const minutes = Math.floor(seconds / 60)
-  if (minutes < 60) return `${String(minutes)}m ago`
+  if (minutes < 60) return m.time_minutesAgo({ count: String(minutes) })
   const hours = Math.floor(minutes / 60)
-  if (hours < 24) return `${String(hours)}h ago`
+  if (hours < 24) return m.time_hoursAgo({ count: String(hours) })
   const days = Math.floor(hours / 24)
-  return `${String(days)}d ago`
+  return m.time_daysAgo({ count: String(days) })
 }
 
 const OverallStatus = ({ state }: { state: CheckState }) => {
@@ -173,8 +174,8 @@ const Timeline = ({
         })}
       </div>
       <div className="text-muted-foreground flex justify-between text-[10px]">
-        <span>24h ago</span>
-        <span>Now</span>
+        <span>{m.time_24hAgo()}</span>
+        <span>{m.time_now()}</span>
       </div>
     </div>
   )
@@ -212,7 +213,7 @@ const EndpointCard = ({
               </h3>
               <div className="text-muted-foreground mt-1 flex items-center gap-3 text-xs">
                 {lastChecked !== null ? (
-                  <span>Checked {lastChecked}</span>
+                  <span>{m.checked_ago({ time: lastChecked })}</span>
                 ) : null}
                 {latencyMs !== null ? (
                   <span className="tabular-nums">{latencyMs}ms</span>
@@ -323,7 +324,9 @@ export const PublicStatusPage = ({ data }: { data: PublicMode }) => {
           </div>
           {lastDeployedAtMs !== null ? (
             <p className="text-muted-foreground/60 text-xs">
-              Last deployed {formatRelativeTime({ ms: lastDeployedAtMs })}
+              {m.lastDeployed_ago({
+                time: formatRelativeTime({ ms: lastDeployedAtMs }),
+              })}
             </p>
           ) : null}
         </motion.section>
@@ -331,17 +334,17 @@ export const PublicStatusPage = ({ data }: { data: PublicMode }) => {
         <section className="grid gap-4 sm:grid-cols-3">
           <UptimeCard
             delay={0.15}
-            label="Uptime 24h"
+            label={m.uptime_24h()}
             value={data.serviceUptime.last24h}
           />
           <UptimeCard
             delay={0.25}
-            label="Uptime 90d"
+            label={m.uptime_90d()}
             value={data.serviceUptime.last90d}
           />
           <UptimeCard
             delay={0.35}
-            label="Uptime 365d"
+            label={m.uptime_365d()}
             value={data.serviceUptime.last365d}
           />
         </section>

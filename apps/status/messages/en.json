@@ -21,5 +21,16 @@
   "noEndpoints": "No endpoints configured",
   "allOperational": "All systems operational",
   "someIssues": "Some systems are experiencing issues",
-  "majorOutage": "Major outage in progress"
+  "majorOutage": "Major outage in progress",
+  "time_justNow": "just now",
+  "time_minutesAgo": "{count}m ago",
+  "time_hoursAgo": "{count}h ago",
+  "time_daysAgo": "{count}d ago",
+  "time_24hAgo": "24h ago",
+  "time_now": "Now",
+  "checked_ago": "Checked {time}",
+  "lastDeployed_ago": "Last deployed {time}",
+  "failedToLoadPage": "Failed to load status page. Please try again later.",
+  "noServiceForHost": "No service configured for host: {host}",
+  "switchLanguage": "Switch language"
 }
