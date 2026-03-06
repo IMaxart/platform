@@ -8,6 +8,13 @@ import {
   CardTitle,
 } from '@platform/ui/components/card'
 import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@platform/ui/components/dialog'
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -26,6 +33,7 @@ import {
   Globe,
   Loader2,
   MoreVertical,
+  Pencil,
   Plus,
   Server,
   Trash2,
@@ -39,6 +47,7 @@ import {
   deleteEndpoint,
   deleteService,
   getProjectServices,
+  updateService,
 } from '~/lib/server/service-queries'
 import * as m from '~/paraglide/messages'
 
@@ -49,6 +58,7 @@ type ProjectService = {
   endpoints: StatusEndpoint[]
   id: string
   name: string
+  primaryDomain: null | string
   publicStatusHost: null | string
   slug: string
   statusEnabled: boolean
@@ -77,6 +87,13 @@ type CreateServiceFormProps = {
   onCancel: () => void
   onSuccess: () => void
   projectId: string
+}
+
+type EditServiceDialogProps = {
+  onOpenChange: (open: boolean) => void
+  open: boolean
+  projectId: string
+  service: ProjectService
 }
 
 function CreateEndpointForm({
@@ -481,11 +498,236 @@ function CreateServiceForm({
   )
 }
 
+function EditServiceDialog({
+  onOpenChange,
+  open,
+  projectId,
+  service,
+}: EditServiceDialogProps) {
+  const queryClient = useQueryClient()
+
+  const form = useForm({
+    defaultValues: {
+      analyticsEnabled: service.analyticsEnabled,
+      domain: service.domain ?? '',
+      name: service.name,
+      primaryDomain: service.primaryDomain ?? '',
+      publicStatusHost: service.publicStatusHost ?? '',
+      slug: service.slug,
+      statusEnabled: service.statusEnabled,
+    },
+    onSubmit: async ({ value }) => {
+      await updateService({
+        data: {
+          patch: {
+            analyticsEnabled: value.analyticsEnabled,
+            domain: value.domain || null,
+            name: value.name,
+            primaryDomain: value.primaryDomain || null,
+            publicStatusHost: value.publicStatusHost || null,
+            slug: value.slug,
+            statusEnabled: value.statusEnabled,
+          },
+          serviceId: service.id,
+        },
+      })
+      void queryClient.invalidateQueries({
+        queryKey: ['services', projectId],
+      })
+      onOpenChange(false)
+    },
+  })
+
+  return (
+    <Dialog onOpenChange={onOpenChange} open={open}>
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>{m.services_editService()}</DialogTitle>
+        </DialogHeader>
+        <form
+          className="space-y-4"
+          onSubmit={(e) => {
+            e.preventDefault()
+            void form.handleSubmit()
+          }}
+        >
+          <div className="grid gap-4 sm:grid-cols-2">
+            <form.Field name="name">
+              {(field) => (
+                <div className="space-y-2">
+                  <Label>{m.services_serviceName()}</Label>
+                  <Input
+                    onBlur={field.handleBlur}
+                    onChange={(e) => {
+                      field.handleChange(e.target.value)
+                    }}
+                    placeholder={m.placeholder_serviceName()}
+                    required
+                    value={field.state.value}
+                  />
+                </div>
+              )}
+            </form.Field>
+            <form.Field name="slug">
+              {(field) => (
+                <div className="space-y-2">
+                  <Label>{m.services_slug()}</Label>
+                  <Input
+                    onBlur={field.handleBlur}
+                    onChange={(e) => {
+                      field.handleChange(e.target.value)
+                    }}
+                    placeholder={m.placeholder_serviceSlug()}
+                    required
+                    value={field.state.value}
+                  />
+                </div>
+              )}
+            </form.Field>
+          </div>
+
+          <Separator />
+
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium">{m.services_analytics()}</p>
+                <p className="text-muted-foreground text-xs">
+                  {m.services_analyticsDescription()}
+                </p>
+              </div>
+              <form.Field name="analyticsEnabled">
+                {(field) => (
+                  <Switch
+                    checked={field.state.value}
+                    onCheckedChange={(v) => {
+                      field.handleChange(v)
+                    }}
+                  />
+                )}
+              </form.Field>
+            </div>
+
+            <form.Subscribe selector={(s) => s.values.analyticsEnabled}>
+              {(analyticsEnabled) =>
+                analyticsEnabled ? (
+                  <form.Field name="domain">
+                    {(field) => (
+                      <div className="space-y-2">
+                        <Label>{m.services_domain()}</Label>
+                        <Input
+                          onBlur={field.handleBlur}
+                          onChange={(e) => {
+                            field.handleChange(e.target.value)
+                          }}
+                          placeholder="example.com"
+                          value={field.state.value}
+                        />
+                      </div>
+                    )}
+                  </form.Field>
+                ) : null
+              }
+            </form.Subscribe>
+
+            <Separator />
+
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium">
+                  {m.services_statusMonitoring()}
+                </p>
+                <p className="text-muted-foreground text-xs">
+                  {m.services_statusMonitoringDescription()}
+                </p>
+              </div>
+              <form.Field name="statusEnabled">
+                {(field) => (
+                  <Switch
+                    checked={field.state.value}
+                    onCheckedChange={(v) => {
+                      field.handleChange(v)
+                    }}
+                  />
+                )}
+              </form.Field>
+            </div>
+
+            <form.Subscribe selector={(s) => s.values.statusEnabled}>
+              {(statusEnabled) =>
+                statusEnabled ? (
+                  <div className="grid gap-4 sm:grid-cols-2">
+                    <form.Field name="publicStatusHost">
+                      {(field) => (
+                        <div className="space-y-2">
+                          <Label>{m.services_publicStatusHost()}</Label>
+                          <Input
+                            onBlur={field.handleBlur}
+                            onChange={(e) => {
+                              field.handleChange(e.target.value)
+                            }}
+                            placeholder="status.example.com"
+                            value={field.state.value}
+                          />
+                        </div>
+                      )}
+                    </form.Field>
+                    <form.Field name="primaryDomain">
+                      {(field) => (
+                        <div className="space-y-2">
+                          <Label>{m.services_primaryDomain()}</Label>
+                          <Input
+                            onBlur={field.handleBlur}
+                            onChange={(e) => {
+                              field.handleChange(e.target.value)
+                            }}
+                            placeholder="api.example.com"
+                            value={field.state.value}
+                          />
+                        </div>
+                      )}
+                    </form.Field>
+                  </div>
+                ) : null
+              }
+            </form.Subscribe>
+          </div>
+
+          <DialogFooter>
+            <Button
+              onClick={() => {
+                onOpenChange(false)
+              }}
+              type="button"
+              variant="outline"
+            >
+              {m.common_cancel()}
+            </Button>
+            <form.Subscribe selector={(s) => s.isSubmitting}>
+              {(isSubmitting) => (
+                <Button disabled={isSubmitting} type="submit">
+                  {isSubmitting && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  )}
+                  {m.common_save()}
+                </Button>
+              )}
+            </form.Subscribe>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
 function ServicesPage() {
   const { projectId } = useParams({ from: '/projects/$projectId/services/' })
   const queryClient = useQueryClient()
   const [showCreate, setShowCreate] = useState(false)
   const [expandedServiceId, setExpandedServiceId] = useState<null | string>(
+    null,
+  )
+  const [editingService, setEditingService] = useState<null | ProjectService>(
     null,
   )
 
@@ -583,6 +825,14 @@ function ServicesPage() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setEditingService(service)
+                      }}
+                    >
+                      <Pencil className="mr-2 h-4 w-4" />
+                      {m.services_editService()}
+                    </DropdownMenuItem>
                     {service.statusEnabled && (
                       <DropdownMenuItem
                         onClick={() => {
@@ -689,6 +939,17 @@ function ServicesPage() {
           )}
         </div>
       </div>
+
+      {editingService !== null && (
+        <EditServiceDialog
+          onOpenChange={(open) => {
+            if (!open) setEditingService(null)
+          }}
+          open
+          projectId={projectId}
+          service={editingService}
+        />
+      )}
     </>
   )
 }

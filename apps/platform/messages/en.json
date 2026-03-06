@@ -368,6 +368,8 @@
   "services_publicStatusHost": "Public status hostname",
   "services_primaryDomain": "Primary domain",
   "services_createService": "Create service",
+  "services_editService": "Edit service",
+  "services_editServiceDescription": "Update the service configuration",
   "services_deleteService": "Delete service",
   "services_addEndpoint": "Add endpoint",
   "services_displayName": "Display name",

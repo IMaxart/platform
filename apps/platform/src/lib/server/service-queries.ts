@@ -76,6 +76,42 @@ export const createService = createServerFn({ method: 'POST' })
     return service
   })
 
+type UpdateServiceParams = {
+  analyticsEnabled?: boolean
+  domain?: null | string
+  enabled?: boolean
+  name?: string
+  primaryDomain?: null | string
+  publicStatusHost?: null | string
+  slug?: string
+  statusEnabled?: boolean
+}
+
+export const updateService = createServerFn({ method: 'POST' })
+  .inputValidator((d: { patch: UpdateServiceParams; serviceId: string }) => d)
+  .handler(async ({ data: { patch, serviceId } }) => {
+    const set: Record<string, unknown> = {}
+
+    if (patch.name !== undefined) set['name'] = patch.name
+    if (patch.slug !== undefined) set['slug'] = patch.slug
+    if (patch.domain !== undefined) set['domain'] = patch.domain
+    if (patch.analyticsEnabled !== undefined)
+      set['analyticsEnabled'] = patch.analyticsEnabled
+    if (patch.statusEnabled !== undefined)
+      set['statusEnabled'] = patch.statusEnabled
+    if (patch.publicStatusHost !== undefined)
+      set['publicStatusHost'] = patch.publicStatusHost
+    if (patch.primaryDomain !== undefined)
+      set['primaryDomain'] = patch.primaryDomain
+    if (patch.enabled !== undefined) set['enabled'] = patch.enabled
+
+    if (Object.keys(set).length === 0) return { ok: true }
+
+    await db.update(services).set(set).where(eq(services.id, serviceId))
+
+    return { ok: true }
+  })
+
 export const deleteService = createServerFn({ method: 'POST' })
   .inputValidator((d: { serviceId: string }) => d)
   .handler(async ({ data }) => {
