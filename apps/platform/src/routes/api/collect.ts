@@ -44,21 +44,36 @@ export const Route = createFileRoute('/api/collect')({
 
       POST: async ({ request }) => {
         try {
-          const host = request.headers.get('host') ?? 'localhost'
-          const tenant = await resolveTenant(host)
+          const url = new URL(request.url)
+          const domainParam = url.searchParams.get('domain')
 
-          let serviceId = tenant.serviceId
+          let serviceId: null | string = null
 
-          if (tenant.isAdmin) {
-            const origin = request.headers.get('origin') ?? ''
-            const originHost = origin ? new URL(origin).hostname : ''
+          if (domainParam !== null) {
+            const service = await db.query.services.findFirst({
+              columns: { id: true },
+              where: eq(services.domain, domainParam),
+            })
+            serviceId = service?.id ?? null
+          }
 
-            if (originHost) {
-              const service = await db.query.services.findFirst({
-                columns: { id: true },
-                where: eq(services.domain, originHost),
-              })
-              serviceId = service?.id ?? null
+          if (serviceId === null) {
+            const host = request.headers.get('host') ?? 'localhost'
+            const tenant = await resolveTenant(host)
+            serviceId = tenant.serviceId
+
+            if (tenant.isAdmin && serviceId === null) {
+              const origin = request.headers.get('origin') ?? ''
+              const originHost =
+                origin.length > 0 ? new URL(origin).hostname : ''
+
+              if (originHost.length > 0) {
+                const service = await db.query.services.findFirst({
+                  columns: { id: true },
+                  where: eq(services.domain, originHost),
+                })
+                serviceId = service?.id ?? null
+              }
             }
           }
 

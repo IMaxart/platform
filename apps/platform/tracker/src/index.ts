@@ -14,17 +14,26 @@ const isDNTEnabled = (): boolean => {
   return dnt === '1' || dnt === 'yes'
 }
 
-const getEndpoint = (): string => {
+const getScriptConfig = (): {
+  dataDomain: null | string
+  endpoint: string
+} => {
   const scripts = document.querySelectorAll<HTMLScriptElement>('script[src]')
 
   for (const script of scripts) {
     if (script.src.includes('/t.js')) {
       const url = new URL(script.src)
-      return `${url.origin}/api/collect`
+      return {
+        dataDomain: script.getAttribute('data-domain'),
+        endpoint: `${url.origin}/api/collect`,
+      }
     }
   }
 
-  return `${window.location.origin}/api/collect`
+  return {
+    dataDomain: null,
+    endpoint: `${window.location.origin}/api/collect`,
+  }
 }
 
 const getUTMParams = () => {
@@ -42,8 +51,9 @@ const getUTMParams = () => {
 const init = () => {
   if (isDNTEnabled()) return
 
-  const endpoint = getEndpoint()
+  const { dataDomain, endpoint } = getScriptConfig()
   const config: TrackerConfig = {
+    dataDomain,
     endpoint,
     flushInterval: 5000,
     maxBatchSize: 10,
@@ -77,7 +87,8 @@ const init = () => {
   })
 
   const api: AnalyticsAPI = {
-    getFlag: (key) => getFlag({ endpoint, key, sessionId: session.id }),
+    getFlag: (key) =>
+      getFlag({ dataDomain, endpoint, key, sessionId: session.id }),
     track: (name, properties) => {
       trackEvent({
         config,

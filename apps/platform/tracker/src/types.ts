@@ -70,6 +70,7 @@ export type SessionPayload = {
 }
 
 export type TrackerConfig = {
+  dataDomain: null | string
   endpoint: string
   flushInterval: number
   maxBatchSize: number

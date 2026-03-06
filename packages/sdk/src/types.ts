@@ -135,6 +135,7 @@ export type ResolvedConfig = {
   flushInterval: number
   maxBatchSize: number
   respectDNT: boolean
+  siteDomain: string
   trackErrors: boolean
   trackPageViews: boolean
 }

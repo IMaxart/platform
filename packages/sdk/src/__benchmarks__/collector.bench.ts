@@ -10,6 +10,7 @@ const config: ResolvedConfig = {
   flushInterval: 5000,
   maxBatchSize: 20,
   respectDNT: false,
+  siteDomain: 'localhost',
   trackErrors: true,
   trackPageViews: true,
 }

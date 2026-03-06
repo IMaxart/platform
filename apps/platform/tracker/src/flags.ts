@@ -9,10 +9,12 @@ const FLAG_CACHE_TTL = 5 * 60 * 1000
  * @returns Promise resolving to the flag boolean (false on error or disabled)
  */
 export const getFlag = async ({
+  dataDomain,
   endpoint,
   key,
   sessionId,
 }: {
+  dataDomain: null | string
   endpoint: string
   key: string
   sessionId: string
@@ -25,9 +27,14 @@ export const getFlag = async ({
 
   try {
     const flagUrl = endpoint.replace('/api/collect', '/api/flags')
-    const response = await fetch(
-      `${flagUrl}?key=${encodeURIComponent(key)}&sid=${encodeURIComponent(sessionId)}`,
-    )
+    const params = new URLSearchParams({
+      key,
+      sid: sessionId,
+    })
+    if (dataDomain !== null) {
+      params.set('domain', dataDomain)
+    }
+    const response = await fetch(`${flagUrl}?${params.toString()}`)
 
     if (!response.ok) return false
 

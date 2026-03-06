@@ -123,6 +123,7 @@ function OnboardingPage() {
   const [currentStep, setCurrentStep] = useState<Step>('welcome')
   const [copiedField, setCopiedField] = useState<null | string>(null)
 
+  const platformHost = window.location.host
   const domain = window.location.hostname
   const stepIndex = STEPS.indexOf(currentStep)
 
@@ -223,7 +224,7 @@ function OnboardingPage() {
                 </p>
                 <CodeBlock
                   {...copyProps}
-                  code={getVanillaJsSnippet({ domain })}
+                  code={getVanillaJsSnippet({ domain, platformHost })}
                   field="script-tag"
                 />
               </CardContent>

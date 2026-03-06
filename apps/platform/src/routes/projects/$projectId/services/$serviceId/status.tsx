@@ -104,7 +104,7 @@ function ServiceStatusPage() {
                   {publicHost ?? m.serviceStatus_notConfigured()}
                 </CardDescription>
               </div>
-              {publicHost !== null && publicHost !== undefined ? (
+              {publicHost !== null ? (
                 <a
                   href={`https://${publicHost}`}
                   rel="noopener noreferrer"
@@ -117,7 +117,7 @@ function ServiceStatusPage() {
                 </a>
               ) : null}
             </div>
-            {publicHost === null || publicHost === undefined ? (
+            {publicHost === null ? (
               <p className="text-muted-foreground text-xs">
                 {m.serviceStatus_publicStatusHostHint()}
               </p>
