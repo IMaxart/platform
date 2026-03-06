@@ -156,6 +156,7 @@ export default tseslint.config(
       'eslint.config.js',
       'apps/platform/server.ts',
       'apps/platform/tracker/build.ts',
+      'apps/platform/public/t.js',
       '**/paraglide/**',
       '**/drizzle.config.ts',
       '**/tsup.config.ts',

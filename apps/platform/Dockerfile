@@ -20,6 +20,11 @@ COPY . .
 ENV NODE_ENV=production
 RUN pnpm turbo build --filter=@platform/app
 
+FROM oven/bun:1 AS tracker
+WORKDIR /app/apps/platform
+COPY apps/platform/tracker ./tracker
+RUN mkdir -p public && bun run tracker/build.ts
+
 FROM oven/bun:1 AS runtime
 WORKDIR /app/apps/platform
 COPY --from=deps /app/node_modules /app/node_modules
@@ -35,6 +40,7 @@ COPY --from=build /app/packages/email/src /app/packages/email/src
 COPY --from=build /app/packages/email/package.json /app/packages/email/package.json
 COPY --from=build /app/apps/platform/dist ./dist
 COPY --from=build /app/apps/platform/public ./public
+COPY --from=tracker /app/apps/platform/public/t.js ./public/t.js
 COPY --from=build /app/apps/platform/server.ts ./server.ts
 COPY --from=build /app/apps/platform/package.json ./package.json
 
