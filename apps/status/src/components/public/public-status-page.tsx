@@ -314,11 +314,10 @@ export const PublicStatusPage = ({ data }: { data: PublicMode }) => {
           transition={{ duration: 0.4, ease: 'easeOut' }}
         >
           <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-            <div className="space-y-1">
+            <div>
               <h1 className="text-3xl font-bold tracking-tight">
                 {data.service.name}
               </h1>
-              <p className="text-muted-foreground text-sm">{data.host}</p>
             </div>
             <OverallStatus state={data.serviceState} />
           </div>
