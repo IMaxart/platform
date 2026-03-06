@@ -110,6 +110,7 @@ type EndpointData = {
     ok: boolean
   }
   method: string
+  publicLabel: null | string
   publicUrl: null | string
   status: string
   timeoutMs: number
@@ -136,6 +137,7 @@ type EndpointFormValues = {
   intervalSec: number
   key: string
   method: string
+  publicLabel: string
   publicUrl: string
   timeoutMs: number
   warnMs: number
@@ -154,6 +156,7 @@ const EMPTY_FORM: EndpointFormValues = {
   intervalSec: 60,
   key: '',
   method: 'GET',
+  publicLabel: '',
   publicUrl: '',
   timeoutMs: 10000,
   warnMs: 2000,
@@ -182,6 +185,7 @@ function EndpointDialog({
         intervalSec: endpoint.intervalSec,
         key: endpoint.key,
         method: endpoint.method,
+        publicLabel: endpoint.publicLabel ?? '',
         publicUrl: endpoint.publicUrl ?? '',
         timeoutMs: endpoint.timeoutMs,
         warnMs: endpoint.warnMs,
@@ -208,6 +212,7 @@ function EndpointDialog({
               intervalSec: value.intervalSec,
               key: value.key,
               method: value.method,
+              publicLabel: value.publicLabel || null,
               publicUrl: value.publicUrl || null,
               timeoutMs: value.timeoutMs,
               warnMs: value.warnMs,
@@ -235,6 +240,7 @@ function EndpointDialog({
             intervalSec: value.intervalSec,
             key,
             method: value.method as 'GET' | 'HEAD',
+            publicLabel: value.publicLabel || null,
             publicUrl: value.publicUrl || null,
             serviceId,
             timeoutMs: value.timeoutMs,
@@ -431,6 +437,29 @@ function EndpointDialog({
                   placeholder="https://api.example.com/health"
                   value={field.state.value}
                 />
+              </div>
+            )}
+          </form.Field>
+
+          <form.Field name="publicLabel">
+            {(field) => (
+              <div className="space-y-1.5">
+                <Label className="text-xs">
+                  {m.serviceStatus_publicLabel()}{' '}
+                  <span className="text-muted-foreground">
+                    {m.common_optional()}
+                  </span>
+                </Label>
+                <Input
+                  onChange={(e) => {
+                    field.handleChange(e.target.value)
+                  }}
+                  placeholder="api.example.com"
+                  value={field.state.value}
+                />
+                <p className="text-muted-foreground text-[11px]">
+                  {m.serviceStatus_publicLabelHint()}
+                </p>
               </div>
             )}
           </form.Field>

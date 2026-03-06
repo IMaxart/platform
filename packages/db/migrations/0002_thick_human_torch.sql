@@ -1,0 +1,1 @@
+ALTER TABLE "status_endpoints" ADD COLUMN "public_label" text;

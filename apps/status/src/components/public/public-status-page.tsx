@@ -209,8 +209,8 @@ const EndpointCard = ({
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0 flex-1">
               <h3 className="truncate text-base font-semibold tracking-tight">
-                {endpoint.publicUrl !== null
-                  ? `${new URL(endpoint.publicUrl).host} (${endpoint.displayName})`
+                {endpoint.publicLabel !== null
+                  ? `${endpoint.publicLabel} (${endpoint.displayName})`
                   : endpoint.displayName}
               </h3>
               <div className="text-muted-foreground mt-1 flex items-center gap-3 text-xs">

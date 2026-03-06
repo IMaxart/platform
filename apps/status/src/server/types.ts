@@ -44,6 +44,7 @@ export type EndpointRow = {
   intervalSec: number
   key: string
   method: EndpointHttpMethod
+  publicLabel: null | string
   publicUrl: null | string
   serviceId: string
   timeoutMs: number

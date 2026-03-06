@@ -452,6 +452,8 @@
   "serviceStatus_expectedStatus": "Oczekiwany zakres statusu",
   "serviceStatus_key": "Klucz",
   "serviceStatus_displayName": "Nazwa wyświetlana",
+  "serviceStatus_publicLabel": "Etykieta strony statusu",
+  "serviceStatus_publicLabelHint": "Widoczna na publicznej stronie statusu, np. ingramkalina.pl/api",
   "serviceStatus_enabled": "Włączony",
   "serviceSettings_title": "Ustawienia usługi",
   "serviceSettings_snippetDescription": "Dodaj ten fragment do swojej strony, aby rozpocząć śledzenie",

@@ -56,6 +56,7 @@ const toEndpointRow = (
   intervalSec: row.intervalSec,
   key: row.key,
   method: row.method as EndpointRow['method'],
+  publicLabel: row.publicLabel,
   publicUrl: row.publicUrl,
   serviceId: row.serviceId,
   timeoutMs: row.timeoutMs,
@@ -287,6 +288,7 @@ export const createDb = (): Db => {
         intervalSec: endpoint.intervalSec,
         key: endpoint.key,
         method: endpoint.method,
+        publicLabel: endpoint.publicLabel,
         publicUrl: endpoint.publicUrl,
         serviceId: endpoint.serviceId,
         timeoutMs: endpoint.timeoutMs,
@@ -306,6 +308,7 @@ export const createDb = (): Db => {
           intervalSec: endpoint.intervalSec,
           key: endpoint.key,
           method: endpoint.method,
+          publicLabel: endpoint.publicLabel,
           publicUrl: endpoint.publicUrl,
           timeoutMs: endpoint.timeoutMs,
           warnMs: endpoint.warnMs,
@@ -326,6 +329,7 @@ export const createDb = (): Db => {
       set['internalHost'] = patch.internalHost
     if (patch.internalPath !== undefined)
       set['internalPath'] = patch.internalPath
+    if (patch.publicLabel !== undefined) set['publicLabel'] = patch.publicLabel
     if (patch.publicUrl !== undefined) set['publicUrl'] = patch.publicUrl
     if (patch.method !== undefined) set['method'] = patch.method
     if (patch.intervalSec !== undefined) set['intervalSec'] = patch.intervalSec

@@ -509,6 +509,7 @@ export const statusEndpoints = pgTable(
     intervalSec: integer('interval_sec').notNull(),
     key: text('key').notNull(),
     method: text('method').notNull(),
+    publicLabel: text('public_label'),
     publicUrl: text('public_url'),
     serviceId: uuid('service_id')
       .notNull()
