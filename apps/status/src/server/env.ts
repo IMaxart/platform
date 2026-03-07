@@ -38,7 +38,7 @@ export const getEnv = (): Env => {
       fallback: 300,
       value: env['DOKPLOY_SYNC_INTERVAL_SEC'],
     }),
-    hostname: env['HOSTNAME'] ?? '0.0.0.0',
+    hostname: env['HOST'] ?? '0.0.0.0',
     internalTraefikBaseUrl:
       env['INTERNAL_TRAEFIK_BASE_URL'] ?? 'http://traefik',
     internetCheckUrl: env['INTERNET_CHECK_URL'] ?? 'https://1.1.1.1',
