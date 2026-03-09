@@ -17,7 +17,7 @@ const ENDPOINT_IDS = {
 const ensureProject = async () => {
   await drizzleDb
     .insert(projects)
-    .values({ id: PROJECT_ID, name: 'IMaxart Platform' })
+    .values({ id: PROJECT_ID, name: 'Platform' })
     .onConflictDoNothing({ target: projects.id })
 }
 
@@ -70,10 +70,10 @@ export const seedDefaultService = async ({ db, env }: { db: Db; env: Env }) => {
       createdAtMs: Date.now(),
       enabled: 1,
       id: SERVICE_ID,
-      name: 'IMaxart Platform',
+      name: 'Platform',
       primaryDomain: platformHost,
       publicStatusHost: statusHost,
-      slug: 'imaxart-platform',
+      slug: 'platform',
     },
   })
 

@@ -3,13 +3,13 @@ services:
     image: postgres:17-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-imaxart}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-imaxart}
-      POSTGRES_DB: ${POSTGRES_DB:-imaxart}
+      POSTGRES_USER: ${POSTGRES_USER:-platform}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-platform}
+      POSTGRES_DB: ${POSTGRES_DB:-platform}
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-imaxart}']
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-platform}']
       interval: 5s
       timeout: 5s
       retries: 5
@@ -24,7 +24,7 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-imaxart}:${POSTGRES_PASSWORD:-imaxart}@postgres:5432/${POSTGRES_DB:-imaxart}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-platform}:${POSTGRES_PASSWORD:-platform}@postgres:5432/${POSTGRES_DB:-platform}
     restart: 'no'
 
   mailpit:
@@ -52,11 +52,11 @@ services:
       BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:3000}
       BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-${HASH_SECRET:-change-me-to-a-random-secret-at-least-32-chars}}
       PASSKEY_RP_ID: ${PASSKEY_RP_ID:-localhost}
-      DATABASE_URL: postgresql://${POSTGRES_USER:-imaxart}:${POSTGRES_PASSWORD:-imaxart}@postgres:5432/${POSTGRES_DB:-imaxart}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-platform}:${POSTGRES_PASSWORD:-platform}@postgres:5432/${POSTGRES_DB:-platform}
       SMTP_HOST: ${SMTP_HOST:-mailpit}
       SMTP_PORT: ${SMTP_PORT:-1025}
-      SMTP_FROM: ${SMTP_FROM:-IMaxart Platform <noreply@localhost>}
-      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@imaxart.com}
+      SMTP_FROM: ${SMTP_FROM:-Platform <noreply@localhost>}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@example.com}
       ADMIN_NAME: ${ADMIN_NAME:-Admin}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-AdminPassword123!}
     labels:
@@ -74,7 +74,7 @@ services:
       NODE_ENV: ${NODE_ENV:-production}
       PORT: 3000
       ADMIN_DOMAIN: ${ADMIN_DOMAIN:-localhost}
-      DATABASE_URL: postgresql://${POSTGRES_USER:-imaxart}:${POSTGRES_PASSWORD:-imaxart}@postgres:5432/${POSTGRES_DB:-imaxart}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-platform}:${POSTGRES_PASSWORD:-platform}@postgres:5432/${POSTGRES_DB:-platform}
     labels:
       - traefik.enable=true
 
