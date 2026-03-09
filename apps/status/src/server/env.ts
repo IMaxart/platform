@@ -42,7 +42,7 @@ export const getEnv = (): Env => {
     }),
     hostname: env['HOST'] ?? '0.0.0.0',
     internalTraefikBaseUrl:
-      env['INTERNAL_TRAEFIK_BASE_URL'] ?? 'http://traefik',
+      env['INTERNAL_TRAEFIK_BASE_URL'] ?? 'http://dokploy-traefik',
     internetCheckUrl: env['INTERNET_CHECK_URL'] ?? 'https://1.1.1.1',
     internetIntervalSec: parseIntOr({
       fallback: 30,

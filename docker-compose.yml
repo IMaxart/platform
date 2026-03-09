@@ -74,6 +74,7 @@ services:
       NODE_ENV: ${NODE_ENV:-production}
       PORT: 3000
       ADMIN_DOMAIN: ${ADMIN_DOMAIN:-localhost}
+      INTERNAL_TRAEFIK_BASE_URL: ${INTERNAL_TRAEFIK_BASE_URL:-http://dokploy-traefik}
       DATABASE_URL: postgresql://${POSTGRES_USER:-platform}:${POSTGRES_PASSWORD:-platform}@postgres:5432/${POSTGRES_DB:-platform}
     labels:
       - traefik.enable=true
