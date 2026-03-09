@@ -5,7 +5,7 @@ import * as schema from './schema'
 
 const connectionString =
   process.env['DATABASE_URL'] ??
-  'postgresql://imaxart:imaxart@localhost:5432/imaxart'
+  'postgresql://platform:platform@localhost:5432/platform'
 
 const client = postgres(connectionString)
 

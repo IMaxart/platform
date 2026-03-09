@@ -4,7 +4,7 @@ export default defineConfig({
   dbCredentials: {
     url:
       process.env.DATABASE_URL ??
-      'postgresql://imaxart:imaxart@localhost:5432/imaxart',
+      'postgresql://platform:platform@localhost:5432/platform',
   },
   dialect: 'postgresql',
   out: './migrations',

@@ -7,8 +7,7 @@ const smtpPort = Number(env['SMTP_PORT'] ?? '587')
 const smtpUser = env['SMTP_USER']
 const smtpPass = env['SMTP_PASS']
 
-export const smtpFrom =
-  env['SMTP_FROM'] ?? 'IMaxart Platform <noreply@localhost>'
+export const smtpFrom = env['SMTP_FROM'] ?? 'Platform <noreply@localhost>'
 
 export const hasSmtp = Boolean(smtpHost)
 
