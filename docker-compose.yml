@@ -73,6 +73,7 @@ services:
     environment:
       NODE_ENV: ${NODE_ENV:-production}
       PORT: 3000
+      ADMIN_DOMAIN: ${ADMIN_DOMAIN:-localhost}
       DATABASE_URL: postgresql://${POSTGRES_USER:-imaxart}:${POSTGRES_PASSWORD:-imaxart}@postgres:5432/${POSTGRES_DB:-imaxart}
     labels:
       - traefik.enable=true

@@ -6,6 +6,7 @@ import { createDb } from './src/server/db'
 import { startDokploySync } from './src/server/dokploy'
 import { getEnv } from './src/server/env'
 import { startMonitoring } from './src/server/monitor'
+import { seedDefaultService } from './src/server/seed-default'
 import { handleStaticRequest } from './src/server/static'
 
 // Ensure relative paths (dist/, .local/, etc.) work regardless of process CWD.
@@ -13,6 +14,8 @@ process.chdir(path.dirname(fileURLToPath(import.meta.url)))
 
 const env = getEnv()
 const db = createDb()
+
+await seedDefaultService({ db, env })
 
 startMonitoring({ db, env })
 startDokploySync({ db, env })

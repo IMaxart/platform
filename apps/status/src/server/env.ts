@@ -11,6 +11,7 @@ const parseIntOr = ({
 }
 
 export type Env = {
+  adminDomain: string
   checksRetentionHours: number
   dokployApiKey: null | string
   dokployBaseUrl: null | string
@@ -28,6 +29,7 @@ export const getEnv = (): Env => {
   const port = parseIntOr({ fallback: 3000, value: env['PORT'] })
 
   return {
+    adminDomain: env['ADMIN_DOMAIN'] ?? 'localhost',
     checksRetentionHours: parseIntOr({
       fallback: 48,
       value: env['CHECKS_RETENTION_HOURS'],
