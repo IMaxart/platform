@@ -3,15 +3,28 @@ import { analytics } from '../analytics'
 /**
  * Minimal router interface compatible with TanStack Router.
  * Only the subset of the router API needed for page view tracking.
+ *
+ * `search` is typed as `unknown` because TanStack Router v1 exposes a parsed
+ * object there, not a raw query string. The adapter prefers `searchStr` (the
+ * raw string present in v1) and falls back to stringifying `search`.
  */
 type TanStackRouterLike = {
   state: {
     location: {
       pathname: string
-      search: string
+      search: unknown
+      searchStr?: string
     }
   }
   subscribe: (event: 'onResolved', callback: () => void) => () => void
+}
+
+const resolveSearch = (
+  location: TanStackRouterLike['state']['location'],
+): string => {
+  if (typeof location.searchStr === 'string') return location.searchStr
+  if (typeof location.search === 'string') return location.search
+  return ''
 }
 
 /**
@@ -37,13 +50,19 @@ type TanStackRouterLike = {
 export const enableTanStackRouterTracking = (
   router: TanStackRouterLike,
 ): (() => void) => {
-  const { pathname, search } = router.state.location
-  analytics.trackPageView(`${pathname}${search}`)
+  let lastPath: null | string = null
 
-  const unsubscribe = router.subscribe('onResolved', () => {
-    const { pathname: p, search: s } = router.state.location
-    analytics.trackPageView(`${p}${s}`)
-  })
+  const trackIfChanged = () => {
+    const search = resolveSearch(router.state.location)
+    const path = `${router.state.location.pathname}${search}`
+    if (path === lastPath) return
+    lastPath = path
+    analytics.trackPageView(path)
+  }
+
+  trackIfChanged()
+
+  const unsubscribe = router.subscribe('onResolved', trackIfChanged)
 
   return unsubscribe
 }
