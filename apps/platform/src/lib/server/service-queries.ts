@@ -1,17 +1,23 @@
 import { db } from '@platform/db'
 import {
+  consoleErrors,
+  events,
   excludedDevices,
   featureFlags,
+  pageViews,
   serviceInvitations,
   serviceMembers,
   services,
+  statusChecks,
   statusEndpoints,
+  statusRollupsDaily,
   users,
+  visitorSessions,
 } from '@platform/db/schema'
 import { sendMail } from '@platform/email'
 import { ServiceInvite } from '@platform/email/templates'
 import { createServerFn } from '@tanstack/react-start'
-import { and, desc, eq } from 'drizzle-orm'
+import { and, desc, eq, inArray } from 'drizzle-orm'
 
 import { INVITATION_EXPIRY_DAYS } from './constants'
 
@@ -244,6 +250,60 @@ export const deleteExcludedDevice = createServerFn({ method: 'POST' })
   .inputValidator((d: { deviceId: string }) => d)
   .handler(async ({ data: { deviceId } }) => {
     await db.delete(excludedDevices).where(eq(excludedDevices.id, deviceId))
+    return { ok: true }
+  })
+
+// ── Data Purge ──
+
+export const purgeAnalyticsData = createServerFn({ method: 'POST' })
+  .inputValidator((d: { serviceId: string }) => d)
+  .handler(async ({ data: { serviceId } }) => {
+    await db.transaction(async (tx) => {
+      await tx.delete(pageViews).where(eq(pageViews.serviceId, serviceId))
+      await tx.delete(events).where(eq(events.serviceId, serviceId))
+      await tx
+        .delete(consoleErrors)
+        .where(eq(consoleErrors.serviceId, serviceId))
+      await tx
+        .delete(visitorSessions)
+        .where(eq(visitorSessions.serviceId, serviceId))
+      await tx
+        .delete(excludedDevices)
+        .where(eq(excludedDevices.serviceId, serviceId))
+    })
+
+    return { ok: true }
+  })
+
+export const purgeErrorData = createServerFn({ method: 'POST' })
+  .inputValidator((d: { serviceId: string }) => d)
+  .handler(async ({ data: { serviceId } }) => {
+    await db.delete(consoleErrors).where(eq(consoleErrors.serviceId, serviceId))
+
+    return { ok: true }
+  })
+
+export const purgeStatusData = createServerFn({ method: 'POST' })
+  .inputValidator((d: { serviceId: string }) => d)
+  .handler(async ({ data: { serviceId } }) => {
+    const endpointIds = await db
+      .select({ id: statusEndpoints.id })
+      .from(statusEndpoints)
+      .where(eq(statusEndpoints.serviceId, serviceId))
+
+    const ids = endpointIds.map((e) => e.id)
+
+    if (ids.length > 0) {
+      await db.transaction(async (tx) => {
+        await tx
+          .delete(statusRollupsDaily)
+          .where(inArray(statusRollupsDaily.endpointId, ids))
+        await tx
+          .delete(statusChecks)
+          .where(inArray(statusChecks.endpointId, ids))
+      })
+    }
+
     return { ok: true }
   })
 

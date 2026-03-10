@@ -18,6 +18,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@platform/ui/components/dropdown-menu'
 import { Input } from '@platform/ui/components/input'
@@ -25,10 +26,11 @@ import { Label } from '@platform/ui/components/label'
 import { Separator } from '@platform/ui/components/separator'
 import { Switch } from '@platform/ui/components/switch'
 import { useForm } from '@tanstack/react-form'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { createFileRoute, Link, useParams } from '@tanstack/react-router'
 import {
   Activity,
+  AlertTriangle,
   BarChart3,
   Globe,
   Loader2,
@@ -40,6 +42,7 @@ import {
 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
+import { ConfirmDialog } from '~/components/confirm-dialog'
 import type { SortKey } from '~/components/dashboard/sort-select'
 import { applySortKey, SortSelect } from '~/components/dashboard/sort-select'
 import { Header } from '~/components/layout/header'
@@ -49,6 +52,9 @@ import {
   deleteEndpoint,
   deleteService,
   getProjectServices,
+  purgeAnalyticsData,
+  purgeErrorData,
+  purgeStatusData,
   updateService,
 } from '~/lib/server/service-queries'
 import * as m from '~/paraglide/messages'
@@ -79,6 +85,12 @@ type StatusEndpoint = {
 export const Route = createFileRoute('/projects/$projectId/services/')({
   component: ServicesPage,
 })
+
+type ConfirmState = {
+  description: string
+  onConfirm: () => Promise<unknown>
+  title: string
+}
 
 type CreateEndpointFormProps = {
   onCancel: () => void
@@ -734,6 +746,7 @@ function ServicesPage() {
   const [editingService, setEditingService] = useState<null | ProjectService>(
     null,
   )
+  const [confirmDialog, setConfirmDialog] = useState<ConfirmState | null>(null)
 
   const servicesQuery = useQuery({
     queryFn: async () =>
@@ -746,14 +759,54 @@ function ServicesPage() {
     [servicesQuery.data, sortKey],
   )
 
+  const invalidateServices = () =>
+    queryClient.invalidateQueries({ queryKey: ['services', projectId] })
+
+  const confirmMutation = useMutation({
+    mutationFn: async () => {
+      await confirmDialog?.onConfirm()
+    },
+    onSuccess: () => {
+      setConfirmDialog(null)
+      void invalidateServices()
+    },
+  })
+
   const handleDeleteService = async (serviceId: string) => {
     await deleteService({ data: { serviceId } })
-    void queryClient.invalidateQueries({ queryKey: ['services', projectId] })
+    void invalidateServices()
   }
 
-  const handleDeleteEndpoint = async (endpointId: string) => {
-    await deleteEndpoint({ data: { endpointId } })
-    void queryClient.invalidateQueries({ queryKey: ['services', projectId] })
+  const openPurgeAnalytics = (serviceId: string) => {
+    setConfirmDialog({
+      description: m.services_purgeAnalyticsDescription(),
+      onConfirm: () => purgeAnalyticsData({ data: { serviceId } }),
+      title: m.services_purgeAnalytics(),
+    })
+  }
+
+  const openPurgeErrors = (serviceId: string) => {
+    setConfirmDialog({
+      description: m.services_purgeErrorsDescription(),
+      onConfirm: () => purgeErrorData({ data: { serviceId } }),
+      title: m.services_purgeErrors(),
+    })
+  }
+
+  const openPurgeStatus = (serviceId: string) => {
+    setConfirmDialog({
+      description: m.services_purgeStatusDescription(),
+      onConfirm: () => purgeStatusData({ data: { serviceId } }),
+      title: m.services_purgeStatus(),
+    })
+  }
+
+  const openDeleteEndpoint = (endpointId: string) => {
+    setConfirmDialog({
+      description: m.services_deleteEndpointDescription(),
+      onConfirm: () => deleteEndpoint({ data: { endpointId } }),
+      title: m.services_deleteEndpoint(),
+    })
   }
 
   return (
@@ -859,6 +912,39 @@ function ServicesPage() {
                         {m.services_addEndpoint()}
                       </DropdownMenuItem>
                     )}
+                    <DropdownMenuSeparator />
+                    {service.analyticsEnabled && (
+                      <DropdownMenuItem
+                        className="text-destructive"
+                        onClick={() => {
+                          openPurgeAnalytics(service.id)
+                        }}
+                      >
+                        <AlertTriangle className="mr-2 h-4 w-4" />
+                        {m.services_purgeAnalytics()}
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuItem
+                      className="text-destructive"
+                      onClick={() => {
+                        openPurgeErrors(service.id)
+                      }}
+                    >
+                      <AlertTriangle className="mr-2 h-4 w-4" />
+                      {m.services_purgeErrors()}
+                    </DropdownMenuItem>
+                    {service.statusEnabled && (
+                      <DropdownMenuItem
+                        className="text-destructive"
+                        onClick={() => {
+                          openPurgeStatus(service.id)
+                        }}
+                      >
+                        <AlertTriangle className="mr-2 h-4 w-4" />
+                        {m.services_purgeStatus()}
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuSeparator />
                     <DropdownMenuItem
                       className="text-destructive"
                       onClick={() => {
@@ -894,7 +980,7 @@ function ServicesPage() {
                           </Badge>
                           <Button
                             onClick={() => {
-                              void handleDeleteEndpoint(endpoint.id)
+                              openDeleteEndpoint(endpoint.id)
                             }}
                             size="icon"
                             variant="ghost"
@@ -962,6 +1048,22 @@ function ServicesPage() {
           service={editingService}
         />
       )}
+
+      <ConfirmDialog
+        description={confirmDialog?.description ?? ''}
+        loading={confirmMutation.isPending}
+        onConfirm={() => {
+          confirmMutation.mutate()
+        }}
+        onOpenChange={(open) => {
+          if (!open) {
+            setConfirmDialog(null)
+            confirmMutation.reset()
+          }
+        }}
+        open={confirmDialog !== null}
+        title={confirmDialog?.title ?? ''}
+      />
     </>
   )
 }
