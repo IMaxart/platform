@@ -6,7 +6,7 @@ import {
 } from '@platform/db/schema'
 import { and, eq, gte, sql as rawSql, sum } from 'drizzle-orm'
 
-import type { PublicPageResponse } from '~/shared/api-types'
+import type { PublicPageResponse, UptimeBreakdown } from '~/shared/api-types'
 
 import type { Db } from './db'
 import type { CheckState, ProbeKind } from './types'
@@ -97,7 +97,26 @@ const computeUptimeFromDailyRollups = async ({
   return getUptimePercent({ total, up })
 }
 
-const computeServiceUptimeFromChecks = async ({
+const toBreakdown = ({
+  degraded,
+  down,
+  total,
+  up,
+}: {
+  degraded: number
+  down: number
+  total: number
+  up: number
+}): UptimeBreakdown => {
+  if (total === 0) return null
+  return {
+    degradedPct: Number(((degraded / total) * 100).toFixed(3)),
+    downPct: Number(((down / total) * 100).toFixed(3)),
+    upPct: Number(((up / total) * 100).toFixed(3)),
+  }
+}
+
+const computeServiceBreakdownFromChecks = async ({
   probe,
   serviceId,
   sinceMs,
@@ -105,11 +124,18 @@ const computeServiceUptimeFromChecks = async ({
   probe: ProbeKind
   serviceId: string
   sinceMs: number
-}) => {
+}): Promise<UptimeBreakdown> => {
   const rows = await drizzleDb
     .select({
+      degraded:
+        rawSql<number>`sum(case when ${statusChecks.ok} = true and ${statusChecks.degraded} = true then 1 else 0 end)`.as(
+          'degraded',
+        ),
+      down: rawSql<number>`sum(case when ${statusChecks.ok} = false then 1 else 0 end)`.as(
+        'down',
+      ),
       total: rawSql<number>`count(*)`.as('total'),
-      up: rawSql<number>`sum(case when ${statusChecks.ok} = true then 1 else 0 end)`.as(
+      up: rawSql<number>`sum(case when ${statusChecks.ok} = true and ${statusChecks.degraded} = false then 1 else 0 end)`.as(
         'up',
       ),
     })
@@ -125,10 +151,15 @@ const computeServiceUptimeFromChecks = async ({
 
   const row = rows[0]
   if (!row) return null
-  return getUptimePercent({ total: row.total, up: row.up })
+  return toBreakdown({
+    degraded: row.degraded,
+    down: row.down,
+    total: row.total,
+    up: row.up,
+  })
 }
 
-const computeServiceUptimeFromDailyRollups = async ({
+const computeServiceBreakdownFromDailyRollups = async ({
   probe,
   serviceId,
   sinceMs,
@@ -136,9 +167,11 @@ const computeServiceUptimeFromDailyRollups = async ({
   probe: ProbeKind
   serviceId: string
   sinceMs: number
-}) => {
+}): Promise<UptimeBreakdown> => {
   const rows = await drizzleDb
     .select({
+      degraded: sum(statusRollupsDaily.degraded).as('degraded'),
+      down: sum(statusRollupsDaily.down).as('down'),
       total: sum(statusRollupsDaily.total).as('total'),
       up: sum(statusRollupsDaily.up).as('up'),
     })
@@ -157,7 +190,9 @@ const computeServiceUptimeFromDailyRollups = async ({
 
   const row = rows[0]
   if (!row) return null
-  return getUptimePercent({
+  return toBreakdown({
+    degraded: Number(row.degraded) || 0,
+    down: Number(row.down) || 0,
     total: Number(row.total) || 0,
     up: Number(row.up) || 0,
   })
@@ -268,17 +303,17 @@ export const handleApiRequest = async ({
       )
       const serviceState = serviceStateFromEndpoints({ endpointStates })
 
-      const serviceUptime24h = await computeServiceUptimeFromChecks({
+      const serviceUptime24h = await computeServiceBreakdownFromChecks({
         probe: 'internal',
         serviceId: service.id,
         sinceMs: since24hMs,
       })
-      const serviceUptime90d = await computeServiceUptimeFromDailyRollups({
+      const serviceUptime90d = await computeServiceBreakdownFromDailyRollups({
         probe: 'internal',
         serviceId: service.id,
         sinceMs: since90dMs,
       })
-      const serviceUptime365d = await computeServiceUptimeFromDailyRollups({
+      const serviceUptime365d = await computeServiceBreakdownFromDailyRollups({
         probe: 'internal',
         serviceId: service.id,
         sinceMs: since365dMs,

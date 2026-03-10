@@ -34,12 +34,18 @@ export type PublicPageResponse =
       service: ServiceRow
       serviceState: CheckState
       serviceUptime: {
-        last24h: null | number
-        last90d: null | number
-        last365d: null | number
+        last24h: UptimeBreakdown
+        last90d: UptimeBreakdown
+        last365d: UptimeBreakdown
       }
     }
   | {
       host: string
       mode: 'notFound'
     }
+
+export type UptimeBreakdown = null | {
+  degradedPct: number
+  downPct: number
+  upPct: number
+}

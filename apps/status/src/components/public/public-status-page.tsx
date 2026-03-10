@@ -11,7 +11,7 @@ import { useState } from 'react'
 import { bucketChecks } from '~/components/status/timeline'
 import * as m from '~/paraglide/messages'
 import type { CheckState } from '~/server/types'
-import type { PublicPageResponse } from '~/shared/api-types'
+import type { PublicPageResponse, UptimeBreakdown } from '~/shared/api-types'
 
 type PublicMode = Extract<PublicPageResponse, { mode: 'public' }>
 
@@ -71,25 +71,14 @@ const OverallStatus = ({ state }: { state: CheckState }) => {
 }
 
 const UptimeCard = ({
+  breakdown,
   delay,
   label,
-  value,
 }: {
+  breakdown: UptimeBreakdown
   delay: number
   label: string
-  value: null | number
 }) => {
-  const percent = value ?? 0
-  const isGood = percent >= 99.9
-  const isOk = percent >= 99 && !isGood
-
-  const getBarColor = () => {
-    if (value === null) return 'bg-muted'
-    if (isGood) return 'bg-emerald-500'
-    if (isOk) return 'bg-amber-500'
-    return 'bg-red-500'
-  }
-
   return (
     <motion.div
       animate={{ opacity: 1, y: 0 }}
@@ -102,21 +91,47 @@ const UptimeCard = ({
             {label}
           </p>
           <p className="text-3xl font-semibold tracking-tight tabular-nums">
-            {formatPercent({ value })}
+            {formatPercent({ value: breakdown?.upPct ?? null })}
           </p>
-          <div className="bg-muted h-1.5 overflow-hidden rounded-full">
-            <motion.div
-              animate={{
-                width: value !== null ? `${Math.min(100, percent)}%` : '0%',
-              }}
-              className={`h-full rounded-full ${getBarColor()}`}
-              initial={{ width: '0%' }}
-              transition={{
-                delay: delay + 0.2,
-                duration: 0.6,
-                ease: 'easeOut',
-              }}
-            />
+          <div className="bg-muted flex h-1.5 overflow-hidden rounded-full">
+            {breakdown ? (
+              <>
+                <motion.div
+                  animate={{ width: `${breakdown.upPct}%` }}
+                  className="h-full bg-emerald-500"
+                  initial={{ width: '0%' }}
+                  transition={{
+                    delay: delay + 0.2,
+                    duration: 0.6,
+                    ease: 'easeOut',
+                  }}
+                />
+                {breakdown.degradedPct > 0 ? (
+                  <motion.div
+                    animate={{ width: `${breakdown.degradedPct}%` }}
+                    className="h-full bg-amber-500"
+                    initial={{ width: '0%' }}
+                    transition={{
+                      delay: delay + 0.3,
+                      duration: 0.5,
+                      ease: 'easeOut',
+                    }}
+                  />
+                ) : null}
+                {breakdown.downPct > 0 ? (
+                  <motion.div
+                    animate={{ width: `${breakdown.downPct}%` }}
+                    className="h-full bg-red-500"
+                    initial={{ width: '0%' }}
+                    transition={{
+                      delay: delay + 0.4,
+                      duration: 0.4,
+                      ease: 'easeOut',
+                    }}
+                  />
+                ) : null}
+              </>
+            ) : null}
           </div>
         </CardContent>
       </Card>
@@ -334,19 +349,19 @@ export const PublicStatusPage = ({ data }: { data: PublicMode }) => {
 
         <section className="grid gap-4 sm:grid-cols-3">
           <UptimeCard
+            breakdown={data.serviceUptime.last24h}
             delay={0.15}
             label={m.uptime_24h()}
-            value={data.serviceUptime.last24h}
           />
           <UptimeCard
+            breakdown={data.serviceUptime.last90d}
             delay={0.25}
             label={m.uptime_90d()}
-            value={data.serviceUptime.last90d}
           />
           <UptimeCard
+            breakdown={data.serviceUptime.last365d}
             delay={0.35}
             label={m.uptime_365d()}
-            value={data.serviceUptime.last365d}
           />
         </section>
 
