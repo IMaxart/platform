@@ -218,9 +218,12 @@ const processPayloads = async ({
       }
 
       case 'pageview': {
+        const enteredAt = new Date(payload.enteredAt)
+        const leftAt = new Date(payload.enteredAt + (payload.durationMs ?? 0))
+
         await db.insert(pageViews).values({
           durationMs: payload.durationMs,
-          enteredAt: new Date(payload.enteredAt),
+          enteredAt,
           path: payload.path,
           referrer: payload.referrer,
           scrollDepthPct: payload.scrollDepthPct,
@@ -228,6 +231,11 @@ const processPayloads = async ({
           sessionId: payload.sessionId,
           title: payload.title,
         })
+
+        await db
+          .update(visitorSessions)
+          .set({ endedAt: leftAt })
+          .where(eq(visitorSessions.id, payload.sessionId))
         break
       }
 
