@@ -240,12 +240,14 @@ function ServiceAnalyticsOverview() {
     queryKey: ['bot-stats', serviceId],
   })
 
-  const hasAnyData =
+  const hasVisitorData =
     (stats.data?.today ?? 0) > 0 ||
     (stats.data?.last7 ?? 0) > 0 ||
     (stats.data?.last30 ?? 0) > 0
+  const hasPageData = (topPages.data?.length ?? 0) > 0
+  const isLoading = stats.isLoading || topPages.isLoading
 
-  if (!stats.isLoading && !hasAnyData) {
+  if (!isLoading && !hasVisitorData && !hasPageData) {
     return (
       <>
         <Header title={m.serviceAnalytics_title()} />
