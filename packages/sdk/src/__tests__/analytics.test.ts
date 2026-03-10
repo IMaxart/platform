@@ -27,7 +27,7 @@ describe('Analytics', () => {
 
   it('initializes and creates a session', () => {
     const instance = new Analytics()
-    instance.init({ domain: 'analytics.test' })
+    instance.init({ domain: { platform: 'analytics.test' } })
 
     expect(navigator.sendBeacon).not.toHaveBeenCalled()
 
@@ -41,7 +41,7 @@ describe('Analytics', () => {
     delete globalThis.window
 
     const instance = new Analytics()
-    instance.init({ domain: 'analytics.test' })
+    instance.init({ domain: { platform: 'analytics.test' } })
     instance.track('test-event')
 
     globalThis.window = originalWindow
@@ -58,7 +58,7 @@ describe('Analytics', () => {
     })
 
     const instance = new Analytics()
-    instance.init({ domain: 'analytics.test', respectDNT: true })
+    instance.init({ domain: { platform: 'analytics.test' }, respectDNT: true })
 
     instance.track('test-event')
     instance.destroy()
@@ -76,7 +76,7 @@ describe('Analytics', () => {
     })
 
     const instance = new Analytics()
-    instance.init({ domain: 'analytics.test', respectDNT: false })
+    instance.init({ domain: { platform: 'analytics.test' }, respectDNT: false })
 
     instance.track('test-event')
     instance.destroy()
@@ -87,7 +87,7 @@ describe('Analytics', () => {
   it('track enqueues an event payload', () => {
     const instance = new Analytics()
     instance.init({
-      domain: 'analytics.test',
+      domain: { platform: 'analytics.test' },
       maxBatchSize: 100,
       respectDNT: false,
     })
@@ -112,7 +112,7 @@ describe('Analytics', () => {
   it('identify sends an identify payload', () => {
     const instance = new Analytics()
     instance.init({
-      domain: 'analytics.test',
+      domain: { platform: 'analytics.test' },
       maxBatchSize: 100,
       respectDNT: false,
     })
@@ -136,10 +136,10 @@ describe('Analytics', () => {
 
   it('destroy cleans up and allows re-init', () => {
     const instance = new Analytics()
-    instance.init({ domain: 'analytics.test', respectDNT: false })
+    instance.init({ domain: { platform: 'analytics.test' }, respectDNT: false })
     instance.destroy()
 
-    instance.init({ domain: 'analytics.test', respectDNT: false })
+    instance.init({ domain: { platform: 'analytics.test' }, respectDNT: false })
     instance.track('after-reinit')
     instance.destroy()
 
@@ -148,15 +148,18 @@ describe('Analytics', () => {
 
   it('re-init destroys previous state first', () => {
     const instance = new Analytics()
-    instance.init({ domain: 'analytics.test', respectDNT: false })
-    instance.init({ domain: 'analytics2.test', respectDNT: false })
+    instance.init({ domain: { platform: 'analytics.test' }, respectDNT: false })
+    instance.init({
+      domain: { platform: 'analytics2.test' },
+      respectDNT: false,
+    })
 
     instance.destroy()
   })
 
   it('skips reinit when called with the same domain (idempotency)', () => {
     const instance = new Analytics()
-    const config = { domain: 'analytics.test', respectDNT: false }
+    const config = { domain: { platform: 'analytics.test' }, respectDNT: false }
 
     instance.init(config)
     instance.init(config)
@@ -177,8 +180,11 @@ describe('Analytics', () => {
   it('reinitializes when domain changes', () => {
     const instance = new Analytics()
 
-    instance.init({ domain: 'analytics.test', respectDNT: false })
-    instance.init({ domain: 'analytics2.test', respectDNT: false })
+    instance.init({ domain: { platform: 'analytics.test' }, respectDNT: false })
+    instance.init({
+      domain: { platform: 'analytics2.test' },
+      respectDNT: false,
+    })
 
     instance.destroy()
 

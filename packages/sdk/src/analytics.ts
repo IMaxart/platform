@@ -18,20 +18,21 @@ import type {
 } from './types'
 
 const resolveConfig = (config: AnalyticsConfig): ResolvedConfig => {
-  const protocol = config.domain.startsWith('http') ? '' : 'https://'
-  const baseUrl = `${protocol}${config.domain}`
-  const domainParam = encodeURIComponent(
-    config.domain.replace(/^https?:\/\//, ''),
+  const { platform } = config.domain
+  const protocol = platform.startsWith('http') ? '' : 'https://'
+  const baseUrl = `${protocol}${platform}`
+  const siteDomain = encodeURIComponent(
+    (config.domain.site ?? platform).replace(/^https?:\/\//, ''),
   )
 
   return {
-    endpoint: `${baseUrl}/api/collect?domain=${domainParam}`,
+    endpoint: `${baseUrl}/api/collect?domain=${siteDomain}`,
     environment: config.environment ?? 'production',
     flagsEndpoint: `${baseUrl}/api/flags`,
     flushInterval: config.flushInterval ?? 5000,
     maxBatchSize: config.maxBatchSize ?? 10,
     respectDNT: config.respectDNT ?? true,
-    siteDomain: domainParam,
+    siteDomain,
     trackErrors: config.trackErrors ?? true,
     trackPageViews: config.trackPageViews ?? true,
   }
@@ -66,7 +67,7 @@ const getUTMParams = () => {
  * import { Analytics } from '@imaxart/analytics'
  *
  * const tracker = new Analytics()
- * tracker.init({ domain: 'analytics.example.com' })
+ * tracker.init({ domain: { platform: 'platform.example.com' } })
  * tracker.track('page_click', { buttonId: 'cta' })
  * tracker.destroy()
  * ```
@@ -155,7 +156,7 @@ export class Analytics {
    * @example
    * ```typescript
    * analytics.init({
-   *   domain: 'analytics.example.com',
+   *   domain: { platform: 'platform.example.com' },
    *   trackPageViews: true,
    *   trackErrors: true,
    *   respectDNT: true,
@@ -289,7 +290,7 @@ const GLOBAL_KEY = Symbol.for('@imaxart/analytics')
  * ```typescript
  * import { analytics } from '@imaxart/analytics'
  *
- * analytics.init({ domain: 'analytics.example.com' })
+ * analytics.init({ domain: { platform: 'platform.example.com' } })
  * analytics.track('page_view')
  * ```
  */

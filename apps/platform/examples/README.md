@@ -13,7 +13,7 @@ Example integrations of `@imaxart/analytics` across different frameworks.
 
 ## Common Setup
 
-All examples assume you have a running IMaxart Analytics instance. Replace `analytics.yourdomain.com` with your actual analytics domain.
+All examples assume you have a running IMaxart Analytics instance. Replace `platform.yourdomain.com` with your actual analytics domain.
 
 ## React vs Non-React
 

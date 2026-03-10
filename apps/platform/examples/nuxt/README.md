@@ -20,7 +20,7 @@ export default defineNuxtPlugin(() => {
   const config = useRuntimeConfig()
 
   analytics.init({
-    domain: config.public.analyticsDomain as string,
+    domain: { platform: config.public.analyticsDomain as string },
     environment: process.dev ? 'development' : 'production',
     trackPageViews: false,
   })
@@ -43,7 +43,7 @@ export default defineNuxtPlugin(() => {
 export default defineNuxtConfig({
   runtimeConfig: {
     public: {
-      analyticsDomain: 'analytics.yourdomain.com',
+      analyticsDomain: 'platform.yourdomain.com',
     },
   },
 })
@@ -67,7 +67,7 @@ const handleClick = () => {
 ## Environment Variables
 
 ```env
-NUXT_PUBLIC_ANALYTICS_DOMAIN=analytics.yourdomain.com
+NUXT_PUBLIC_ANALYTICS_DOMAIN=platform.yourdomain.com
 ```
 
 ## What it demonstrates

@@ -1,6 +1,6 @@
 {
   "name": "@imaxart/platform",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Privacy-first, self-hosted platform SDK — analytics, error tracking, and more",
   "type": "module",
   "license": "MIT",

@@ -48,7 +48,7 @@ Tests flag resolution performance under load.
 ### Custom base URL
 
 ```bash
-k6 run -e BASE_URL=https://analytics.yourdomain.com benchmarks/collect.js
+k6 run -e BASE_URL=https://platform.yourdomain.com benchmarks/collect.js
 ```
 
 ## Lighthouse CI

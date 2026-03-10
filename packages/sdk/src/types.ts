@@ -6,15 +6,15 @@
  * import { analytics } from '@imaxart/analytics'
  *
  * analytics.init({
- *   domain: 'analytics.example.com',
+ *   domain: { platform: 'platform.example.com' },
  *   trackPageViews: true,
  *   trackErrors: true,
  * })
  * ```
  */
 export type AnalyticsConfig = {
-  /** Analytics subdomain (e.g., `'analytics.example.com'`). The SDK derives API endpoints from this. */
-  domain: string
+  /** Domain configuration for the analytics server and tracked site. */
+  domain: DomainConfig
   /** Environment name for multi-environment tracking (e.g., `'production'`, `'staging'`, `'development'`). @default 'production' */
   environment?: string | undefined
   /** Interval in milliseconds between automatic batch flushes. @default 5000 */
@@ -48,6 +48,25 @@ export type DeviceInfo = {
   screenHeight: number
   screenWidth: number
   timezone: string
+}
+
+/**
+ * Domain configuration for the analytics SDK.
+ *
+ * @example
+ * ```typescript
+ * // Same domain for platform and tracked site
+ * { platform: 'platform.example.com' }
+ *
+ * // Custom subdomain setup
+ * { platform: 'platform.club-life.pl', site: 'club-life.pl' }
+ * ```
+ */
+export type DomainConfig = {
+  /** Analytics server domain (e.g., `'platform.example.com'`). The SDK derives API endpoints from this. */
+  platform: string
+  /** Tracked site domain (e.g., `'example.com'`). When omitted, defaults to `platform`. Use when the analytics server lives on a different subdomain than the tracked site. */
+  site?: string | undefined
 }
 
 /** @internal */

@@ -20,7 +20,10 @@ import { createRoot } from 'react-dom/client'
 import App from './App'
 
 analytics.init({
-  domain: import.meta.env.VITE_ANALYTICS_DOMAIN ?? 'analytics.yourdomain.com',
+  domain: {
+    platform:
+      import.meta.env.VITE_ANALYTICS_DOMAIN ?? 'platform.yourdomain.com',
+  },
   environment: import.meta.env.MODE,
 })
 
@@ -55,7 +58,7 @@ export default App
 ## Environment Variables
 
 ```env
-VITE_ANALYTICS_DOMAIN=analytics.yourdomain.com
+VITE_ANALYTICS_DOMAIN=platform.yourdomain.com
 ```
 
 ## What it demonstrates

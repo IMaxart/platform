@@ -16,7 +16,10 @@ import { analytics } from '@imaxart/analytics'
 
 if (typeof window !== 'undefined') {
   analytics.init({
-    domain: import.meta.env.VITE_ANALYTICS_DOMAIN ?? 'analytics.yourdomain.com',
+    domain: {
+      platform:
+        import.meta.env.VITE_ANALYTICS_DOMAIN ?? 'platform.yourdomain.com',
+    },
     environment: import.meta.env.MODE,
     trackPageViews: false, // We use TanStack Router integration instead
   })
@@ -66,7 +69,7 @@ function HomePage() {
 ## Environment Variables
 
 ```env
-VITE_ANALYTICS_DOMAIN=analytics.yourdomain.com
+VITE_ANALYTICS_DOMAIN=platform.yourdomain.com
 ```
 
 ## What it demonstrates

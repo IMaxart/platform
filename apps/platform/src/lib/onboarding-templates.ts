@@ -8,19 +8,22 @@ export const getInstallCommand = () => 'pnpm add @imaxart/analytics'
 export const getVanillaJsSnippet = ({ domain, platformHost }: SnippetParams) =>
   `<script defer data-domain="${domain}" src="https://${platformHost ?? domain}/t.js"></script>`
 
-export const getTanStackStartSnippet = ({ domain }: SnippetParams) =>
+export const getTanStackStartSnippet = ({
+  domain,
+  platformHost,
+}: SnippetParams) =>
   `import { analytics } from '@imaxart/analytics'
 import { enableTanStackRouterTracking } from '@imaxart/analytics/react'
 import { router } from './router'
 
 analytics.init({
-  domain: '${domain}',
+  domain: { platform: '${platformHost ?? domain}'${platformHost ? `, site: '${domain}'` : ''} },
   trackPageViews: false,
 })
 
 enableTanStackRouterTracking(router)`
 
-export const getNextJsSnippet = ({ domain }: SnippetParams) =>
+export const getNextJsSnippet = ({ domain, platformHost }: SnippetParams) =>
   `// app/layout.tsx
 'use client'
 
@@ -30,7 +33,7 @@ import { usePathname } from 'next/navigation'
 import { useEffect } from 'react'
 
 analytics.init({
-  domain: '${domain}',
+  domain: { platform: '${platformHost ?? domain}'${platformHost ? `, site: '${domain}'` : ''} },
   trackPageViews: false,
 })
 
@@ -41,12 +44,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return <html><body>{children}</body></html>
 }`
 
-export const getViteReactSnippet = ({ domain }: SnippetParams) =>
+export const getViteReactSnippet = ({ domain, platformHost }: SnippetParams) =>
   `// main.tsx
 import { analytics } from '@imaxart/analytics'
 
 analytics.init({
-  domain: '${domain}',
+  domain: { platform: '${platformHost ?? domain}'${platformHost ? `, site: '${domain}'` : ''} },
 })`
 
 export const getEnvTemplate = ({ domain }: SnippetParams) =>
@@ -55,12 +58,12 @@ NEXT_PUBLIC_ANALYTICS_DOMAIN=${domain}
 # or for Vite:
 VITE_ANALYTICS_DOMAIN=${domain}`
 
-export const getAiSetupGuide = ({ domain }: SnippetParams) =>
+export const getAiSetupGuide = ({ domain, platformHost }: SnippetParams) =>
   `# Analytics Integration Guide
 
 ## Overview
 This guide describes how to integrate IMaxart Analytics into your web application.
-The analytics endpoint is: https://${domain}
+The analytics endpoint is: https://${platformHost ?? domain}
 
 ## Quick Start
 
@@ -74,7 +77,7 @@ pnpm add @imaxart/analytics
 import { analytics } from '@imaxart/analytics'
 
 analytics.init({
-  domain: '${domain}',
+  domain: { platform: '${platformHost ?? domain}'${platformHost ? `, site: '${domain}'` : ''} },
 })
 \`\`\`
 

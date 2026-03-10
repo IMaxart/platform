@@ -17,7 +17,10 @@ npm install @imaxart/analytics
 import { analytics } from '@imaxart/analytics'
 
 analytics.init({
-  domain: import.meta.env.VITE_ANALYTICS_DOMAIN ?? 'analytics.yourdomain.com',
+  domain: {
+    platform:
+      import.meta.env.VITE_ANALYTICS_DOMAIN ?? 'platform.yourdomain.com',
+  },
   environment: import.meta.env.MODE,
 })
 
@@ -63,7 +66,7 @@ const handleClick = () => {
 ## Environment Variables
 
 ```env
-VITE_ANALYTICS_DOMAIN=analytics.yourdomain.com
+VITE_ANALYTICS_DOMAIN=platform.yourdomain.com
 ```
 
 ## What it demonstrates
