@@ -91,10 +91,13 @@ function SessionsPage() {
     queryKey: ['sessions', serviceId, daysNum],
   })
 
-  const formatDuration = (start: Date, end: Date | null) => {
-    if (!end) return '—'
-    const ms = new Date(end).getTime() - new Date(start).getTime()
-    const seconds = Math.floor(ms / 1000)
+  const formatSessionDuration = (session: SessionData) => {
+    const totalMs = session.pageViews.reduce(
+      (sum, pv) => sum + (pv.durationMs ?? 0),
+      0,
+    )
+    if (totalMs === 0) return '—'
+    const seconds = Math.floor(totalMs / 1000)
     const minutes = Math.floor(seconds / 60)
     if (minutes > 0) return `${minutes}m ${seconds % 60}s`
     return `${seconds}s`
@@ -187,10 +190,7 @@ function SessionsPage() {
                               {session.pageViews.length}
                             </TableCell>
                             <TableCell className="text-right">
-                              {formatDuration(
-                                session.startedAt,
-                                session.endedAt,
-                              )}
+                              {formatSessionDuration(session)}
                             </TableCell>
                             <TableCell className="text-muted-foreground text-right text-sm">
                               {new Date(session.startedAt).toLocaleString()}
