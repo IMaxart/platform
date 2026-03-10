@@ -21,6 +21,7 @@ if (typeof window !== 'undefined') {
     domain: {
       platform:
         process.env.NEXT_PUBLIC_ANALYTICS_DOMAIN ?? 'platform.yourdomain.com',
+      site: 'yourdomain.com',
     },
     environment: process.env.NODE_ENV,
     trackPageViews: false, // We use the Next.js hook instead

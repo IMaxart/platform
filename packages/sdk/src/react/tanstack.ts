@@ -43,7 +43,7 @@ const resolveSearch = (
  * import { enableTanStackRouterTracking } from '@imaxart/analytics/react'
  * import { router } from './router'
  *
- * analytics.init({ domain: { platform: 'platform.example.com' }, trackPageViews: false })
+ * analytics.init({ domain: { platform: 'platform.example.com', site: 'example.com' }, trackPageViews: false })
  * const cleanup = enableTanStackRouterTracking(router)
  * ```
  */

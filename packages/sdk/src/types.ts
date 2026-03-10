@@ -6,7 +6,7 @@
  * import { analytics } from '@imaxart/analytics'
  *
  * analytics.init({
- *   domain: { platform: 'platform.example.com' },
+ *   domain: { platform: 'platform.example.com', site: 'example.com' },
  *   trackPageViews: true,
  *   trackErrors: true,
  * })
@@ -55,8 +55,8 @@ export type DeviceInfo = {
  *
  * @example
  * ```typescript
- * // Same domain for platform and tracked site
- * { platform: 'platform.example.com' }
+ * // Same domain for platform and tracked site (site defaults to platform)
+ * { platform: 'platform.example.com', site: 'example.com' }
  *
  * // Custom subdomain setup
  * { platform: 'platform.club-life.pl', site: 'club-life.pl' }

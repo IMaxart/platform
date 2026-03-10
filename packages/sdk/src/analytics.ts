@@ -67,7 +67,7 @@ const getUTMParams = () => {
  * import { Analytics } from '@imaxart/analytics'
  *
  * const tracker = new Analytics()
- * tracker.init({ domain: { platform: 'platform.example.com' } })
+ * tracker.init({ domain: { platform: 'platform.example.com', site: 'example.com' } })
  * tracker.track('page_click', { buttonId: 'cta' })
  * tracker.destroy()
  * ```
@@ -156,7 +156,7 @@ export class Analytics {
    * @example
    * ```typescript
    * analytics.init({
-   *   domain: { platform: 'platform.example.com' },
+   *   domain: { platform: 'platform.example.com', site: 'example.com' },
    *   trackPageViews: true,
    *   trackErrors: true,
    *   respectDNT: true,
@@ -290,7 +290,7 @@ const GLOBAL_KEY = Symbol.for('@imaxart/analytics')
  * ```typescript
  * import { analytics } from '@imaxart/analytics'
  *
- * analytics.init({ domain: { platform: 'platform.example.com' } })
+ * analytics.init({ domain: { platform: 'platform.example.com', site: 'example.com' } })
  * analytics.track('page_view')
  * ```
  */

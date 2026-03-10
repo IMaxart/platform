@@ -20,7 +20,10 @@ export default defineNuxtPlugin(() => {
   const config = useRuntimeConfig()
 
   analytics.init({
-    domain: { platform: config.public.analyticsDomain as string },
+    domain: {
+      platform: config.public.analyticsDomain as string,
+      site: 'yourdomain.com',
+    },
     environment: process.dev ? 'development' : 'production',
     trackPageViews: false,
   })

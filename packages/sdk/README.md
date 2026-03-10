@@ -22,7 +22,7 @@ yarn add @imaxart/analytics
 import { analytics } from '@imaxart/analytics'
 
 analytics.init({
-  domain: { platform: 'platform.example.com' },
+  domain: { platform: 'platform.example.com', site: 'example.com' },
 })
 
 // Track custom events
@@ -134,7 +134,10 @@ if (showBanner) return <Banner />
 Page view tracking for TanStack Router. Set `trackPageViews: false` in init.
 
 ```typescript
-analytics.init({ domain: { platform: '...' }, trackPageViews: false })
+analytics.init({
+  domain: { platform: '...', site: '...' },
+  trackPageViews: false,
+})
 const cleanup = enableTanStackRouterTracking(router)
 ```
 
@@ -155,7 +158,9 @@ For advanced use cases, instantiate the `Analytics` class directly:
 import { Analytics } from '@imaxart/analytics'
 
 const tracker = new Analytics()
-tracker.init({ domain: { platform: 'platform.site-a.com' } })
+tracker.init({
+  domain: { platform: 'platform.site-a.com', site: 'site-a.com' },
+})
 ```
 
 ## TypeScript

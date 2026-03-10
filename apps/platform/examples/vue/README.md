@@ -20,6 +20,7 @@ analytics.init({
   domain: {
     platform:
       import.meta.env.VITE_ANALYTICS_DOMAIN ?? 'platform.yourdomain.com',
+    site: 'yourdomain.com',
   },
   environment: import.meta.env.MODE,
 })

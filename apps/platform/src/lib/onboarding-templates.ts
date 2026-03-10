@@ -17,7 +17,7 @@ import { enableTanStackRouterTracking } from '@imaxart/analytics/react'
 import { router } from './router'
 
 analytics.init({
-  domain: { platform: '${platformHost ?? domain}'${platformHost ? `, site: '${domain}'` : ''} },
+  domain: { platform: '${platformHost ?? domain}', site: '${domain}' },
   trackPageViews: false,
 })
 
@@ -33,7 +33,7 @@ import { usePathname } from 'next/navigation'
 import { useEffect } from 'react'
 
 analytics.init({
-  domain: { platform: '${platformHost ?? domain}'${platformHost ? `, site: '${domain}'` : ''} },
+  domain: { platform: '${platformHost ?? domain}', site: '${domain}' },
   trackPageViews: false,
 })
 
@@ -49,7 +49,7 @@ export const getViteReactSnippet = ({ domain, platformHost }: SnippetParams) =>
 import { analytics } from '@imaxart/analytics'
 
 analytics.init({
-  domain: { platform: '${platformHost ?? domain}'${platformHost ? `, site: '${domain}'` : ''} },
+  domain: { platform: '${platformHost ?? domain}', site: '${domain}' },
 })`
 
 export const getEnvTemplate = ({ domain }: SnippetParams) =>
@@ -77,7 +77,7 @@ pnpm add @imaxart/analytics
 import { analytics } from '@imaxart/analytics'
 
 analytics.init({
-  domain: { platform: '${platformHost ?? domain}'${platformHost ? `, site: '${domain}'` : ''} },
+  domain: { platform: '${platformHost ?? domain}', site: '${domain}' },
 })
 \`\`\`
 
