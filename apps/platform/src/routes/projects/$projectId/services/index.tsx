@@ -38,8 +38,10 @@ import {
   Server,
   Trash2,
 } from 'lucide-react'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 
+import type { SortKey } from '~/components/dashboard/sort-select'
+import { applySortKey, SortSelect } from '~/components/dashboard/sort-select'
 import { Header } from '~/components/layout/header'
 import {
   createEndpoint,
@@ -53,6 +55,7 @@ import * as m from '~/paraglide/messages'
 
 type ProjectService = {
   analyticsEnabled: boolean
+  createdAt: Date | string
   domain: null | string
   enabled: boolean
   endpoints: StatusEndpoint[]
@@ -724,6 +727,7 @@ function ServicesPage() {
   const { projectId } = useParams({ from: '/projects/$projectId/services/' })
   const queryClient = useQueryClient()
   const [showCreate, setShowCreate] = useState(false)
+  const [sortKey, setSortKey] = useState<SortKey>('newest')
   const [expandedServiceId, setExpandedServiceId] = useState<null | string>(
     null,
   )
@@ -736,6 +740,11 @@ function ServicesPage() {
       (await getProjectServices({ data: projectId })) as ProjectService[],
     queryKey: ['services', projectId],
   })
+
+  const sortedServices = useMemo(
+    () => applySortKey(servicesQuery.data ?? [], sortKey),
+    [servicesQuery.data, sortKey],
+  )
 
   const handleDeleteService = async (serviceId: string) => {
     await deleteService({ data: { serviceId } })
@@ -758,14 +767,17 @@ function ServicesPage() {
               {m.services_description()}
             </p>
           </div>
-          <Button
-            onClick={() => {
-              setShowCreate(true)
-            }}
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            {m.services_addService()}
-          </Button>
+          <div className="flex items-center gap-2">
+            <SortSelect onChange={setSortKey} value={sortKey} />
+            <Button
+              onClick={() => {
+                setShowCreate(true)
+              }}
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              {m.services_addService()}
+            </Button>
+          </div>
         </div>
 
         {showCreate && (
@@ -782,7 +794,7 @@ function ServicesPage() {
         )}
 
         <div className="space-y-4">
-          {servicesQuery.data?.map((service) => (
+          {sortedServices.map((service) => (
             <Card key={service.id}>
               <CardHeader className="flex flex-row items-center justify-between pb-3">
                 <div>

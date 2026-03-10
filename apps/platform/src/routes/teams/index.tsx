@@ -12,8 +12,10 @@ import { Label } from '@platform/ui/components/label'
 import { useForm } from '@tanstack/react-form'
 import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { Building2, ChevronRight, Loader2, Plus, Users } from 'lucide-react'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 
+import type { SortKey } from '~/components/dashboard/sort-select'
+import { applySortKey, SortSelect } from '~/components/dashboard/sort-select'
 import { Header } from '~/components/layout/header'
 import { usePlatformRole } from '~/hooks/use-platform-role'
 import * as m from '~/paraglide/messages'
@@ -32,8 +34,14 @@ function TeamsPage() {
   const { data: orgs, refetch } = authClient.useListOrganizations()
   const [showCreate, setShowCreate] = useState(false)
   const [error, setError] = useState<null | string>(null)
+  const [sortKey, setSortKey] = useState<SortKey>('name-asc')
   const { isSuperAdmin } = usePlatformRole()
   const navigate = useNavigate()
+
+  const sortedOrgs = useMemo(
+    () => applySortKey(orgs ?? [], sortKey),
+    [orgs, sortKey],
+  )
 
   const form = useForm({
     defaultValues: { name: '', slug: '' },
@@ -78,16 +86,19 @@ function TeamsPage() {
               {m.teams_description()}
             </p>
           </div>
-          {isSuperAdmin && (
-            <Button
-              onClick={() => {
-                setShowCreate(true)
-              }}
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              {m.teams_createTeam()}
-            </Button>
-          )}
+          <div className="flex items-center gap-2">
+            <SortSelect onChange={setSortKey} value={sortKey} />
+            {isSuperAdmin && (
+              <Button
+                onClick={() => {
+                  setShowCreate(true)
+                }}
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                {m.teams_createTeam()}
+              </Button>
+            )}
+          </div>
         </div>
 
         {showCreate && isSuperAdmin && (
@@ -178,7 +189,7 @@ function TeamsPage() {
         )}
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {orgs?.map((org) => (
+          {sortedOrgs.map((org) => (
             <Link
               key={org.id}
               params={{ teamId: org.id }}

@@ -13,8 +13,10 @@ import { useForm } from '@tanstack/react-form'
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { ChevronRight, FolderOpen, Loader2, Plus } from 'lucide-react'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 
+import type { SortKey } from '~/components/dashboard/sort-select'
+import { applySortKey, SortSelect } from '~/components/dashboard/sort-select'
 import { Header } from '~/components/layout/header'
 import { createProject, getProjects } from '~/lib/server/project-queries'
 import * as m from '~/paraglide/messages'
@@ -104,6 +106,7 @@ function CreateProjectForm({
 function ProjectsPage() {
   const { data: activeOrg } = authClient.useActiveOrganization()
   const [showCreate, setShowCreate] = useState(false)
+  const [sortKey, setSortKey] = useState<SortKey>('newest')
 
   const projectsQuery = useQuery({
     enabled: activeOrg?.id !== undefined,
@@ -114,6 +117,11 @@ function ProjectsPage() {
       }),
     queryKey: ['projects', activeOrg?.id],
   })
+
+  const sortedProjects = useMemo(
+    () => applySortKey(projectsQuery.data ?? [], sortKey),
+    [projectsQuery.data, sortKey],
+  )
 
   return (
     <>
@@ -130,14 +138,17 @@ function ProjectsPage() {
               {m.projects_description()}
             </p>
           </div>
-          <Button
-            onClick={() => {
-              setShowCreate(true)
-            }}
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            {m.projects_newProject()}
-          </Button>
+          <div className="flex items-center gap-2">
+            <SortSelect onChange={setSortKey} value={sortKey} />
+            <Button
+              onClick={() => {
+                setShowCreate(true)
+              }}
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              {m.projects_newProject()}
+            </Button>
+          </div>
         </div>
 
         {showCreate && activeOrg && (
@@ -168,7 +179,7 @@ function ProjectsPage() {
         )}
 
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {projectsQuery.data?.map((project) => (
+          {sortedProjects.map((project) => (
             <Link
               key={project.id}
               params={{ projectId: project.id }}
