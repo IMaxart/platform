@@ -74,6 +74,7 @@ const getUTMParams = () => {
 export class Analytics {
   private cleanupFns: (() => void)[] = []
   private collector: Collector | null = null
+  private currentDomain: null | string = null
   private errorTracker: ErrorTracker | null = null
   private flagClient: FlagClient | null = null
   private historyPatcher: HistoryPatcher | null = null
@@ -97,6 +98,7 @@ export class Analytics {
 
     this.sessionId = null
     this.collector = null
+    this.currentDomain = null
     this.pageTracker = null
     this.historyPatcher = null
     this.errorTracker = null
@@ -163,11 +165,15 @@ export class Analytics {
   init = (config: AnalyticsConfig): void => {
     if (typeof window === 'undefined') return
 
+    const resolved = resolveConfig(config)
+
+    if (this.collector && this.currentDomain === resolved.siteDomain) return
+
     if (this.collector) {
       this.destroy()
     }
 
-    const resolved = resolveConfig(config)
+    this.currentDomain = resolved.siteDomain
 
     if (resolved.respectDNT && isDNTEnabled()) return
 

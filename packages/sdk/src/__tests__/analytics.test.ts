@@ -153,4 +153,36 @@ describe('Analytics', () => {
 
     instance.destroy()
   })
+
+  it('skips reinit when called with the same domain (idempotency)', () => {
+    const instance = new Analytics()
+    const config = { domain: 'analytics.test', respectDNT: false }
+
+    instance.init(config)
+    instance.init(config)
+    instance.init(config)
+
+    instance.destroy()
+
+    expect(navigator.sendBeacon).toHaveBeenCalledTimes(1)
+    const body = (navigator.sendBeacon as ReturnType<typeof vi.fn>).mock
+      .calls[0]?.[1] as string
+    const payloads = JSON.parse(body) as { type: string }[]
+    const sessions = payloads.filter((p) => p.type === 'session')
+    const pageViews = payloads.filter((p) => p.type === 'pageview')
+    expect(sessions).toHaveLength(1)
+    expect(pageViews).toHaveLength(1)
+  })
+
+  it('reinitializes when domain changes', () => {
+    const instance = new Analytics()
+
+    instance.init({ domain: 'analytics.test', respectDNT: false })
+    instance.init({ domain: 'analytics2.test', respectDNT: false })
+
+    instance.destroy()
+
+    const calls = (navigator.sendBeacon as ReturnType<typeof vi.fn>).mock.calls
+    expect(calls.length).toBeGreaterThanOrEqual(1)
+  })
 })
