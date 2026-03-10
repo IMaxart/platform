@@ -48,6 +48,7 @@ export const Route = createFileRoute('/api/collect')({
           const domainParam = url.searchParams.get('domain')
 
           let serviceId: null | string = null
+          let matchMethod = 'none'
 
           if (domainParam !== null) {
             const service = await db.query.services.findFirst({
@@ -55,6 +56,7 @@ export const Route = createFileRoute('/api/collect')({
               where: eq(services.domain, domainParam),
             })
             serviceId = service?.id ?? null
+            if (serviceId) matchMethod = 'domain'
           }
 
           if (serviceId === null) {
@@ -62,7 +64,9 @@ export const Route = createFileRoute('/api/collect')({
             const tenant = await resolveTenant(host)
             serviceId = tenant.serviceId
 
-            if (tenant.isAdmin && serviceId === null) {
+            if (serviceId) {
+              matchMethod = 'tenant'
+            } else if (tenant.isAdmin) {
               const origin = request.headers.get('origin') ?? ''
               const originHost =
                 origin.length > 0 ? new URL(origin).hostname : ''
@@ -73,6 +77,7 @@ export const Route = createFileRoute('/api/collect')({
                   where: eq(services.domain, originHost),
                 })
                 serviceId = service?.id ?? null
+                if (serviceId) matchMethod = 'origin'
               }
             }
           }
@@ -82,6 +87,13 @@ export const Route = createFileRoute('/api/collect')({
               columns: { id: true },
             })
             serviceId = fallback?.id ?? null
+            if (serviceId) matchMethod = 'fallback'
+          }
+
+          if (matchMethod !== 'domain') {
+            console.warn(
+              `[collect] Service resolved via ${matchMethod}: domain=${domainParam}, serviceId=${serviceId}`,
+            )
           }
 
           if (serviceId === null) {
