@@ -15,6 +15,7 @@ import {
   desc,
   eq,
   gte,
+  ilike,
   inArray,
   lte,
   ne,
@@ -284,28 +285,126 @@ export const getBotStats = createServerFn({ method: 'GET' })
 
 export const getEvents = createServerFn({ method: 'GET' })
   .inputValidator(
-    (d: { days: number; limit?: number; offset?: number; serviceId: string }) =>
-      d,
+    (d: {
+      days: number
+      limit?: number
+      nameFilter?: string
+      offset?: number
+      serviceId: string
+    }) => d,
   )
-  .handler(async ({ data: { days, limit = 50, offset = 0, serviceId } }) => {
+  .handler(
+    async ({
+      data: { days, limit = 50, nameFilter, offset = 0, serviceId },
+    }) => {
+      const startDate = new Date()
+      startDate.setDate(startDate.getDate() - days)
+
+      const conditions = [
+        eq(events.serviceId, serviceId),
+        gte(events.createdAt, startDate),
+        nameFilter !== undefined
+          ? ilike(events.name, `%${nameFilter}%`)
+          : undefined,
+      ].filter(Boolean)
+
+      return db
+        .select({
+          count: count(),
+          lastSeen: sql<string>`MAX(${events.createdAt})`.as('last_seen'),
+          name: events.name,
+        })
+        .from(events)
+        .where(and(...conditions))
+        .groupBy(events.name)
+        .orderBy(desc(count()))
+        .limit(limit)
+        .offset(offset)
+    },
+  )
+
+export const getEventStats = createServerFn({ method: 'GET' })
+  .inputValidator((d: { days: number; serviceId: string }) => d)
+  .handler(async ({ data: { days, serviceId } }) => {
+    const startDate = new Date()
+    startDate.setDate(startDate.getDate() - days)
+
+    const conditions = [
+      eq(events.serviceId, serviceId),
+      gte(events.createdAt, startDate),
+    ]
+
+    const [total, uniqueNames] = await Promise.all([
+      db
+        .select({ count: count() })
+        .from(events)
+        .where(and(...conditions)),
+      db
+        .select({ count: countDistinct(events.name) })
+        .from(events)
+        .where(and(...conditions)),
+    ])
+
+    return {
+      totalEvents: total[0]?.count ?? 0,
+      uniqueNames: uniqueNames[0]?.count ?? 0,
+    }
+  })
+
+export const getEventTimeline = createServerFn({ method: 'GET' })
+  .inputValidator((d: { days: number; serviceId: string }) => d)
+  .handler(async ({ data: { days, serviceId } }) => {
     const startDate = new Date()
     startDate.setDate(startDate.getDate() - days)
 
     return db
       .select({
         count: count(),
-        lastSeen: sql<string>`MAX(${events.createdAt})`.as('last_seen'),
-        name: events.name,
+        date: sql<string>`DATE(${events.createdAt})`.as('date'),
       })
       .from(events)
       .where(
         and(eq(events.serviceId, serviceId), gte(events.createdAt, startDate)),
       )
-      .groupBy(events.name)
-      .orderBy(desc(count()))
-      .limit(limit)
-      .offset(offset)
+      .groupBy(sql`DATE(${events.createdAt})`)
+      .orderBy(sql`DATE(${events.createdAt})`)
   })
+
+export const getEventDetail = createServerFn({ method: 'GET' })
+  .inputValidator(
+    (d: {
+      days: number
+      limit?: number
+      name: string
+      offset?: number
+      serviceId: string
+    }) => d,
+  )
+  .handler(
+    async ({ data: { days, limit = 50, name, offset = 0, serviceId } }) => {
+      const startDate = new Date()
+      startDate.setDate(startDate.getDate() - days)
+
+      return db
+        .select({
+          createdAt: events.createdAt,
+          id: events.id,
+          path: events.path,
+          properties: events.properties,
+        })
+        .from(events)
+        .where(
+          and(
+            eq(events.serviceId, serviceId),
+            eq(events.name, name),
+            gte(events.createdAt, startDate),
+          ),
+        )
+        .orderBy(desc(events.createdAt))
+        .limit(limit)
+        .offset(offset)
+    },
+  )
 
 // ── Sessions ──
 

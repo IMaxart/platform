@@ -56,7 +56,7 @@ export const Route = createFileRoute('/api/collect')({
               where: eq(services.domain, domainParam),
             })
             serviceId = service?.id ?? null
-            if (serviceId) matchMethod = 'domain'
+            if (serviceId !== null) matchMethod = 'domain'
           }
 
           if (serviceId === null) {
@@ -64,7 +64,7 @@ export const Route = createFileRoute('/api/collect')({
             const tenant = await resolveTenant(host)
             serviceId = tenant.serviceId
 
-            if (serviceId) {
+            if (serviceId !== null) {
               matchMethod = 'tenant'
             } else if (tenant.isAdmin) {
               const origin = request.headers.get('origin') ?? ''
@@ -77,7 +77,7 @@ export const Route = createFileRoute('/api/collect')({
                   where: eq(services.domain, originHost),
                 })
                 serviceId = service?.id ?? null
-                if (serviceId) matchMethod = 'origin'
+                if (serviceId !== null) matchMethod = 'origin'
               }
             }
           }
@@ -87,7 +87,7 @@ export const Route = createFileRoute('/api/collect')({
               columns: { id: true },
             })
             serviceId = fallback?.id ?? null
-            if (serviceId) matchMethod = 'fallback'
+            if (serviceId !== null) matchMethod = 'fallback'
           }
 
           if (matchMethod !== 'domain') {
